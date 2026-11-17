@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="cabeca(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' - Creche Sementinhas'">Creche Sementinhas</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+
+<body>
+
+<header th:fragment="topo">
+    <h1>Creche Sementinhas</h1>
+    <nav>
+        <a th:href="@{/}">Início</a>
+    </nav>
+</header>
+
+<footer th:fragment="rodape">
+    <p>Sistema de matrícula · Creche Sementinhas</p>
+</footer>
+
+</body>
+</html>
