@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout :: cabeca('Entrar')}"></head>
+
+<body>
+
+<main class="login">
+    <h2>Entrar no sistema</h2>
+
+    <p class="erro" th:if="${param.error}">Login ou senha inválidos.</p>
+    <p class="aviso" th:if="${param.logout}">Você saiu do sistema.</p>
+
+    <form th:action="@{/login}" method="post">
+        <label for="username">Login</label>
+        <input type="text" id="username" name="username" required autofocus>
+
+        <label for="password">Senha</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Entrar</button>
+    </form>
+</main>
+
+<footer th:replace="~{layout :: rodape}"></footer>
+
+</body>
+</html>
