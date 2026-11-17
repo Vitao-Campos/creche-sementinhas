@@ -41,3 +41,46 @@ footer {
     color: #666666;
     font-size: 0.85rem;
 }
+
+/* Tela de login */
+
+main.login {
+    max-width: 360px;
+    background-color: #ffffff;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+main.login label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+main.login input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    box-sizing: border-box;
+}
+
+main.login button {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    background-color: #4a8c3f;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.erro {
+    color: #b00020;
+}
+
+.aviso {
+    color: #4a8c3f;
+}
