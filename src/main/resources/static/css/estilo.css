@@ -84,3 +84,23 @@ main.login button {
 .aviso {
     color: #4a8c3f;
 }
+
+/* Botão Sair, com cara de link do menu */
+
+nav form.sair {
+    display: inline;
+}
+
+nav form.sair button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+nav form.sair button:hover {
+    text-decoration: underline;
+}
