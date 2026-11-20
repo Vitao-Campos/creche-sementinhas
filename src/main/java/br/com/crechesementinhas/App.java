@@ -1,40 +1,29 @@
 package br.com.crechesementinhas;
 
-import br.com.crechesementinhas.util.ConnectionFactory;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.io.IOException;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 /**
  * Ponto de entrada do sistema da Creche Sementinhas.
- * Por enquanto, testa a conexão com o banco e mostra o resultado.
+ * Abre a tela de login.
  */
 public class App extends Application {
 
     @Override
-    public void start(Stage stage) {
-        Label mensagem = new Label(testarConexao());
+    public void start(Stage stage) throws IOException {
+        // Caminho relativo ao pacote desta classe:
+        // br/com/crechesementinhas/ + view/login.fxml
+        FXMLLoader carregador = new FXMLLoader(App.class.getResource("view/login.fxml"));
+        Parent tela = carregador.load();
 
-        Scene cena = new Scene(new StackPane(mensagem), 600, 400);
-
-        stage.setTitle("Creche Sementinhas");
-        stage.setScene(cena);
+        stage.setTitle("Creche Sementinhas - Login");
+        stage.setScene(new Scene(tela));
+        stage.setResizable(false);
         stage.show();
-    }
-
-    private String testarConexao() {
-        // try-with-resources: a conexão é fechada automaticamente no final.
-        try (Connection conexao = ConnectionFactory.getConnection()) {
-            String banco = conexao.getCatalog();
-            String versao = conexao.getMetaData().getDatabaseProductVersion();
-            return "✔ Conectado ao banco \"" + banco + "\" (PostgreSQL " + versao + ")";
-        } catch (SQLException e) {
-            return "✘ Erro ao conectar: " + e.getMessage();
-        }
     }
 
     public static void main(String[] args) {
