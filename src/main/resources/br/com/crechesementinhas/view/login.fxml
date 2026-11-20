@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="br.com.crechesementinhas.controller.LoginController"
+      alignment="CENTER" spacing="10" prefWidth="420" prefHeight="460"
+      style="-fx-background-color: #f4f6f9;">
+
+    <padding>
+        <Insets top="40" right="50" bottom="40" left="50"/>
+    </padding>
+
+    <Label text="Creche Sementinhas"
+           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+    <Label text="Sistema de Matrículas"
+           style="-fx-font-size: 14px; -fx-text-fill: #607d8b;"/>
+
+    <Region prefHeight="15"/>
+
+    <Label text="Usuário" maxWidth="Infinity"/>
+    <TextField fx:id="campoLogin" promptText="Digite seu usuário"/>
+
+    <Label text="Senha" maxWidth="Infinity"/>
+    <PasswordField fx:id="campoSenha" promptText="Digite sua senha"/>
+
+    <Label fx:id="labelErro" textFill="#c62828" wrapText="true"
+           visible="false" managed="false"/>
+
+    <Button fx:id="botaoEntrar" text="Entrar" defaultButton="true"
+            onAction="#entrar" maxWidth="Infinity"
+            style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+</VBox>

@@ -1,0 +1,18 @@
+/* Estilos compartilhados por todas as telas do sistema */
+
+.botao-menu {
+    -fx-background-color: white;
+    -fx-text-fill: #2e7d32;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-border-color: #2e7d32;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* :hover = quando o mouse passa por cima */
+.botao-menu:hover {
+    -fx-background-color: #e8f5e9;
+}

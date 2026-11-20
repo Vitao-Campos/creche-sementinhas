@@ -40,6 +40,13 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.14</version>
         </dependency>
+        
+                <!-- BCrypt: verificação e geração de hash de senhas (RNF-01) -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
     <build>
