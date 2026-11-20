@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
+import br.com.crechesementinhas.util.Navegacao;
 
 /**
  * Controller da tela de login (login.fxml). RF-01.
@@ -36,8 +37,7 @@ public class LoginController {
 
             Sessao.iniciar(usuario);
 
-            // PROVISÓRIO: no próximo passo, aqui abriremos a tela de menu.
-            mostrarMensagem("Bem-vindo, " + usuario.getNome() + "!", false);
+                        Navegacao.abrir("menu.fxml", "Menu");
 
         } catch (AutenticacaoException e) {
             mostrarMensagem(e.getMessage(), true);
