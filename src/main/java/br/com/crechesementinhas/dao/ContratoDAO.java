@@ -110,4 +110,47 @@ public class ContratoDAO {
             return dados;
         }
     }
+    
+    /** Todas as versões de contrato da matrícula (histórico - RF-08), da mais nova para a mais antiga. */
+    public List<Contrato> listarPorMatricula(int idMatricula) throws SQLException {
+        String sql = """
+                SELECT c.*, r.nome AS nome_financeiro
+                FROM contrato c
+                JOIN responsavel r ON r.id_responsavel = c.id_responsavel_financeiro
+                WHERE c.id_matricula = ?
+                ORDER BY c.versao DESC
+                """;
+        List<Contrato> lista = new ArrayList<>();
+        try (Connection con = ConnectionFactory.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idMatricula);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(montarContrato(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+    /** Transforma uma linha do banco (ResultSet) em um objeto Contrato. */
+    private Contrato montarContrato(ResultSet rs) throws SQLException {
+        Contrato c = new Contrato();
+        c.setIdContrato(rs.getInt("id_contrato"));
+        c.setIdMatricula(rs.getInt("id_matricula"));
+        c.setIdResponsavelFinanceiro(rs.getInt("id_responsavel_financeiro"));
+        c.setNomeResponsavelFinanceiro(rs.getString("nome_financeiro"));
+        c.setPlano(rs.getString("plano"));
+        c.setFormaPagamento(rs.getString("forma_pagamento"));
+        c.setDiaVencimento(rs.getInt("data_vencimento_mensalidade"));
+        c.setValorMensalidade(rs.getBigDecimal("valor_mensalidade"));
+        c.setVigenciaAte(rs.getDate("vigencia_contrato").toLocalDate());
+        Date assinatura = rs.getDate("data_assinatura");
+        c.setDataAssinatura(assinatura == null ? null : assinatura.toLocalDate());
+        Date saida = rs.getDate("data_saida");
+        c.setDataSaida(saida == null ? null : saida.toLocalDate());
+        c.setVersao(rs.getInt("versao"));
+        c.setStatus(rs.getString("status"));
+        return c;
+    }
 }
