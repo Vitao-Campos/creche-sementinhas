@@ -39,4 +39,14 @@ public class ContratoService {
     public List<Contrato> listarContratos(int idMatricula) throws SQLException {
         return dao.listarPorMatricula(idMatricula);
     }
+    
+    /** RN-06: devolve a única versão VIGENTE (ou null se ainda não há contrato). */
+    public Contrato buscarVigente(List<Contrato> contratos) {
+        for (Contrato c : contratos) {
+            if ("VIGENTE".equals(c.getStatus())) {
+                return c;
+            }
+        }
+        return null;
+    }
 }
