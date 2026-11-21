@@ -153,4 +153,73 @@ public class ContratoDAO {
         c.setStatus(rs.getString("status"));
         return c;
     }
+    
+    /**
+     * RF-08 / RN-06 / EX-04: cria uma NOVA versão do contrato.
+     * Tudo acontece numa TRANSAÇÃO (ou faz tudo, ou não faz nada):
+     *   1. trava a matrícula (evita que dois computadores gerem ao mesmo tempo);
+     *   2. descobre o próximo número de versão;
+     *   3. ENCERRA a versão vigente anterior (histórico não é apagado);
+     *   4. grava a nova versão como VIGENTE.
+     * Devolve o número da versão criada.
+     */
+    public int criarNovaVersao(Contrato novo) throws SQLException {
+        String sqlTravar = "SELECT id_matricula FROM matricula WHERE id_matricula = ? FOR UPDATE";
+        String sqlProxima = "SELECT COALESCE(MAX(versao), 0) + 1 FROM contrato WHERE id_matricula = ?";
+        String sqlEncerrar = """
+                UPDATE contrato SET status = 'ENCERRADO'
+                WHERE id_matricula = ? AND status = 'VIGENTE'
+                """;
+        String sqlInserir = """
+                INSERT INTO contrato (id_matricula, id_responsavel_financeiro, plano,
+                    forma_pagamento, data_vencimento_mensalidade, vigencia_contrato,
+                    data_assinatura, versao, status, valor_mensalidade)
+                VALUES (?, ?, ?, ?, ?, ?, NULL, ?, 'VIGENTE', ?)
+                """;
+
+        try (Connection con = ConnectionFactory.getConnection()) {
+            con.setAutoCommit(false); // começa a transação
+            try {
+                try (PreparedStatement ps = con.prepareStatement(sqlTravar)) {
+                    ps.setInt(1, novo.getIdMatricula());
+                    ps.executeQuery().close();
+                }
+
+                int proximaVersao;
+                try (PreparedStatement ps = con.prepareStatement(sqlProxima)) {
+                    ps.setInt(1, novo.getIdMatricula());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        rs.next();
+                        proximaVersao = rs.getInt(1);
+                    }
+                }
+
+                try (PreparedStatement ps = con.prepareStatement(sqlEncerrar)) {
+                    ps.setInt(1, novo.getIdMatricula());
+                    ps.executeUpdate();
+                }
+
+                try (PreparedStatement ps = con.prepareStatement(sqlInserir)) {
+                    ps.setInt(1, novo.getIdMatricula());
+                    ps.setInt(2, novo.getIdResponsavelFinanceiro());
+                    ps.setString(3, novo.getPlano());
+                    ps.setString(4, novo.getFormaPagamento());
+                    ps.setInt(5, novo.getDiaVencimento());
+                    ps.setDate(6, Date.valueOf(novo.getVigenciaAte()));
+                    ps.setInt(7, proximaVersao);
+                    ps.setBigDecimal(8, novo.getValorMensalidade());
+                    ps.executeUpdate();
+                }
+
+                con.commit(); // deu tudo certo: confirma
+                // RNF-02 (etapa 4 - integração): registrar aqui no historico_alteracao,
+                // usando o serviço de auditoria da Frente A.
+                return proximaVersao;
+
+            } catch (SQLException e) {
+                con.rollback(); // deu erro: desfaz tudo
+                throw e;
+            }
+        }
+    }
 }
