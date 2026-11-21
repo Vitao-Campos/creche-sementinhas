@@ -11,3 +11,8 @@ ALTER TABLE contrato
 
 ALTER TABLE contrato
     ADD CONSTRAINT ck_contrato_valor_mensalidade CHECK (valor_mensalidade > 0);
+
+-- 2) RN-05: o contrato só vale depois de assinado pelo responsável legal.
+--    Então a data de assinatura começa VAZIA e é preenchida quando ele assina.
+ALTER TABLE contrato
+    ALTER COLUMN data_assinatura DROP NOT NULL;
