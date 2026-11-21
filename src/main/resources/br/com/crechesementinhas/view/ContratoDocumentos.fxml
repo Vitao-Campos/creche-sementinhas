@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<!-- Tela da Frente F: Contrato e documentos -->
+<BorderPane prefHeight="760.0" prefWidth="1100.0"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.ContratoDocumentosController">
+
+   <!-- ===================== TOPO: escolha da matrícula ===================== -->
+   <top>
+      <VBox spacing="6.0">
+         <padding><Insets bottom="8.0" left="12.0" right="12.0" top="12.0" /></padding>
+         <Label text="Contrato e documentos">
+            <font><Font name="System Bold" size="18.0" /></font>
+         </Label>
+         <HBox alignment="CENTER_LEFT" spacing="8.0">
+            <Label text="Matrícula:" />
+            <ComboBox fx:id="cbMatricula" prefWidth="420.0" promptText="Selecione o aluno" />
+            <Button onAction="#onAtualizarLista" text="Atualizar lista" />
+         </HBox>
+         <Label fx:id="lblAluno" />
+      </VBox>
+   </top>
+
+   <!-- ===================== CENTRO: duas abas ===================== -->
+   <center>
+      <TabPane tabClosingPolicy="UNAVAILABLE">
+
+         <!-- ========== ABA 1: CONTRATO ========== -->
+         <Tab text="Contrato">
+            <VBox spacing="8.0">
+               <padding><Insets bottom="8.0" left="12.0" right="12.0" top="8.0" /></padding>
+
+               <Label text="Dados da nova versão do contrato">
+                  <font><Font name="System Bold" size="13.0" /></font>
+               </Label>
+               <GridPane hgap="10.0" vgap="6.0">
+                  <Label text="Responsável financeiro:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                  <ComboBox fx:id="cbFinanceiro" prefWidth="320.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                  <Label text="Plano:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                  <ComboBox fx:id="cbPlano" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+                  <Label text="Mensalidade (R$):" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                  <TextField fx:id="txtValor" promptText="Ex.: 1.150,00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label text="Dia de vencimento:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                  <TextField fx:id="txtDiaVencimento" prefWidth="60.0" promptText="10 ou 25" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+                  <Label text="Forma de pagamento:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                  <ComboBox fx:id="cbFormaPagamento" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <Label text="Vigência até:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                  <DatePicker fx:id="dpVigencia" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+               </GridPane>
+
+               <HBox spacing="8.0">
+                  <Button onAction="#onGerarNovaVersao" text="Gerar nova versão" defaultButton="true" />
+                  <Button onAction="#onRematricula" text="Rematrícula (próximo ano)" />
+               </HBox>
+
+               <Separator />
+               <Label text="Histórico de versões (clique numa linha para ver o contrato)">
+                  <font><Font name="System Bold" size="13.0" /></font>
+               </Label>
+               <TableView fx:id="tabelaContratos" prefHeight="150.0">
+                  <columns>
+                     <TableColumn fx:id="colVersao" prefWidth="60.0" text="Versão" />
+                     <TableColumn fx:id="colStatus" prefWidth="90.0" text="Status" />
+                     <TableColumn fx:id="colPlano" prefWidth="150.0" text="Plano" />
+                     <TableColumn fx:id="colValor" prefWidth="110.0" text="Mensalidade" />
+                     <TableColumn fx:id="colDia" prefWidth="80.0" text="Vencimento" />
+                     <TableColumn fx:id="colFinanceiro" prefWidth="180.0" text="Resp. financeiro" />
+                     <TableColumn fx:id="colVigencia" prefWidth="100.0" text="Vigência até" />
+                     <TableColumn fx:id="colAssinatura" prefWidth="180.0" text="Assinatura" />
+                  </columns>
+               </TableView>
+
+               <HBox alignment="CENTER_LEFT" spacing="8.0">
+                  <Label text="Assinado por:" />
+                  <ComboBox fx:id="cbSignatario" prefWidth="280.0" />
+                  <Label text="em" />
+                  <DatePicker fx:id="dpAssinatura" prefWidth="130.0" />
+                  <Button onAction="#onRegistrarAssinatura" text="Registrar assinatura" />
+                  <Separator orientation="VERTICAL" />
+                  <Button onAction="#onSalvarPdf" text="Salvar PDF" />
+                  <Button onAction="#onAbrirImprimir" text="Abrir para imprimir" />
+               </HBox>
+
+               <TextArea fx:id="txtPreview" editable="false" prefHeight="220.0" wrapText="true"
+                         promptText="Pré-visualização do contrato" VBox.vgrow="ALWAYS" />
+            </VBox>
+         </Tab>
+
+         <!-- ========== ABA 2: DOCUMENTOS ========== -->
+         <Tab text="Documentos (anexos)">
+            <VBox spacing="8.0">
+               <padding><Insets bottom="8.0" left="12.0" right="12.0" top="8.0" /></padding>
+               <HBox alignment="CENTER_LEFT" spacing="8.0">
+                  <Label text="Tipo:" />
+                  <ComboBox fx:id="cbTipoDocumento" prefWidth="240.0" promptText="Selecione o tipo" />
+                  <Button onAction="#onAnexarDocumento" text="Escolher arquivo e anexar..." />
+                  <Label text="Aceita PDF, JPEG ou PNG de até 5 MB" />
+               </HBox>
+               <TableView fx:id="tabelaDocumentos" VBox.vgrow="ALWAYS">
+                  <columns>
+                     <TableColumn fx:id="colDocTipo" prefWidth="200.0" text="Tipo" />
+                     <TableColumn fx:id="colDocNome" prefWidth="380.0" text="Arquivo" />
+                     <TableColumn fx:id="colDocData" prefWidth="110.0" text="Data" />
+                     <TableColumn fx:id="colDocStatus" prefWidth="110.0" text="Status" />
+                  </columns>
+               </TableView>
+               <HBox spacing="8.0">
+                  <Button onAction="#onAbrirDocumento" text="Abrir documento" />
+                  <Button onAction="#onValidarDocumento" text="Marcar como validado" />
+               </HBox>
+            </VBox>
+         </Tab>
+      </TabPane>
+   </center>
+
+   <!-- ===================== RODAPÉ: mensagens ===================== -->
+   <bottom>
+      <Label fx:id="lblMensagem">
+         <padding><Insets bottom="8.0" left="12.0" right="12.0" top="4.0" /></padding>
+      </Label>
+   </bottom>
+</BorderPane>
