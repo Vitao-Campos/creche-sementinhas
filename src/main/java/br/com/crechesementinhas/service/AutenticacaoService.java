@@ -1,8 +1,11 @@
 package br.com.crechesementinhas.service;
 
+import br.com.crechesementinhas.dao.LogAcessoDAO;
 import br.com.crechesementinhas.dao.UsuarioDAO;
+import br.com.crechesementinhas.model.MotivoFalhaLogin;
 import br.com.crechesementinhas.model.Usuario;
 import java.sql.SQLException;
+import java.util.Optional;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
@@ -12,46 +15,70 @@ public class AutenticacaoService {
 
     // Mesma mensagem para usuário inexistente, inativo ou senha errada:
     // não revela a um invasor quais logins existem.
+    // O motivo REAL fica só no log interno (tabela log_acesso).
     private static final String MSG_CREDENCIAIS_INVALIDAS = "Usuário ou senha inválidos.";
 
     private final UsuarioDAO usuarioDAO;
+    private final LogAcessoDAO logAcessoDAO;
 
     public AutenticacaoService() {
-        this(new UsuarioDAO());
+        this(new UsuarioDAO(), new LogAcessoDAO());
     }
 
-    // Construtor que recebe o DAO de fora (injeção de dependência):
-    // permite trocar o DAO por um "falso" em testes automatizados.
-    public AutenticacaoService(UsuarioDAO usuarioDAO) {
+    public AutenticacaoService(UsuarioDAO usuarioDAO, LogAcessoDAO logAcessoDAO) {
         this.usuarioDAO = usuarioDAO;
+        this.logAcessoDAO = logAcessoDAO;
     }
 
-    /**
-     * Valida login e senha.
-     *
-     * @return o usuário autenticado
-     * @throws AutenticacaoException com mensagem pronta para a tela
-     */
     public Usuario autenticar(String login, String senha) throws AutenticacaoException {
         if (login == null || login.isBlank() || senha == null || senha.isEmpty()) {
             throw new AutenticacaoException("Informe o usuário e a senha.");
         }
 
-        try {
-            Usuario usuario = usuarioDAO.buscarPorLogin(login.trim())
-                    .orElseThrow(() -> new AutenticacaoException(MSG_CREDENCIAIS_INVALIDAS));
+        String loginLimpo = login.trim();
 
-            if (!usuario.isAtivo() || !senhaConfere(senha, usuario.getSenhaHash())) {
+        try {
+            Optional<Usuario> encontrado = usuarioDAO.buscarPorLogin(loginLimpo);
+
+            if (encontrado.isEmpty()) {
+                registrarLog(loginLimpo, null, false, MotivoFalhaLogin.USUARIO_INEXISTENTE);
+                throw new AutenticacaoException(MSG_CREDENCIAIS_INVALIDAS);
+            }
+
+            Usuario usuario = encontrado.get();
+
+            if (!usuario.isAtivo()) {
+                registrarLog(loginLimpo, usuario.getIdUsuario(), false, MotivoFalhaLogin.USUARIO_INATIVO);
+                throw new AutenticacaoException(MSG_CREDENCIAIS_INVALIDAS);
+            }
+
+            if (!senhaConfere(senha, usuario.getSenhaHash())) {
+                registrarLog(loginLimpo, usuario.getIdUsuario(), false, MotivoFalhaLogin.SENHA_INCORRETA);
                 throw new AutenticacaoException(MSG_CREDENCIAIS_INVALIDAS);
             }
 
             usuarioDAO.atualizarUltimoLogin(usuario.getIdUsuario());
+            registrarLog(loginLimpo, usuario.getIdUsuario(), true, null);
             return usuario;
 
         } catch (SQLException e) {
             throw new AutenticacaoException(
                     "Não foi possível acessar o banco de dados. "
                     + "Verifique se o servidor está ligado.", e);
+        }
+    }
+
+    /**
+     * Grava a tentativa no log de acesso (EX-03).
+     * Uma falha ao gravar o LOG não deve impedir o login nem trocar a
+     * mensagem da tela; por isso o erro é apenas reportado no console.
+     */
+    private void registrarLog(String login, Integer idUsuario,
+                              boolean sucesso, MotivoFalhaLogin motivo) {
+        try {
+            logAcessoDAO.registrar(login, idUsuario, sucesso, motivo);
+        } catch (SQLException e) {
+            System.err.println("Falha ao registrar log de acesso: " + e.getMessage());
         }
     }
 
@@ -64,7 +91,7 @@ public class AutenticacaoService {
         try {
             return BCrypt.checkpw(senhaDigitada, hashGuardado);
         } catch (IllegalArgumentException e) {
-            return false; // hash inválido no banco: trata como senha errada
+            return false;
         }
     }
 }
