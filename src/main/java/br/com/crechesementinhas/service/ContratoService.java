@@ -80,4 +80,45 @@ public class ContratoService {
     public boolean diaForaDoPadrao(int dia) {
         return dia != 10 && dia != 25;
     }
+    
+    /**
+     * RF-08 / RN-06 / EX-04: valida e grava uma nova versão do contrato.
+     * A versão anterior (se existir) passa automaticamente para ENCERRADO.
+     */
+    public int gerarNovaVersao(Contrato novo, DadosContrato dados) throws SQLException {
+        if (dados == null) {
+            throw new IllegalArgumentException("Selecione uma matrícula.");
+        }
+        if (!"ATIVA".equals(dados.getStatusMatricula())) {
+            throw new IllegalArgumentException("Só é possível gerar contrato para matrícula ATIVA.");
+        }
+        // RN-01: precisa de pelo menos um responsável legal vinculado
+        if (dados.getResponsaveisLegais().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "RN-01: o aluno não tem responsável legal cadastrado. Cadastre-o antes de gerar o contrato.");
+        }
+        // RN-02 / RN-03: o financeiro precisa ser um responsável ligado ao aluno
+        if (dados.buscarResponsavel(novo.getIdResponsavelFinanceiro()) == null) {
+            throw new IllegalArgumentException("Selecione o responsável financeiro.");
+        }
+        if (novo.getPlano() == null || novo.getPlano().isBlank()) {
+            throw new IllegalArgumentException("Selecione o plano.");
+        }
+        if (novo.getFormaPagamento() == null) {
+            throw new IllegalArgumentException("Selecione a forma de pagamento.");
+        }
+        if (novo.getValorMensalidade() == null
+                || novo.getValorMensalidade().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("O valor da mensalidade deve ser maior que zero.");
+        }
+        if (novo.getDiaVencimento() < 1 || novo.getDiaVencimento() > 31) {
+            throw new IllegalArgumentException("O dia de vencimento deve estar entre 1 e 31.");
+        }
+        if (novo.getVigenciaAte() == null || !novo.getVigenciaAte().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("A vigência deve ser uma data futura.");
+        }
+
+        novo.setIdMatricula(dados.getIdMatricula());
+        return dao.criarNovaVersao(novo);
+    }
 }
