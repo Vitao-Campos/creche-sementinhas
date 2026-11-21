@@ -222,4 +222,21 @@ public class ContratoDAO {
             }
         }
     }
+    
+    /** RN-05: grava a data em que o responsável legal assinou. */
+    public void registrarAssinatura(int idContrato, LocalDate data) throws SQLException {
+        String sql = """
+                UPDATE contrato SET data_assinatura = ?
+                WHERE id_contrato = ? AND status = 'VIGENTE'
+                """;
+        try (Connection con = ConnectionFactory.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(data));
+            ps.setInt(2, idContrato);
+            int linhas = ps.executeUpdate();
+            if (linhas == 0) {
+                throw new SQLException("Só é possível assinar o contrato VIGENTE.");
+            }
+        }
+    }
 }
