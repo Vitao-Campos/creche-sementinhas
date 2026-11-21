@@ -116,4 +116,29 @@ public class ContratoDocumentosController {
         alerta.setHeaderText(titulo);
         alerta.showAndWait();
     }
+    
+    // =================================================================
+    //  RECARGA DA TELA
+    // =================================================================
+
+    private void recarregarContratos() throws SQLException {
+        tabelaContratos.setItems(FXCollections.observableArrayList(
+                contratoService.listarContratos(dadosAtuais.getIdMatricula())));
+        txtPreview.clear();
+    }
+
+    private void recarregarDocumentos() throws SQLException {
+        tabelaDocumentos.setItems(FXCollections.observableArrayList(
+                documentoService.listar(dadosAtuais.getIdMatricula())));
+    }
+
+    private void limparTela() {
+        dadosAtuais = null;
+        lblAluno.setText("");
+        cbFinanceiro.getItems().clear();
+        cbSignatario.getItems().clear();
+        tabelaContratos.getItems().clear();
+        tabelaDocumentos.getItems().clear();
+        txtPreview.clear();
+    }
 }
