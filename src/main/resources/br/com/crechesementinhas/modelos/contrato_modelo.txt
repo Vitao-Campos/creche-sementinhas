@@ -1,0 +1,45 @@
+CONTRATO DE PRESTAÇÃO DE SERVIÇOS EDUCACIONAIS
+Matrícula nº {{NUMERO_MATRICULA}} - Versão {{VERSAO}}
+
+CONTRATADA: CRECHE SEMENTINHAS, instituição privada de educação infantil situada no município de Salto/SP.
+
+CONTRATANTE(S) - RESPONSÁVEL(IS) LEGAL(IS):
+{{RESPONSAVEIS_LEGAIS}}
+
+RESPONSÁVEL FINANCEIRO: {{RESPONSAVEL_FINANCEIRO}}
+
+ALUNO(A): {{NOME_ALUNO}}, nascido(a) em {{DATA_NASCIMENTO_ALUNO}}, matriculado(a) na turma {{TURMA}}.
+
+CLÁUSULA 1ª - DO OBJETO
+
+O presente contrato tem por objeto a prestação de serviços de educação e recreação infantil ao(à) ALUNO(A) acima identificado(a), no plano {{PLANO}}.
+
+CLÁUSULA 2ª - DA MENSALIDADE
+
+Pelos serviços contratados, o RESPONSÁVEL FINANCEIRO pagará à CONTRATADA a mensalidade de {{VALOR_MENSALIDADE}}, com vencimento todo dia {{DIA_VENCIMENTO}} de cada mês, por meio de {{FORMA_PAGAMENTO}}.
+
+Parágrafo único: o valor da mensalidade é definido pela faixa etária cronológica do(a) ALUNO(A) e será reajustado no mês do seu aniversário, independentemente da turma física que frequenta.
+
+CLÁUSULA 3ª - DA VIGÊNCIA
+
+Este contrato vigora até {{VIGENCIA_ATE}}, podendo ser renovado por meio de rematrícula, que gerará nova versão deste instrumento. Ao entrar em vigor uma nova versão, esta é automaticamente encerrada.
+
+CLÁUSULA 4ª - DO DESLIGAMENTO
+
+O desligamento voluntário do(a) ALUNO(A) deverá ser comunicado formalmente pelo responsável legal com antecedência mínima de 30 (trinta) dias corridos, sendo a última mensalidade calculada de forma proporcional.
+
+CLÁUSULA 5ª - DAS PESSOAS AUTORIZADAS
+
+As pessoas cadastradas como autorizadas poderão apenas retirar o(a) ALUNO(A) e ser acionadas em caso de emergência, não possuindo poderes para assinar termos ou alterar a matrícula.
+
+CLÁUSULA 6ª - DA PROTEÇÃO DE DADOS
+
+Os dados pessoais e de saúde do(a) ALUNO(A) e dos responsáveis serão tratados conforme a Lei nº 13.709/2018 (LGPD), exclusivamente para a prestação dos serviços educacionais, mediante o consentimento dos responsáveis legais.
+
+CLÁUSULA 7ª - DA VALIDADE
+
+Este contrato somente terá validade após a assinatura de um responsável legal do(a) ALUNO(A).
+
+Salto/SP, {{DATA_EMISSAO}}.
+
+{{ASSINATURAS}}
