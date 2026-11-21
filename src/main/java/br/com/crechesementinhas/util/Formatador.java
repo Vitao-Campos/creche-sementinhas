@@ -58,4 +58,18 @@ public final class Formatador {
             throw new IllegalArgumentException("Valor da mensalidade inválido: " + texto);
         }
     }
+    
+    /** Código do banco -> texto bonito (forma de pagamento). */
+    public static String formaPagamento(String codigo) {
+        if (codigo == null) {
+            return "";
+        }
+        return switch (codigo) {
+            case "BOLETO" -> "Boleto bancário";
+            case "PIX" -> "PIX";
+            case "CARTAO" -> "Cartão";
+            case "DINHEIRO" -> "Dinheiro";
+            default -> codigo;
+        };
+    }
 }
