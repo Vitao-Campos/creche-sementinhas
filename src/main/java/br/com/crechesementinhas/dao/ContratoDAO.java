@@ -42,4 +42,72 @@ public class ContratoDAO {
         }
         return lista;
     }
+    
+    /**
+     * RF-05: busca os dados JÁ cadastrados (aluno, turma e responsáveis)
+     * para preencher o contrato automaticamente, sem digitar de novo.
+     */
+    public DadosContrato buscarDadosContrato(int idMatricula) throws SQLException {
+        String sqlMatricula = """
+                SELECT m.id_matricula, m.numero_matricula, m.status,
+                       a.id_aluno, a.nome AS nome_aluno, a.data_nascimento,
+                       t.nome AS nome_turma, t.periodo
+                FROM matricula m
+                JOIN aluno a ON a.id_aluno = m.id_aluno
+                JOIN turma t ON t.id_turma = m.id_turma
+                WHERE m.id_matricula = ?
+                """;
+        // Só vínculos que ainda valem (data_fim vazia ou no futuro).
+        String sqlResponsaveis = """
+                SELECT r.id_responsavel, r.nome, r.cpf, r.telefone, r.endereco,
+                       ar.grau_parentesco, ar.responsavel_legal
+                FROM aluno_responsavel ar
+                JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
+                WHERE ar.id_aluno = ?
+                  AND (ar.data_fim IS NULL OR ar.data_fim >= CURRENT_DATE)
+                ORDER BY ar.responsavel_legal DESC, r.nome
+                """;
+
+        try (Connection con = ConnectionFactory.getConnection()) {
+            DadosContrato dados = null;
+
+            try (PreparedStatement ps = con.prepareStatement(sqlMatricula)) {
+                ps.setInt(1, idMatricula);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        dados = new DadosContrato();
+                        dados.setIdMatricula(rs.getInt("id_matricula"));
+                        dados.setNumeroMatricula(rs.getString("numero_matricula"));
+                        dados.setStatusMatricula(rs.getString("status"));
+                        dados.setIdAluno(rs.getInt("id_aluno"));
+                        dados.setNomeAluno(rs.getString("nome_aluno"));
+                        dados.setDataNascimentoAluno(rs.getDate("data_nascimento").toLocalDate());
+                        dados.setNomeTurma(rs.getString("nome_turma"));
+                        dados.setPeriodoTurma(rs.getString("periodo"));
+                    }
+                }
+            }
+
+            if (dados == null) {
+                return null; // matrícula não existe
+            }
+
+            try (PreparedStatement ps = con.prepareStatement(sqlResponsaveis)) {
+                ps.setInt(1, dados.getIdAluno());
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        dados.getResponsaveis().add(new ResponsavelContrato(
+                                rs.getInt("id_responsavel"),
+                                rs.getString("nome"),
+                                rs.getString("cpf"),
+                                rs.getString("telefone"),
+                                rs.getString("endereco"),
+                                rs.getString("grau_parentesco"),
+                                rs.getBoolean("responsavel_legal")));
+                    }
+                }
+            }
+            return dados;
+        }
+    }
 }
