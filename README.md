@@ -73,9 +73,14 @@ cd creche-sementinhas
 4. Abra e execute (botão ▶ ou **F5**), **nesta ordem**:
    1. `database/V1__criar_tabelas.sql` (cria as tabelas)
    2. `database/V2__usuario_admin_inicial.sql` (cria o usuário administrador)
+   3. `database/V3__seguranca.sql` (log de acesso e perfil Suporte do admin)
 
----
-
+> O login inicial do administrador está no comentário do script `V2__usuario_admin_inicial.sql`.
+> ⚠️ Na instalação real na creche, essa senha **deve ser trocada** antes de cadastrar dados reais.
+>
+> **Regra:** um script que já foi executado **nunca** é alterado. Toda mudança no banco vira um script novo (V4, V5...), e cada integrante executa os que ainda não rodou.
+>
+> 
 ## 4. Configurar a conexão com o banco
 
 A senha do banco **nunca** vai para o GitHub. Cada integrante cria o próprio arquivo de configuração:
