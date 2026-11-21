@@ -150,4 +150,75 @@ public class ContratoService {
         dao.registrarAssinatura(contrato.getIdContrato(), data);
         // RNF-02 (etapa 4): registrar no histórico quem assinou (signatario.getNome()).
     }
+    
+    /**
+     * RF-05: monta o texto do contrato trocando cada {{CAMPO}} do modelo
+     * pelos dados que já estão no banco.
+     */
+    public String montarTexto(DadosContrato dados, Contrato contrato) throws IOException {
+        String texto = lerModelo();
+
+        // Bloco com todos os responsáveis legais
+        StringBuilder legais = new StringBuilder();
+        for (ResponsavelContrato r : dados.getResponsaveisLegais()) {
+            legais.append("- ").append(r.getNome())
+                  .append(", ").append(r.getParentesco())
+                  .append(", CPF ").append(Formatador.cpf(r.getCpf()))
+                  .append(", telefone ").append(r.getTelefone());
+            if (r.getEndereco() != null && !r.getEndereco().isBlank()) {
+                legais.append(", residente em ").append(r.getEndereco());
+            }
+            legais.append(".\n");
+        }
+
+        ResponsavelContrato financeiro = dados.buscarResponsavel(contrato.getIdResponsavelFinanceiro());
+        String textoFinanceiro = financeiro == null
+                ? contrato.getNomeResponsavelFinanceiro()
+                : financeiro.getNome() + ", CPF " + Formatador.cpf(financeiro.getCpf())
+                  + ", telefone " + financeiro.getTelefone() + ".";
+
+        texto = texto
+                .replace("{{NUMERO_MATRICULA}}", dados.getNumeroMatricula())
+                .replace("{{VERSAO}}", String.valueOf(contrato.getVersao()))
+                .replace("{{RESPONSAVEIS_LEGAIS}}", legais.toString().strip())
+                .replace("{{RESPONSAVEL_FINANCEIRO}}", textoFinanceiro)
+                .replace("{{NOME_ALUNO}}", dados.getNomeAluno())
+                .replace("{{DATA_NASCIMENTO_ALUNO}}", Formatador.data(dados.getDataNascimentoAluno()))
+                .replace("{{TURMA}}", dados.getNomeTurma())
+                .replace("{{PLANO}}", contrato.getPlano())
+                .replace("{{VALOR_MENSALIDADE}}", Formatador.dinheiro(contrato.getValorMensalidade()))
+                .replace("{{DIA_VENCIMENTO}}", String.valueOf(contrato.getDiaVencimento()))
+                .replace("{{FORMA_PAGAMENTO}}", Formatador.formaPagamento(contrato.getFormaPagamento()))
+                .replace("{{VIGENCIA_ATE}}", Formatador.data(contrato.getVigenciaAte()))
+                .replace("{{DATA_EMISSAO}}", Formatador.data(LocalDate.now()))
+                .replace("{{ASSINATURAS}}", montarAssinaturas(dados, financeiro));
+        return texto;
+    }
+
+    /** Uma linha de assinatura para cada responsável legal (+ financeiro, se for outra pessoa). */
+    private String montarAssinaturas(DadosContrato dados, ResponsavelContrato financeiro) {
+        String linha = "________________________________________";
+        StringBuilder sb = new StringBuilder();
+        for (ResponsavelContrato r : dados.getResponsaveisLegais()) {
+            sb.append(linha).append("\n")
+              .append(r.getNome()).append(" - CPF ").append(Formatador.cpf(r.getCpf())).append("\n")
+              .append("Responsável legal (").append(r.getParentesco()).append(")\n\n");
+        }
+        if (financeiro != null && !financeiro.isResponsavelLegal()) {
+            sb.append(linha).append("\n")
+              .append(financeiro.getNome()).append(" - CPF ").append(Formatador.cpf(financeiro.getCpf())).append("\n")
+              .append("Responsável financeiro\n\n");
+        }
+        sb.append(linha).append("\n").append("CRECHE SEMENTINHAS - Contratada");
+        return sb.toString();
+    }
+
+    private String lerModelo() throws IOException {
+        try (InputStream entrada = getClass().getResourceAsStream(MODELO)) {
+            if (entrada == null) {
+                throw new IOException("Modelo de contrato não encontrado: " + MODELO);
+            }
+            return new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
 }
