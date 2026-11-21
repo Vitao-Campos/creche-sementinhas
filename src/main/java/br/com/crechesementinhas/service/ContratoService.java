@@ -121,4 +121,33 @@ public class ContratoService {
         novo.setIdMatricula(dados.getIdMatricula());
         return dao.criarNovaVersao(novo);
     }
+    
+    /**
+     * RN-05 / EX-02: registra a assinatura. Só um RESPONSÁVEL LEGAL pode assinar.
+     */
+    public void registrarAssinatura(Contrato contrato, ResponsavelContrato signatario,
+                                    LocalDate data) throws SQLException {
+        if (contrato == null) {
+            throw new IllegalArgumentException("Selecione na tabela o contrato que foi assinado.");
+        }
+        if (!"VIGENTE".equals(contrato.getStatus())) {
+            throw new IllegalArgumentException("Só o contrato VIGENTE pode ser assinado.");
+        }
+        if (contrato.getDataAssinatura() != null) {
+            throw new IllegalArgumentException("Este contrato já foi assinado em "
+                    + Formatador.data(contrato.getDataAssinatura()) + ".");
+        }
+        if (signatario == null) {
+            throw new IllegalArgumentException("Selecione quem assinou.");
+        }
+        if (!signatario.isResponsavelLegal()) {
+            throw new IllegalArgumentException(
+                    "EX-02: " + signatario.getNome() + " não é responsável legal e não pode assinar o contrato.");
+        }
+        if (data == null || data.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Informe a data da assinatura (não pode ser no futuro).");
+        }
+        dao.registrarAssinatura(contrato.getIdContrato(), data);
+        // RNF-02 (etapa 4): registrar no histórico quem assinou (signatario.getNome()).
+    }
 }
