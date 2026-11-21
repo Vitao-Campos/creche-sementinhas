@@ -49,4 +49,22 @@ public class ContratoService {
         }
         return null;
     }
+    
+    /** RF-05: sugere o plano a partir do período da turma já cadastrada. */
+    public String planoPadrao(String periodoTurma) {
+        if ("MANHA".equals(periodoTurma)) {
+            return "Meio período - manhã";
+        }
+        if ("TARDE".equals(periodoTurma)) {
+            return "Meio período - tarde";
+        }
+        return "Integral";
+    }
+
+    /** Vigência sugerida para o 1º contrato: 31/12 deste ano (ou do próximo, se já for dezembro). */
+    public LocalDate vigenciaPadrao() {
+        LocalDate hoje = LocalDate.now();
+        int ano = hoje.getMonthValue() == 12 ? hoje.getYear() + 1 : hoje.getYear();
+        return LocalDate.of(ano, 12, 31);
+    }
 }
