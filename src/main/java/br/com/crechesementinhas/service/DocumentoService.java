@@ -109,4 +109,21 @@ public class DocumentoService {
     private String cortar(String texto, int maximo) {
         return texto.length() <= maximo ? texto : texto.substring(0, maximo);
     }
+    
+    /** A secretaria/direção conferiu o documento. */
+    public void validar(Documento d) throws SQLException {
+        if (d == null) {
+            throw new IllegalArgumentException("Selecione um documento na tabela.");
+        }
+        dao.alterarStatus(d.getIdDocumento(), "VALIDADO");
+    }
+
+    /** Caminho completo do arquivo no disco (para abrir). */
+    public File arquivoDe(Documento d) {
+        File f = PastaDocumentos.raiz().resolve(d.getArquivo()).toFile();
+        if (!f.exists()) {
+            throw new IllegalArgumentException("Arquivo não encontrado na pasta de documentos: " + f);
+        }
+        return f;
+    }
 }
