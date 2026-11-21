@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.AlunoController"
+            prefWidth="1060" prefHeight="660"
+            stylesheets="@estilo.css"
+            style="-fx-background-color: #f4f6f9;">
+
+    <!-- Barra superior: título e volta para o menu -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label text="Alunos"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Voltar ao menu" onAction="#voltar"
+                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Esquerda: busca e lista de alunos -->
+    <left>
+        <VBox spacing="10" prefWidth="480">
+            <padding>
+                <Insets top="20" right="10" bottom="20" left="20"/>
+            </padding>
+            <Label text="Buscar aluno pelo nome" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="campoBusca" promptText="Digite parte do nome"/>
+            <TableView fx:id="tabelaAlunos" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="190"/>
+                    <TableColumn fx:id="colunaNascimento" text="Nascimento" prefWidth="90"/>
+                    <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="100"/>
+                    <TableColumn fx:id="colunaCpf" text="CPF" prefWidth="100"/>
+                </columns>
+            </TableView>
+            <Label fx:id="labelTotal" style="-fx-text-fill: #607d8b;"/>
+        </VBox>
+    </left>
+
+    <!-- Centro: formulário de cadastro e edição -->
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="10"/>
+            </padding>
+
+            <Label fx:id="labelTituloForm" text="Novo aluno"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="130" prefWidth="130"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Label text="Nome *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoNome" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Nascimento *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <DatePicker fx:id="campoNascimento" editable="true" promptText="dd/mm/aaaa"
+                            maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Idade" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <Label fx:id="labelIdade" text="—" style="-fx-font-weight: bold;"
+                       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <Label text="Sexo *" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="comboSexo" maxWidth="Infinity"
+                          GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                <Label text="CPF (se tiver)" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoCpf" promptText="000.000.000-00"
+                           GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                <Label text="Naturalidade" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoNaturalidade" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                <Label text="Nacionalidade" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoNacionalidade" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                <Label text="Observações" GridPane.rowIndex="7" GridPane.columnIndex="0"
+                       GridPane.valignment="TOP"/>
+                <TextArea fx:id="campoObservacao" prefRowCount="3" wrapText="true"
+                          GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+
+                <Label fx:id="rotuloJustificativa" text="Motivo da alteração"
+                       GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoJustificativa" promptText="Opcional: vai para o histórico"
+                           GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <Label fx:id="labelMensagem" wrapText="true" visible="false" managed="false"/>
+
+            <HBox spacing="10">
+                <Button fx:id="botaoSalvar" text="Salvar" defaultButton="true" onAction="#salvar"
+                        style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                <Button fx:id="botaoNovo" text="Novo aluno" onAction="#novoAluno"
+                        style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

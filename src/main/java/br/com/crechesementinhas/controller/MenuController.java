@@ -34,7 +34,7 @@ public class MenuController {
 
     @FXML
     private void consultarAlunos() {
-        emDesenvolvimento("Consultar Alunos", "E");
+        Navegacao.abrir("aluno.fxml", "Alunos");
     }
 
     @FXML
