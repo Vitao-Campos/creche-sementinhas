@@ -45,4 +45,68 @@ public class DocumentoService {
     public List<Documento> listar(int idMatricula) throws SQLException {
         return dao.listarPorMatricula(idMatricula);
     }
+    
+    /**
+     * Valida o arquivo, copia para a pasta da matrícula e grava no banco.
+     */
+    public void anexar(int idMatricula, String tipo, File arquivo) throws IOException, SQLException {
+        if (tipo == null || tipo.isBlank()) {
+            throw new IllegalArgumentException("Selecione o tipo do documento.");
+        }
+        if (arquivo == null || !arquivo.isFile()) {
+            throw new IllegalArgumentException("Arquivo não encontrado.");
+        }
+
+        // EX-05: formato
+        String extensao = extensaoDe(arquivo.getName());
+        if (!EXTENSOES_ACEITAS.contains(extensao)) {
+            throw new IllegalArgumentException(
+                    "EX-05: formato não aceito (." + extensao + "). Envie PDF, JPEG ou PNG de até 5 MB.");
+        }
+        // EX-05: tamanho
+        long tamanho = arquivo.length();
+        if (tamanho == 0) {
+            throw new IllegalArgumentException("O arquivo está vazio.");
+        }
+        if (tamanho > TAMANHO_MAXIMO) {
+            throw new IllegalArgumentException(String.format(
+                    "EX-05: o arquivo tem %.1f MB. O limite é 5 MB.", tamanho / (1024.0 * 1024.0)));
+        }
+
+        // Pasta da matrícula, ex.: .../documentos/matricula_7/
+        String subpasta = "matricula_" + idMatricula;
+        Path pastaMatricula = PastaDocumentos.raiz().resolve(subpasta);
+        Files.createDirectories(pastaMatricula);
+
+        // Nome único: data/hora + nome original "limpo" (sem acentos/espaços estranhos)
+        String nomeLimpo = arquivo.getName().replaceAll("[^a-zA-Z0-9._-]", "_");
+        String nomeFinal = LocalDateTime.now().format(CARIMBO) + "_" + nomeLimpo;
+        Path destino = pastaMatricula.resolve(nomeFinal);
+
+        Files.copy(arquivo.toPath(), destino, StandardCopyOption.REPLACE_EXISTING);
+
+        Documento d = new Documento();
+        d.setIdMatricula(idMatricula);
+        d.setNome(cortar(arquivo.getName(), 100));   // coluna nome é VARCHAR(100)
+        d.setTipo(cortar(tipo, 40));                  // coluna tipo é VARCHAR(40)
+        d.setArquivo(subpasta + "/" + nomeFinal);     // caminho RELATIVO à pasta de documentos
+        d.setData(LocalDate.now());
+        d.setStatus("ENTREGUE");
+
+        try {
+            dao.inserir(d);
+        } catch (SQLException e) {
+            Files.deleteIfExists(destino); // se o banco falhou, não deixa arquivo "órfão"
+            throw e;
+        }
+    }
+
+    private String extensaoDe(String nome) {
+        int ponto = nome.lastIndexOf('.');
+        return ponto < 0 ? "" : nome.substring(ponto + 1).toLowerCase();
+    }
+
+    private String cortar(String texto, int maximo) {
+        return texto.length() <= maximo ? texto : texto.substring(0, maximo);
+    }
 }
