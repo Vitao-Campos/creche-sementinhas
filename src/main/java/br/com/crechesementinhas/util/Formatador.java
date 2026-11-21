@@ -39,4 +39,23 @@ public final class Formatador {
         return cpf.substring(0, 3) + "." + cpf.substring(3, 6) + "."
                 + cpf.substring(6, 9) + "-" + cpf.substring(9);
     }
+    
+    /**
+     * Lê o que a secretária digitou como dinheiro.
+     * Aceita "1150", "1150,00", "1.150,00", "R$ 1.150,00" e "1150.00".
+     */
+    public static BigDecimal lerDinheiro(String texto) {
+        if (texto == null || texto.isBlank()) {
+            throw new IllegalArgumentException("Informe o valor da mensalidade.");
+        }
+        String limpo = texto.replace("R$", "").replace(" ", "").trim();
+        if (limpo.contains(",")) {
+            limpo = limpo.replace(".", "").replace(",", ".");
+        }
+        try {
+            return new BigDecimal(limpo);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Valor da mensalidade inválido: " + texto);
+        }
+    }
 }
