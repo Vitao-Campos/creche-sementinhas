@@ -46,4 +46,27 @@ public class DadosContrato {
 
     public List<ResponsavelContrato> getResponsaveis() { return responsaveis; }
     public void setResponsaveis(List<ResponsavelContrato> responsaveis) { this.responsaveis = responsaveis; }
+
+
+    /** Só os responsáveis LEGAIS (os únicos que podem assinar - RN-05). */
+    public List<ResponsavelContrato> getResponsaveisLegais() {
+        List<ResponsavelContrato> legais = new ArrayList<>();
+        for (ResponsavelContrato r : responsaveis) {
+            if (r.isResponsavelLegal()) {
+                legais.add(r);
+            }
+        }
+        return legais;
+    }
+
+    /** Procura um responsável pelo id (devolve null se não achar). */
+    public ResponsavelContrato buscarResponsavel(int idResponsavel) {
+        for (ResponsavelContrato r : responsaveis) {
+            if (r.getIdResponsavel() == idResponsavel) {
+                return r;
+            }
+        }
+        return null;
+    }
+
 }
