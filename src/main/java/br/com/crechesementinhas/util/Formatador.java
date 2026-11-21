@@ -30,4 +30,13 @@ public final class Formatador {
         // O Java usa um espaço especial depois do "R$"; trocamos por espaço normal.
         return NumberFormat.getCurrencyInstance(BRASIL).format(valor).replace('\u00A0', ' ');
     }
+    
+    /** "35678912300" -> "356.789.123-00" */
+    public static String cpf(String cpf) {
+        if (cpf == null || cpf.length() != 11) {
+            return cpf == null ? "" : cpf;
+        }
+        return cpf.substring(0, 3) + "." + cpf.substring(3, 6) + "."
+                + cpf.substring(6, 9) + "-" + cpf.substring(9);
+    }
 }
