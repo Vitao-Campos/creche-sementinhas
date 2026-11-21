@@ -221,4 +221,14 @@ public class ContratoService {
             return new String(entrada.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
+    
+    /** RF-09: gera o PDF do contrato no arquivo indicado. */
+    public void gerarPdf(DadosContrato dados, Contrato contrato, File destino) throws IOException {
+        GeradorPdf.gerar(montarTexto(dados, contrato), destino);
+    }
+
+    /** Nome sugerido para o arquivo, ex.: contrato_MAT-2026-001_v2.pdf */
+    public String nomeArquivoPdf(DadosContrato dados, Contrato contrato) {
+        return "contrato_" + dados.getNumeroMatricula() + "_v" + contrato.getVersao() + ".pdf";
+    }
 }
