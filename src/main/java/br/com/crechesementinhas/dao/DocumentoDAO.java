@@ -59,4 +59,16 @@ public class DocumentoDAO {
         }
         return lista;
     }
+    
+    /** Muda o status (ex.: de ENTREGUE para VALIDADO). */
+    public void alterarStatus(int idDocumento, String novoStatus) throws SQLException {
+        String sql = "UPDATE documento SET status = ? WHERE id_documento = ?";
+        try (Connection con = ConnectionFactory.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, novoStatus);
+            ps.setInt(2, idDocumento);
+            ps.executeUpdate();
+        }
+        // RNF-02 (etapa 4 - integração): registrar a mudança no historico_alteracao.
+    }
 }
