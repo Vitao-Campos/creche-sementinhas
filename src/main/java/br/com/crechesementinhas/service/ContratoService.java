@@ -67,4 +67,17 @@ public class ContratoService {
         int ano = hoje.getMonthValue() == 12 ? hoje.getYear() + 1 : hoje.getYear();
         return LocalDate.of(ano, 12, 31);
     }
+    
+    /** FA-03 (rematrícula): a nova versão vale até 31/12 do ano seguinte ao contrato atual. */
+    public LocalDate vigenciaRematricula(Contrato vigente) {
+        if (vigente == null) {
+            return vigenciaPadrao();
+        }
+        return LocalDate.of(vigente.getVigenciaAte().getYear() + 1, 12, 31);
+    }
+
+    /** RN-12: o padrão da creche é vencimento dia 10 ou 25. Outro dia exige confirmação. */
+    public boolean diaForaDoPadrao(int dia) {
+        return dia != 10 && dia != 25;
+    }
 }
