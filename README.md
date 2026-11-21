@@ -79,8 +79,9 @@ cd creche-sementinhas
 > ⚠️ Na instalação real na creche, essa senha **deve ser trocada** antes de cadastrar dados reais.
 >
 > **Regra:** um script que já foi executado **nunca** é alterado. Toda mudança no banco vira um script novo (V4, V5...), e cada integrante executa os que ainda não rodou.
->
-> 
+
+---
+
 ## 4. Configurar a conexão com o banco
 
 A senha do banco **nunca** vai para o GitHub. Cada integrante cria o próprio arquivo de configuração:
@@ -123,7 +124,7 @@ creche-sementinhas/
     │   ├── dao/               → acesso ao banco (único lugar com SQL)
     │   ├── service/           → regras de negócio (RN) e requisitos funcionais (RF)
     │   ├── controller/        → lógica das telas FXML
-    │   └── util/              → utilitários (ConnectionFactory)
+    │   └── util/              → utilitários (ConnectionFactory, Sessao, Navegacao, Transacao)
     └── resources/
         ├── db.properties.example → modelo de configuração do banco
         └── db.properties         → SUA configuração (não vai para o Git)
@@ -183,3 +184,76 @@ Os requisitos seguem a **Especificação de Requisitos, Regras de Negócio e Mod
 - **UC-01:** Cadastrar Aluno e Efetivar Matrícula
 
 Ao implementar uma regra no código, cite o identificador no comentário (ex.: `// RN-07: mensalidade pela faixa etária`). Isso facilita a **Matriz de Rastreabilidade**.
+---
+
+## 9. Recursos compartilhados (use nas suas frentes)
+
+Estas classes já estão prontas. **Não as altere** sem combinar com o grupo; apenas use.
+
+### Abrir a tela da sua frente pelo menu
+No `MenuController`, troque o `emDesenvolvimento(...)` do seu botão por:
+```java
+Navegacao.abrir("sua-tela.fxml", "Título da Tela");
+```
+O arquivo `.fxml` fica em `src/main/resources/br/com/crechesementinhas/view/`.
+
+### Saber quem está logado
+```java
+Usuario usuario = Sessao.getUsuarioLogado();
+```
+
+### Gravar várias coisas como uma só (transação)
+Use sempre que a operação gravar em mais de uma tabela. Se qualquer parte falhar, **nada** é gravado:
+```java
+Transacao.executar(conexao -> {
+    alunoDAO.inserir(conexao, aluno);
+    matriculaDAO.inserir(conexao, matricula);
+    return null;
+});
+```
+Os seus DAOs devem ter métodos que **recebem a `Connection`**, para participar da transação.
+
+### Auditoria de alterações (RNF-02)
+Toda alteração em campo crítico (observações de andarilha, anamnese, responsáveis, mensalidades) deve ser registrada **dentro da mesma transação**:
+```java
+AuditoriaService auditoria = new AuditoriaService();
+
+Transacao.executar(conexao -> {
+    alunoDAO.atualizar(conexao, aluno);
+    auditoria.registrarAlteracao(conexao, "aluno", aluno.getIdAluno(),
+            "observacao", valorAntigo, valorNovo, justificativa);
+    return null;
+});
+```
+- `registrarInsercao(conexao, entidade, id)`: registro criado
+- `registrarAlteracao(...)`: um campo alterado (se o valor não mudou, nada é gravado)
+- `registrarExclusao(conexao, entidade, id, justificativa)`: registro excluído
+- A **entidade** é o nome da tabela, em minúsculas: `"aluno"`, `"matricula"`, `"responsavel"`...
+- O usuário e a data/hora são preenchidos **automaticamente**.
+
+### Permissões por perfil (RNF-03)
+| Operação | Secretaria | Direção | Suporte |
+|---|:-:|:-:|:-:|
+| Cadastrar matrícula | ✔ | ✔ | ✔ |
+| Confirmar matrícula | ✔ | ✔ | ✔ |
+| Desligar aluno | ✘ | ✔ | ✔ |
+| Relatórios financeiros | ✘ | ✔ | ✔ |
+| Gerenciar usuários | ✘ | ✘ | ✔ |
+
+Na **tela**, desabilite o botão:
+```java
+botaoDesligar.setDisable(!ControleAcesso.temPermissao(Permissao.DESLIGAR_ALUNO));
+```
+No **service**, barre a operação (proteção de verdade):
+```java
+ControleAcesso.exigir(Permissao.DESLIGAR_ALUNO);
+```
+
+### Estilo visual
+Para manter as telas com a mesma aparência, use a folha de estilos compartilhada no seu FXML:
+```xml
+stylesheets="@estilo.css"
+```
+
+### Dica: erro "impossível" depois de mudar o código?
+Rode `mvn clean javafx:run`. O `clean` apaga a pasta `target` e obriga o Maven a recompilar tudo do zero.
