@@ -16,3 +16,13 @@ ALTER TABLE contrato
 --    Então a data de assinatura começa VAZIA e é preenchida quando ele assina.
 ALTER TABLE contrato
     ALTER COLUMN data_assinatura DROP NOT NULL;
+    
+-- 3) RF-08: não pode existir duas "versão 1" para a mesma matrícula.
+ALTER TABLE contrato
+    ADD CONSTRAINT uq_contrato_matricula_versao UNIQUE (id_matricula, versao);
+
+-- 4) RN-06 / EX-04: só UM contrato VIGENTE por matrícula
+--    (índice que já estava comentado no V1).
+CREATE UNIQUE INDEX uq_contrato_um_vigente
+    ON contrato (id_matricula) WHERE status = 'VIGENTE';
+    
