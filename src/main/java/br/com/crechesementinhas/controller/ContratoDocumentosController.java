@@ -141,4 +141,35 @@ public class ContratoDocumentosController {
         tabelaDocumentos.getItems().clear();
         txtPreview.clear();
     }
+    
+    /**
+     * Preenche o formulário: copia o contrato vigente (se existir) ou usa valores padrão.
+     * @param rematricula true = sugere a vigência do ano seguinte (FA-03)
+     */
+    private void preencherFormulario(boolean rematricula) {
+        Contrato vigente = contratoService.buscarVigente(tabelaContratos.getItems());
+
+        if (vigente != null) {
+            cbFinanceiro.setValue(dadosAtuais.buscarResponsavel(vigente.getIdResponsavelFinanceiro()));
+            cbPlano.setValue(vigente.getPlano());
+            txtValor.setText(vigente.getValorMensalidade() == null
+                    ? "" : vigente.getValorMensalidade().toPlainString().replace('.', ','));
+            txtDiaVencimento.setText(String.valueOf(vigente.getDiaVencimento()));
+            cbFormaPagamento.setValue(vigente.getFormaPagamento());
+            dpVigencia.setValue(rematricula
+                    ? contratoService.vigenciaRematricula(vigente)
+                    : vigente.getVigenciaAte());
+        } else {
+            // Primeiro contrato: sugere o 1º responsável legal como financeiro (RN-02)
+            if (!dadosAtuais.getResponsaveisLegais().isEmpty()) {
+                cbFinanceiro.setValue(dadosAtuais.getResponsaveisLegais().get(0));
+            }
+            cbPlano.setValue(contratoService.planoPadrao(dadosAtuais.getPeriodoTurma()));
+            // INTEGRAÇÃO (etapa 4): trocar pela mensalidade calculada pela Frente B (RF-04 / RN-07)
+            txtValor.clear();
+            txtDiaVencimento.setText("10");
+            cbFormaPagamento.setValue("BOLETO");
+            dpVigencia.setValue(contratoService.vigenciaPadrao());
+        }
+    }
 }
