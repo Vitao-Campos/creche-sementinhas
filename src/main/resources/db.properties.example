@@ -1,7 +1,0 @@
-# MODELO de configuração do banco.
-# 1. Copie este arquivo e renomeie a cópia para: db.properties
-# 2. Preencha com os dados do SEU PostgreSQL
-# 3. O db.properties NÃO vai para o GitHub (está no .gitignore)
-db.url=jdbc:postgresql://localhost:5432/creche
-db.user=postgres
-db.password=SUA_SENHA
