@@ -27,6 +27,14 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- Testes unitários -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Permite desenhar as telas em arquivos .fxml (Scene Builder) -->
         <dependency>
             <groupId>org.openjfx</groupId>
