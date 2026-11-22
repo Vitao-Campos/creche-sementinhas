@@ -417,4 +417,65 @@ public class ContratoDocumentosController {
             erro("Erro ao gerar o PDF", e);
         }
     }
+    
+    // =================================================================
+    //  DOCUMENTOS (anexos)
+    // =================================================================
+
+    @FXML
+    private void onAnexarDocumento() {
+        if (dadosAtuais == null) {
+            aviso("Selecione uma matrícula.");
+            return;
+        }
+        if (cbTipoDocumento.getValue() == null) {
+            aviso("Selecione o tipo do documento antes de escolher o arquivo.");
+            return;
+        }
+        FileChooser seletor = new FileChooser();
+        seletor.setTitle("Escolher documento (PDF, JPEG ou PNG até 5 MB)");
+        seletor.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("PDF, JPEG ou PNG", "*.pdf", "*.jpg", "*.jpeg", "*.png"),
+                new FileChooser.ExtensionFilter("Todos os arquivos", "*.*"));
+        File arquivo = seletor.showOpenDialog(janela());
+        if (arquivo == null) {
+            return;
+        }
+        try {
+            documentoService.anexar(dadosAtuais.getIdMatricula(), cbTipoDocumento.getValue(), arquivo);
+            recarregarDocumentos();
+            mensagem("Documento anexado: " + arquivo.getName());
+        } catch (IllegalArgumentException e) {
+            aviso(e.getMessage()); // EX-05: a pasta digital continua intacta
+        } catch (IOException | SQLException e) {
+            erro("Erro ao anexar o documento", e);
+        }
+    }
+
+    @FXML
+    private void onAbrirDocumento() {
+        Documento d = tabelaDocumentos.getSelectionModel().getSelectedItem();
+        if (d == null) {
+            aviso("Selecione um documento na tabela.");
+            return;
+        }
+        try {
+            abrirNoComputador(documentoService.arquivoDe(d));
+        } catch (IllegalArgumentException e) {
+            aviso(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onValidarDocumento() {
+        try {
+            documentoService.validar(tabelaDocumentos.getSelectionModel().getSelectedItem());
+            recarregarDocumentos();
+            mensagem("Documento marcado como VALIDADO.");
+        } catch (IllegalArgumentException e) {
+            aviso(e.getMessage());
+        } catch (SQLException e) {
+            erro("Erro ao validar o documento", e);
+        }
+    }
 }
