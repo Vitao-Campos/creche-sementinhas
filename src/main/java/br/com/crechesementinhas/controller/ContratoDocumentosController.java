@@ -286,4 +286,60 @@ public class ContratoDocumentosController {
             erro("Erro ao montar o contrato", e);
         }
     }
+    
+    // =================================================================
+    //  CONTRATO
+    // =================================================================
+
+    /** Lê os campos do formulário e monta um objeto Contrato. */
+    private Contrato lerFormulario() {
+        if (dadosAtuais == null) {
+            throw new IllegalArgumentException("Selecione uma matrícula.");
+        }
+        Contrato c = new Contrato();
+        ResponsavelContrato financeiro = cbFinanceiro.getValue();
+        c.setIdResponsavelFinanceiro(financeiro == null ? 0 : financeiro.getIdResponsavel());
+        c.setPlano(cbPlano.getValue());
+        BigDecimal valor = Formatador.lerDinheiro(txtValor.getText());
+        c.setValorMensalidade(valor);
+        try {
+            c.setDiaVencimento(Integer.parseInt(txtDiaVencimento.getText().trim()));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Dia de vencimento inválido.");
+        }
+        c.setFormaPagamento(cbFormaPagamento.getValue());
+        c.setVigenciaAte(dpVigencia.getValue());
+        return c;
+    }
+
+    @FXML
+    private void onGerarNovaVersao() {
+        try {
+            Contrato novo = lerFormulario();
+
+            // RN-12: vencimento fora do padrão (10 ou 25) só com confirmação
+            if (contratoService.diaForaDoPadrao(novo.getDiaVencimento())
+                    && !confirmar("O vencimento padrão da creche é dia 10 ou 25.\n"
+                    + "Confirma o dia " + novo.getDiaVencimento() + " (exceção combinada em contrato)?")) {
+                return;
+            }
+
+            // EX-04: avisa que a versão vigente será encerrada
+            Contrato vigente = contratoService.buscarVigente(tabelaContratos.getItems());
+            if (vigente != null && !confirmar("A versão " + vigente.getVersao()
+                    + " (vigente) será ENCERRADA e uma nova versão será criada.\nDeseja continuar?")) {
+                return;
+            }
+
+            int versao = contratoService.gerarNovaVersao(novo, dadosAtuais);
+            recarregarContratos();
+            tabelaContratos.getSelectionModel().selectFirst(); // a mais nova fica no topo
+            mensagem("Contrato versão " + versao + " gerado. Imprima e colha a assinatura do responsável legal.");
+
+        } catch (IllegalArgumentException e) {
+            aviso(e.getMessage());
+        } catch (SQLException e) {
+            erro("Erro ao gravar o contrato", e);
+        }
+    }
 }
