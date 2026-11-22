@@ -353,17 +353,68 @@ public class ContratoDocumentosController {
         aviso("FA-03 - Rematrícula: o formulário foi preenchido com o contrato atual e a vigência do próximo ano.\n"
                 + "Confira o valor da mensalidade (ele muda com a idade da criança - RN-07) "
                 + "e clique em \"Gerar nova versão\".");
+    }    
+
+    private Contrato contratoSelecionado() {
+        Contrato c = tabelaContratos.getSelectionModel().getSelectedItem();
+        if (c == null) {
+            aviso("Selecione na tabela a versão do contrato.");
+        }
+        return c;
     }
-    
-    @FXML
-    private void onRematricula() {
-        if (dadosAtuais == null) {
-            aviso("Selecione uma matrícula.");
+
+    /** Abre um arquivo com o programa padrão do Windows (leitor de PDF, visualizador de fotos...). */
+    private void abrirNoComputador(File arquivo) {
+        if (!Desktop.isDesktopSupported()) {
+            aviso("Não foi possível abrir automaticamente. O arquivo está em:\n" + arquivo.getAbsolutePath());
             return;
         }
-        preencherFormulario(true);
-        aviso("FA-03 - Rematrícula: o formulário foi preenchido com o contrato atual e a vigência do próximo ano.\n"
-                + "Confira o valor da mensalidade (ele muda com a idade da criança - RN-07) "
-                + "e clique em \"Gerar nova versão\".");
+        // Roda fora da thread da tela para ela não "congelar"
+        new Thread(() -> {
+            try {
+                Desktop.getDesktop().open(arquivo);
+            } catch (IOException e) {
+                Platform.runLater(() -> erro("Erro ao abrir o arquivo", e));
+            }
+        }).start();
+    }
+
+    @FXML
+    private void onSalvarPdf() {
+        Contrato c = contratoSelecionado();
+        if (c == null) {
+            return;
+        }
+        FileChooser seletor = new FileChooser();
+        seletor.setTitle("Salvar contrato em PDF");
+        seletor.setInitialFileName(contratoService.nomeArquivoPdf(dadosAtuais, c));
+        seletor.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+        File destino = seletor.showSaveDialog(janela());
+        if (destino == null) {
+            return; // a pessoa clicou em Cancelar
+        }
+        try {
+            contratoService.gerarPdf(dadosAtuais, c, destino);
+            mensagem("PDF salvo em: " + destino.getAbsolutePath());
+        } catch (IOException e) {
+            erro("Erro ao gerar o PDF", e);
+        }
+    }
+
+    /** Gera o PDF numa pasta temporária e abre no leitor de PDF do Windows (de lá, é só imprimir). */
+    @FXML
+    private void onAbrirImprimir() {
+        Contrato c = contratoSelecionado();
+        if (c == null) {
+            return;
+        }
+        try {
+            File temporario = File.createTempFile("contrato_", ".pdf");
+            temporario.deleteOnExit();
+            contratoService.gerarPdf(dadosAtuais, c, temporario);
+            abrirNoComputador(temporario);
+        } catch (IOException e) {
+            erro("Erro ao gerar o PDF", e);
+        }
     }
 }
