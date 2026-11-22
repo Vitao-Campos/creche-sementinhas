@@ -226,4 +226,64 @@ public class ContratoDocumentosController {
             erro("Erro ao carregar a matrícula", e);
         }
     }
+    
+    /**
+     * O JavaFX chama este método sozinho, logo depois de abrir a tela.
+     */
+    @FXML
+    private void initialize() {
+        cbPlano.setItems(FXCollections.observableArrayList(
+                "Integral", "Meio período - manhã", "Meio período - tarde"));
+        cbFormaPagamento.setItems(FXCollections.observableArrayList(
+                "BOLETO", "PIX", "CARTAO", "DINHEIRO"));
+        cbTipoDocumento.setItems(FXCollections.observableArrayList(DocumentoService.TIPOS));
+
+        // Liga cada coluna da tabela a um "getter" da classe Contrato
+        // (ex.: "versao" -> getVersao()).
+        colVersao.setCellValueFactory(new PropertyValueFactory<>("versao"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colPlano.setCellValueFactory(new PropertyValueFactory<>("plano"));
+        colDia.setCellValueFactory(new PropertyValueFactory<>("diaVencimento"));
+        colFinanceiro.setCellValueFactory(new PropertyValueFactory<>("nomeResponsavelFinanceiro"));
+        // Colunas que precisam de formatação brasileira:
+        colValor.setCellValueFactory(linha ->
+                new SimpleStringProperty(Formatador.dinheiro(linha.getValue().getValorMensalidade())));
+        colVigencia.setCellValueFactory(linha ->
+                new SimpleStringProperty(Formatador.data(linha.getValue().getVigenciaAte())));
+        colAssinatura.setCellValueFactory(linha -> {
+            Contrato c = linha.getValue();
+            String texto = c.getDataAssinatura() == null
+                    ? c.getSituacaoAssinatura()
+                    : "Assinado em " + Formatador.data(c.getDataAssinatura());
+            return new SimpleStringProperty(texto);
+        });
+
+        colDocTipo.setCellValueFactory(new PropertyValueFactory<>("tipo"));
+        colDocNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        colDocStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colDocData.setCellValueFactory(linha ->
+                new SimpleStringProperty(Formatador.data(linha.getValue().getData())));
+
+        // Ao clicar numa versão do contrato, mostra a pré-visualização dela
+        tabelaContratos.getSelectionModel().selectedItemProperty()
+                .addListener((obs, antigo, novo) -> mostrarPreview(novo));
+
+        // Ao escolher outra matrícula, recarrega tudo
+        cbMatricula.valueProperty().addListener((obs, antiga, nova) -> carregarMatricula(nova));
+
+        dpAssinatura.setValue(LocalDate.now());
+        carregarMatriculas();
+    }
+
+    private void mostrarPreview(Contrato c) {
+        if (c == null || dadosAtuais == null) {
+            txtPreview.clear();
+            return;
+        }
+        try {
+            txtPreview.setText(contratoService.montarTexto(dadosAtuais, c));
+        } catch (IOException e) {
+            erro("Erro ao montar o contrato", e);
+        }
+    }
 }
