@@ -354,4 +354,16 @@ public class ContratoDocumentosController {
                 + "Confira o valor da mensalidade (ele muda com a idade da criança - RN-07) "
                 + "e clique em \"Gerar nova versão\".");
     }
+    
+    @FXML
+    private void onRematricula() {
+        if (dadosAtuais == null) {
+            aviso("Selecione uma matrícula.");
+            return;
+        }
+        preencherFormulario(true);
+        aviso("FA-03 - Rematrícula: o formulário foi preenchido com o contrato atual e a vigência do próximo ano.\n"
+                + "Confira o valor da mensalidade (ele muda com a idade da criança - RN-07) "
+                + "e clique em \"Gerar nova versão\".");
+    }
 }
