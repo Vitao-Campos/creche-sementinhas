@@ -172,4 +172,58 @@ public class ContratoDocumentosController {
             dpVigencia.setValue(contratoService.vigenciaPadrao());
         }
     }
+    
+    // =================================================================
+    //  MATRÍCULA
+    // =================================================================
+
+    @FXML
+    private void onAtualizarLista() {
+        carregarMatriculas();
+    }
+
+    private void carregarMatriculas() {
+        try {
+            List<MatriculaResumo> lista = contratoService.listarMatriculasAtivas();
+            cbMatricula.setItems(FXCollections.observableArrayList(lista));
+            mensagem(lista.size() + " matrícula(s) ativa(s) encontrada(s).");
+        } catch (SQLException e) {
+            erro("Erro ao buscar matrículas", e);
+        }
+    }
+
+    private void carregarMatricula(MatriculaResumo selecionada) {
+        limparTela();
+        if (selecionada == null) {
+            return;
+        }
+        try {
+            dadosAtuais = contratoService.buscarDados(selecionada.getIdMatricula());
+            if (dadosAtuais == null) {
+                aviso("Matrícula não encontrada.");
+                return;
+            }
+            lblAluno.setText(dadosAtuais.getNomeAluno() + "  |  Nascimento: "
+                    + Formatador.data(dadosAtuais.getDataNascimentoAluno())
+                    + "  |  Turma: " + dadosAtuais.getNomeTurma());
+
+            // RF-05: preenche automaticamente com o que já está cadastrado
+            cbFinanceiro.setItems(FXCollections.observableArrayList(dadosAtuais.getResponsaveis()));
+            cbSignatario.setItems(FXCollections.observableArrayList(dadosAtuais.getResponsaveisLegais()));
+            if (!dadosAtuais.getResponsaveisLegais().isEmpty()) {
+                cbSignatario.getSelectionModel().selectFirst();
+            }
+
+            recarregarContratos();
+            recarregarDocumentos();
+            preencherFormulario(false);
+
+            if (dadosAtuais.getResponsaveisLegais().isEmpty()) {
+                aviso("RN-01: este aluno ainda não tem responsável legal cadastrado.\n"
+                        + "Cadastre o responsável (tela de Responsáveis) antes de gerar o contrato.");
+            }
+        } catch (SQLException e) {
+            erro("Erro ao carregar a matrícula", e);
+        }
+    }
 }
