@@ -39,7 +39,7 @@ public class MenuController {
 
     @FXML
     private void responsaveis() {
-        emDesenvolvimento("Responsáveis", "C");
+        Navegacao.abrir("responsavel.fxml", "Responsáveis");
     }
 
     @FXML
