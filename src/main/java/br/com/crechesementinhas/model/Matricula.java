@@ -2,7 +2,14 @@ package br.com.crechesementinhas.model;
 
 import java.time.LocalDate;
 
+/**
+ * Matrícula de uma criança numa turma (tabela "matricula").
+ */
 public class Matricula {
+
+    public static final String ATIVA = "ATIVA";
+    public static final String TRANCADA = "TRANCADA";
+    public static final String ENCERRADA = "ENCERRADA";
 
     private Integer idMatricula;
     private String numeroMatricula;
@@ -13,6 +20,7 @@ public class Matricula {
     private LocalDate dataEncerramento;
     private boolean andarilha;
     private String motivoAndarilha;
+    private String nomeTurma; // vem da consulta com JOIN (não é coluna)
 
     public Matricula() {
     }
@@ -98,6 +106,18 @@ public class Matricula {
 
     public void setMotivoAndarilha(String motivoAndarilha) {
         this.motivoAndarilha = motivoAndarilha;
+    }
+
+    public String getNomeTurma() {
+        return nomeTurma;
+    }
+
+    public void setNomeTurma(String nomeTurma) {
+        this.nomeTurma = nomeTurma;
+    }
+
+    public boolean isAtiva() {
+        return ATIVA.equals(status);
     }
 
     @Override
