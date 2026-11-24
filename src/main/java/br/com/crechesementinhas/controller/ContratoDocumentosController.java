@@ -8,6 +8,7 @@ import br.com.crechesementinhas.model.ResponsavelContrato;
 import br.com.crechesementinhas.service.ContratoService;
 import br.com.crechesementinhas.service.DocumentoService;
 import br.com.crechesementinhas.util.Formatador;
+import br.com.crechesementinhas.util.Navegacao;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -491,5 +492,14 @@ public class ContratoDocumentosController {
         } catch (SQLException e) {
             erro("Erro ao registrar a assinatura", e);
         }
+    }
+    
+    // =================================================================
+    //  NAVEGAÇÃO
+    // =================================================================
+
+    @FXML
+    private void voltar() {
+        Navegacao.abrir("menu.fxml", "Menu");
     }
 }

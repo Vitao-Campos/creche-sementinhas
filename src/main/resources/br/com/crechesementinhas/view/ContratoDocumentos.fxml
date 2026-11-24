@@ -15,6 +15,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -27,9 +28,13 @@
    <top>
       <VBox spacing="6.0">
          <padding><Insets bottom="8.0" left="12.0" right="12.0" top="12.0" /></padding>
-         <Label text="Contrato e documentos">
-            <font><Font name="System Bold" size="18.0" /></font>
-         </Label>
+                 <HBox alignment="CENTER_LEFT" spacing="8.0">
+            <Label text="Contrato e documentos">
+               <font><Font name="System Bold" size="18.0" /></font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button onAction="#voltar" text="Voltar ao menu" />
+         </HBox>
          <HBox alignment="CENTER_LEFT" spacing="8.0">
             <Label text="Matrícula:" />
             <ComboBox fx:id="cbMatricula" prefWidth="420.0" promptText="Selecione o aluno" />
