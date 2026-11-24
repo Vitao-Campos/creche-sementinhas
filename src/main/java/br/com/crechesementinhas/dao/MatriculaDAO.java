@@ -75,7 +75,7 @@ public class MatriculaDAO {
         }
     }
 
-    /** RF-10: encerra a matrícula (desligamento). */
+    /** Desligamento: encerra a matrícula ATIVA. */
     public void encerrar(Connection conexao, int idMatricula, LocalDate dataEncerramento) throws SQLException {
         String sql = """
                 UPDATE matricula

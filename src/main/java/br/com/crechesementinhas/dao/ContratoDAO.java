@@ -256,7 +256,7 @@ public class ContratoDAO {
     }
 
     /**
-     * Frente B (RF-10): no desligamento do aluno, encerra o contrato VIGENTE
+     * Frente B: no desligamento do aluno, encerra o contrato VIGENTE
      * e grava a data de saída. Devolve o id do contrato encerrado, ou null se não havia.
      * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
      */
