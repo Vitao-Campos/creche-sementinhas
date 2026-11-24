@@ -165,8 +165,15 @@ public class ContratoService {
         if (data == null || data.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Informe a data da assinatura (não pode ser no futuro).");
         }
-        dao.registrarAssinatura(contrato.getIdContrato(), data);
-        // RNF-02 (etapa 4): registrar no histórico quem assinou (signatario.getNome()).
+                // RNF-02: assinatura e auditoria na MESMA transação.
+        // A justificativa guarda QUEM assinou (RN-05).
+        Transacao.executar(conexao -> {
+            dao.registrarAssinatura(conexao, contrato.getIdContrato(), data);
+            auditoria.registrarAlteracao(conexao, "contrato", contrato.getIdContrato(),
+                    "data_assinatura", null, data,
+                    "Assinado por " + signatario.getNome() + " (responsável legal)");
+            return null;
+        });
     }
     
     /**

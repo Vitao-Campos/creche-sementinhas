@@ -236,14 +236,16 @@ public class ContratoDAO {
         return novo.getIdContrato();
     }
     
-    /** RN-05: grava a data em que o responsável legal assinou. */
-    public void registrarAssinatura(int idContrato, LocalDate data) throws SQLException {
+        /**
+     * RN-05: grava a data em que o responsável legal assinou.
+     * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
+     */
+    public void registrarAssinatura(Connection conexao, int idContrato, LocalDate data) throws SQLException {
         String sql = """
                 UPDATE contrato SET data_assinatura = ?
                 WHERE id_contrato = ? AND status = 'VIGENTE'
                 """;
-        try (Connection con = ConnectionFactory.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setDate(1, Date.valueOf(data));
             ps.setInt(2, idContrato);
             int linhas = ps.executeUpdate();
