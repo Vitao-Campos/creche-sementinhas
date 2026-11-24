@@ -337,7 +337,7 @@ public class ContratoDocumentosController {
             tabelaContratos.getSelectionModel().selectFirst(); // a mais nova fica no topo
             mensagem("Contrato versão " + versao + " gerado. Imprima e colha a assinatura do responsável legal.");
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             aviso(e.getMessage());
         } catch (SQLException e) {
             erro("Erro ao gravar o contrato", e);
@@ -446,7 +446,7 @@ public class ContratoDocumentosController {
             documentoService.anexar(dadosAtuais.getIdMatricula(), cbTipoDocumento.getValue(), arquivo);
             recarregarDocumentos();
             mensagem("Documento anexado: " + arquivo.getName());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             aviso(e.getMessage()); // EX-05: a pasta digital continua intacta
         } catch (IOException | SQLException e) {
             erro("Erro ao anexar o documento", e);
@@ -462,7 +462,7 @@ public class ContratoDocumentosController {
         }
         try {
             abrirNoComputador(documentoService.arquivoDe(d));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             aviso(e.getMessage());
         }
     }
@@ -473,7 +473,7 @@ public class ContratoDocumentosController {
             documentoService.validar(tabelaDocumentos.getSelectionModel().getSelectedItem());
             recarregarDocumentos();
             mensagem("Documento marcado como VALIDADO.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             aviso(e.getMessage());
         } catch (SQLException e) {
             erro("Erro ao validar o documento", e);
@@ -487,7 +487,7 @@ public class ContratoDocumentosController {
             contratoService.registrarAssinatura(selecionado, cbSignatario.getValue(), dpAssinatura.getValue());
             recarregarContratos();
             mensagem("Assinatura registrada. O contrato agora é válido (RN-05).");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             aviso(e.getMessage());
         } catch (SQLException e) {
             erro("Erro ao registrar a assinatura", e);

@@ -4,6 +4,7 @@ import br.com.crechesementinhas.dao.ContratoDAO;
 import br.com.crechesementinhas.model.Contrato;
 import br.com.crechesementinhas.model.DadosContrato;
 import br.com.crechesementinhas.model.MatriculaResumo;
+import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.ResponsavelContrato;
 import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.GeradorPdf;
@@ -86,6 +87,7 @@ public class ContratoService {
      * A versão anterior (se existir) passa automaticamente para ENCERRADO.
      */
     public int gerarNovaVersao(Contrato novo, DadosContrato dados) throws SQLException {
+        ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA); // RNF-03
         if (dados == null) {
             throw new IllegalArgumentException("Selecione uma matrícula.");
         }
@@ -127,6 +129,7 @@ public class ContratoService {
      */
     public void registrarAssinatura(Contrato contrato, ResponsavelContrato signatario,
                                     LocalDate data) throws SQLException {
+        ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA); // RNF-03
         if (contrato == null) {
             throw new IllegalArgumentException("Selecione na tabela o contrato que foi assinado.");
         }

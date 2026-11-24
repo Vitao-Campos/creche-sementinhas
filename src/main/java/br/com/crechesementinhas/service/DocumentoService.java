@@ -2,6 +2,7 @@ package br.com.crechesementinhas.service;
 
 import br.com.crechesementinhas.dao.DocumentoDAO;
 import br.com.crechesementinhas.model.Documento;
+import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.util.PastaDocumentos;
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,7 @@ public class DocumentoService {
      * Valida o arquivo, copia para a pasta da matrícula e grava no banco.
      */
     public void anexar(int idMatricula, String tipo, File arquivo) throws IOException, SQLException {
+                ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA); // RNF-03
         if (tipo == null || tipo.isBlank()) {
             throw new IllegalArgumentException("Selecione o tipo do documento.");
         }
@@ -112,6 +114,7 @@ public class DocumentoService {
     
     /** A secretaria/direção conferiu o documento. */
     public void validar(Documento d) throws SQLException {
+        ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA); // RNF-03
         if (d == null) {
             throw new IllegalArgumentException("Selecione um documento na tabela.");
         }
