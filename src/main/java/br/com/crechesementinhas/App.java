@@ -11,7 +11,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        stage.setResizable(false);
+        stage.setResizable(false); // o login é fixo; a Navegacao libera o tamanho depois do login
         Navegacao.iniciar(stage);
         Navegacao.abrir("login.fxml", "Login");
         stage.show();

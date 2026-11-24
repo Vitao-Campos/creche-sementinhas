@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.HistoricoController"
+            prefWidth="1150" prefHeight="560"
+            stylesheets="@estilo.css"
+            style="-fx-background-color: #f4f6f9;">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #2e7d32;">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label fx:id="labelTitulo" text="Histórico de alterações"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="tabela" BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets top="15" right="20" bottom="10" left="20"/>
+            </BorderPane.margin>
+            <columns>
+                <TableColumn fx:id="colunaDataHora" text="Quando" prefWidth="125"/>
+                <TableColumn fx:id="colunaUsuario" text="Quem alterou" prefWidth="140"/>
+                <TableColumn fx:id="colunaSobre" text="Sobre" prefWidth="190"/>
+                <TableColumn fx:id="colunaAcao" text="Ação" prefWidth="80"/>
+                <TableColumn fx:id="colunaCampo" text="Campo" prefWidth="130"/>
+                <TableColumn fx:id="colunaAntes" text="Antes" prefWidth="140"/>
+                <TableColumn fx:id="colunaDepois" text="Depois" prefWidth="140"/>
+                <TableColumn fx:id="colunaMotivo" text="Motivo" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <padding>
+                <Insets top="0" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label fx:id="labelTotal" style="-fx-text-fill: #607d8b;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Fechar" onAction="#fechar" cancelButton="true"
+                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+        </HBox>
+    </bottom>
+</BorderPane>

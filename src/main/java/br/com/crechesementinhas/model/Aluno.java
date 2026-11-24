@@ -5,7 +5,7 @@ import br.com.crechesementinhas.util.Cpf;
 import java.time.LocalDate;
 
 /**
- * Criança atendida pela creche (RF-03).
+ * Criança atendida pela creche (RF-02).
  * Espelha a tabela "aluno" do banco.
  */
 public class Aluno {
@@ -20,7 +20,7 @@ public class Aluno {
     private String observacao;
 
     /**
-     * Idade completa em meses, calculada na hora (a faixa etária da turma usa isso, RN-01).
+     * Idade completa em meses, calculada na hora (a faixa etária da turma usa isso, RN-07).
      */
     public long getIdadeEmMeses() {
         return CalculadoraIdade.emMeses(dataNascimento, LocalDate.now());

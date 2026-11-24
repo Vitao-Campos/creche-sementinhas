@@ -1,0 +1,477 @@
+package br.com.crechesementinhas.controller;
+
+import br.com.crechesementinhas.model.Aluno;
+import br.com.crechesementinhas.model.AlunoResponsavel;
+import br.com.crechesementinhas.model.Permissao;
+import br.com.crechesementinhas.model.Responsavel;
+import br.com.crechesementinhas.service.AlunoService;
+import br.com.crechesementinhas.service.CadastroResponsavelException;
+import br.com.crechesementinhas.service.ControleAcesso;
+import br.com.crechesementinhas.service.HistoricoService;
+import br.com.crechesementinhas.service.ResponsavelService;
+import br.com.crechesementinhas.util.Cpf;
+import br.com.crechesementinhas.util.Navegacao;
+import br.com.crechesementinhas.util.Telefone;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.List;
+import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
+import javafx.util.StringConverter;
+
+/**
+ * Controller da tela de responsáveis (responsavel.fxml). RF-02.
+ * Esquerda: busca e lista. Centro: dados do responsável e, abaixo, os vínculos com as crianças.
+ * O controller só cuida da tela: as regras ficam no ResponsavelService.
+ */
+public class ResponsavelController {
+
+    private static final DateTimeFormatter FORMATO_DATA =
+            DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
+
+    private static final Color VERMELHO = Color.web("#c62828");
+    private static final Color VERDE = Color.web("#2e7d32");
+    private static final Color LARANJA = Color.web("#e65100");
+    private static final Color CINZA = Color.web("#607d8b");
+
+    @FXML private TextField campoBusca;
+    @FXML private TableView<Responsavel> tabelaResponsaveis;
+    @FXML private TableColumn<Responsavel, String> colunaNome;
+    @FXML private TableColumn<Responsavel, String> colunaCpf;
+    @FXML private TableColumn<Responsavel, String> colunaTelefone;
+    @FXML private Label labelTotal;
+
+    @FXML private Label labelTituloForm;
+    @FXML private TextField campoNome;
+    @FXML private TextField campoCpf;
+    @FXML private TextField campoTelefone;
+    @FXML private TextField campoEmail;
+    @FXML private TextField campoCep;
+    @FXML private TextField campoEndereco;
+    @FXML private TextField campoProfissao;
+    @FXML private Label rotuloJustificativa;
+    @FXML private TextField campoJustificativa;
+    @FXML private Label labelMensagem;
+    @FXML private Button botaoSalvar;
+    @FXML private Button botaoNovo;
+    @FXML private Button botaoHistorico;
+
+    @FXML private VBox painelVinculos;
+    @FXML private Label labelAvisoVinculos;
+    @FXML private TableView<AlunoResponsavel> tabelaVinculos;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoAluno;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoParentesco;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoLegal;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoFinanceiro;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoInicio;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoFim;
+    @FXML private Button botaoEncerrar;
+    @FXML private ComboBox<Aluno> comboAluno;
+    @FXML private ComboBox<String> comboParentesco;
+    @FXML private DatePicker campoVinculoInicio;
+    @FXML private CheckBox checkLegal;
+    @FXML private CheckBox checkFinanceiro;
+    @FXML private Button botaoVincular;
+
+    private final ResponsavelService responsavelService = new ResponsavelService();
+    private final AlunoService alunoService = new AlunoService();
+    private final HistoricoService historicoService = new HistoricoService();
+
+    /** Responsável que está sendo editado; null quando o formulário é de um novo. */
+    private Responsavel responsavelEmEdicao;
+
+    private final PauseTransition esperaBusca = new PauseTransition(Duration.millis(250));
+
+    @FXML
+    private void initialize() {
+        configurarTabelas();
+        configurarFormulario();
+
+        // RNF-03: quem não pode cadastrar só consulta.
+        boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
+        botaoSalvar.setDisable(!podeGravar);
+        botaoNovo.setDisable(!podeGravar);
+        botaoVincular.setDisable(!podeGravar);
+
+        esperaBusca.setOnFinished(e -> carregarLista());
+        campoBusca.textProperty().addListener((obs, antigo, novo) -> esperaBusca.playFromStart());
+
+        carregarAlunos();
+        carregarLista();
+        novoResponsavel();
+    }
+
+    private void configurarTabelas() {
+        colunaNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNome()));
+        colunaCpf.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getCpfFormatado()));
+        colunaTelefone.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getTelefoneFormatado()));
+        tabelaResponsaveis.setPlaceholder(new Label("Nenhum responsável encontrado."));
+        tabelaResponsaveis.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> {
+            if (escolhido != null) {
+                editar(escolhido);
+            }
+        });
+
+        colunaVinculoAluno.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNomeAluno()));
+        colunaVinculoParentesco.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getGrauParentesco()));
+        colunaVinculoLegal.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().isResponsavelLegal() ? "Sim" : "Não"));
+        colunaVinculoFinanceiro.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().isResponsavelFinanceiro() ? "Sim" : "Não"));
+        colunaVinculoInicio.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(FORMATO_DATA.format(c.getValue().getDataInicio())));
+        colunaVinculoFim.setCellValueFactory(c -> new ReadOnlyStringWrapper(
+                c.getValue().getDataFim() == null ? "Vigente" : FORMATO_DATA.format(c.getValue().getDataFim())));
+        tabelaVinculos.setPlaceholder(new Label("Nenhuma criança vinculada."));
+
+        // Só dá para encerrar um vínculo ainda aberto.
+        tabelaVinculos.getSelectionModel().selectedItemProperty().addListener(
+                (obs, antigo, escolhido) -> atualizarBotaoEncerrar());
+    }
+
+    private void configurarFormulario() {
+        comboParentesco.getItems().setAll("Mãe", "Pai", "Avó", "Avô", "Tia", "Tio", "Madrasta", "Padrasto", "Tutor(a)");
+
+        comboAluno.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Aluno aluno) {
+                return aluno == null ? "" : aluno.getNome()
+                        + " (nasc. " + FORMATO_DATA.format(aluno.getDataNascimento()) + ")";
+            }
+
+            @Override
+            public Aluno fromString(String texto) {
+                return null; // o combo não é editável
+            }
+        });
+
+        campoVinculoInicio.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate data) {
+                return data == null ? "" : FORMATO_DATA.format(data);
+            }
+
+            @Override
+            public LocalDate fromString(String texto) {
+                try {
+                    return texto == null || texto.isBlank() ? null : LocalDate.parse(texto.trim(), FORMATO_DATA);
+                } catch (DateTimeParseException e) {
+                    return null;
+                }
+            }
+        });
+
+        // Ao sair do campo, mostra CPF, telefone e CEP com a máscara.
+        campoCpf.focusedProperty().addListener((obs, tinha, tem) -> {
+            if (!tem) {
+                String digitos = Cpf.normalizar(campoCpf.getText());
+                if (digitos != null && digitos.length() == 11) {
+                    campoCpf.setText(Cpf.formatar(digitos));
+                }
+            }
+        });
+        campoTelefone.focusedProperty().addListener((obs, tinha, tem) -> {
+            if (!tem) {
+                campoTelefone.setText(Telefone.formatar(Telefone.normalizar(campoTelefone.getText())));
+            }
+        });
+        campoCep.focusedProperty().addListener((obs, tinha, tem) -> {
+            if (!tem) {
+                campoCep.setText(formatarCep(campoCep.getText()));
+            }
+        });
+    }
+
+    // ---------------------------------------------------------------- lista
+
+    private void carregarLista() {
+        try {
+            List<Responsavel> lista = responsavelService.listar(campoBusca.getText());
+            tabelaResponsaveis.getItems().setAll(lista);
+            labelTotal.setText(lista.size() == 1 ? "1 responsável" : lista.size() + " responsáveis");
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    /** Crianças que podem ser vinculadas (lista do cadastro de alunos). */
+    private void carregarAlunos() {
+        try {
+            comboAluno.getItems().setAll(alunoService.listar(""));
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    // ----------------------------------------------------------- formulário
+
+    @FXML
+    private void novoResponsavel() {
+        responsavelEmEdicao = null;
+        tabelaResponsaveis.getSelectionModel().clearSelection();
+        labelTituloForm.setText("Novo responsável");
+        preencherCampos(null);
+        mostrarJustificativa(false);
+        esconderMensagem();
+        atualizarPainelVinculos();
+        campoNome.requestFocus();
+    }
+
+    private void editar(Responsavel responsavel) {
+        responsavelEmEdicao = responsavel;
+        labelTituloForm.setText("Editando: " + responsavel.getNome());
+        preencherCampos(responsavel);
+        mostrarJustificativa(true);
+        esconderMensagem();
+        atualizarPainelVinculos();
+    }
+
+    private void preencherCampos(Responsavel r) {
+        campoNome.setText(r == null ? "" : r.getNome());
+        campoCpf.setText(r == null ? "" : r.getCpfFormatado());
+        campoTelefone.setText(r == null ? "" : r.getTelefoneFormatado());
+        campoEmail.setText(r == null ? "" : valor(r.getEmail()));
+        campoCep.setText(r == null ? "" : formatarCep(r.getCep()));
+        campoEndereco.setText(r == null ? "" : valor(r.getEndereco()));
+        campoProfissao.setText(r == null ? "" : valor(r.getProfissao()));
+        campoJustificativa.clear();
+    }
+
+    private void mostrarJustificativa(boolean visivel) {
+        rotuloJustificativa.setVisible(visivel);
+        rotuloJustificativa.setManaged(visivel);
+        campoJustificativa.setVisible(visivel);
+        campoJustificativa.setManaged(visivel);
+    }
+
+    @FXML
+    private void salvar() {
+        Responsavel dados = new Responsavel();
+        dados.setIdResponsavel(responsavelEmEdicao == null ? null : responsavelEmEdicao.getIdResponsavel());
+        dados.setNome(campoNome.getText());
+        dados.setCpf(campoCpf.getText());
+        dados.setTelefone(campoTelefone.getText());
+        dados.setEmail(campoEmail.getText());
+        dados.setCep(campoCep.getText());
+        dados.setEndereco(campoEndereco.getText());
+        dados.setProfissao(campoProfissao.getText());
+
+        boolean novo = responsavelEmEdicao == null;
+        try {
+            Responsavel salvo = novo
+                    ? responsavelService.cadastrar(dados)
+                    : responsavelService.atualizar(dados, campoJustificativa.getText());
+
+            campoBusca.clear();
+            carregarLista();
+            selecionarNaLista(salvo.getIdResponsavel());
+            mostrarMensagem(novo ? "Responsável cadastrado. Agora você pode vincular as crianças abaixo."
+                                 : "Dados do responsável atualizados.", VERDE);
+
+        } catch (CadastroResponsavelException | SecurityException e) {
+            mostrarMensagem(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    private void selecionarNaLista(Integer id) {
+        for (Responsavel r : tabelaResponsaveis.getItems()) {
+            if (r.getIdResponsavel().equals(id)) {
+                tabelaResponsaveis.getSelectionModel().select(r);
+                tabelaResponsaveis.scrollTo(r);
+                return;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------- vínculos
+
+    /** O painel só funciona com um responsável já gravado (o vínculo precisa do id dele). */
+    private void atualizarPainelVinculos() {
+        boolean salvo = responsavelEmEdicao != null;
+        painelVinculos.setDisable(!salvo);
+        botaoHistorico.setDisable(!salvo);
+        tabelaVinculos.getItems().clear();
+        comboAluno.setValue(null);
+        comboParentesco.setValue(null);
+        comboParentesco.getEditor().clear();
+        checkLegal.setSelected(false);
+        checkFinanceiro.setSelected(false);
+        campoVinculoInicio.setValue(LocalDate.now());
+        campoVinculoInicio.getEditor().setText(FORMATO_DATA.format(LocalDate.now()));
+        mostrarAvisoVinculo(salvo ? "" : "Salve o responsável para poder vincular crianças.", CINZA);
+        if (salvo) {
+            carregarVinculos();
+        }
+        atualizarBotaoEncerrar();
+    }
+
+    private void carregarVinculos() {
+        try {
+            tabelaVinculos.getItems().setAll(
+                    responsavelService.listarVinculos(responsavelEmEdicao.getIdResponsavel()));
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    private void atualizarBotaoEncerrar() {
+        AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
+        boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
+        botaoEncerrar.setDisable(!podeGravar || escolhido == null || escolhido.getDataFim() != null);
+    }
+
+    @FXML
+    private void vincular() {
+        LocalDate inicio;
+        try {
+            String texto = campoVinculoInicio.getEditor().getText();
+            inicio = texto == null || texto.isBlank() ? null : LocalDate.parse(texto.trim(), FORMATO_DATA);
+        } catch (DateTimeParseException e) {
+            mostrarAvisoVinculo("Data de início inválida. Use o formato dd/mm/aaaa.", VERMELHO);
+            return;
+        }
+
+        Aluno aluno = comboAluno.getValue();
+        AlunoResponsavel vinculo = new AlunoResponsavel();
+        vinculo.setIdResponsavel(responsavelEmEdicao == null ? null : responsavelEmEdicao.getIdResponsavel());
+        vinculo.setIdAluno(aluno == null ? null : aluno.getIdAluno());
+        vinculo.setGrauParentesco(comboParentesco.getEditor().getText());
+        vinculo.setResponsavelLegal(checkLegal.isSelected());
+        vinculo.setResponsavelFinanceiro(checkFinanceiro.isSelected());
+        vinculo.setDataInicio(inicio);
+
+        try {
+            responsavelService.vincular(vinculo);
+            carregarVinculos();
+            comboAluno.setValue(null);
+            checkLegal.setSelected(false);
+            checkFinanceiro.setSelected(false);
+            avisarPendencias(vinculo.getIdAluno(), "Vínculo criado.");
+        } catch (CadastroResponsavelException | SecurityException e) {
+            mostrarAvisoVinculo(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    @FXML
+    private void encerrarVinculo() {
+        AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
+        if (escolhido == null) {
+            return;
+        }
+        Alert confirmacao = new Alert(Alert.AlertType.CONFIRMATION,
+                "Encerrar hoje o vínculo com " + escolhido.getNomeAluno() + "?\n"
+                + "O histórico é mantido; nada é apagado.", ButtonType.OK, ButtonType.CANCEL);
+        confirmacao.setTitle("Encerrar vínculo");
+        confirmacao.setHeaderText(null);
+        if (confirmacao.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+
+        try {
+            responsavelService.encerrarVinculo(escolhido.getIdAlunoResponsavel(), LocalDate.now(),
+                    campoJustificativa.getText());
+            carregarVinculos();
+            avisarPendencias(escolhido.getIdAluno(), "Vínculo encerrado.");
+        } catch (CadastroResponsavelException | SecurityException e) {
+            mostrarAvisoVinculo(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    /**
+     * Depois de criar ou encerrar um vínculo, avisa o que ainda falta na criança:
+     * responsável legal (RN-01) e responsável financeiro (quem paga a mensalidade).
+     */
+    private void avisarPendencias(Integer idAluno, String mensagemOk) throws SQLException {
+        StringBuilder pendencias = new StringBuilder();
+        if (idAluno != null && !responsavelService.alunoTemResponsavelLegal(idAluno)) {
+            pendencias.append(" Atenção (RN-01): esta criança ainda não tem nenhum responsável legal vigente;")
+                      .append(" a matrícula só pode ser concluída com pelo menos um.");
+        }
+        if (idAluno != null && !responsavelService.alunoTemResponsavelFinanceiro(idAluno)) {
+            pendencias.append(" Falta indicar o responsável financeiro (quem paga a mensalidade): marque a opção")
+                      .append(" ao vincular o responsável legal ou cadastre outra pessoa que pague.");
+        }
+        if (pendencias.length() == 0) {
+            mostrarAvisoVinculo(mensagemOk, VERDE);
+        } else {
+            mostrarAvisoVinculo(mensagemOk + pendencias, LARANJA);
+        }
+    }
+
+    /** Abre, em janela separada, quem alterou o quê e quando neste responsável e nos vínculos dele (RNF-02). */
+    @FXML
+    private void verHistorico() {
+        if (responsavelEmEdicao == null) {
+            return;
+        }
+        try {
+            HistoricoController.abrir(botaoHistorico.getScene().getWindow(),
+                    "Histórico de alterações — " + responsavelEmEdicao.getNome(),
+                    historicoService.consultarDoResponsavel(responsavelEmEdicao.getIdResponsavel()));
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    @FXML
+    private void voltar() {
+        Navegacao.abrir("menu.fxml", "Menu");
+    }
+
+    // ------------------------------------------------------------- utilitários
+
+    private String formatarCep(String texto) {
+        String digitos = texto == null ? "" : texto.replaceAll("\\D", "");
+        return digitos.length() == 8 ? digitos.substring(0, 5) + "-" + digitos.substring(5) : digitos;
+    }
+
+    private String valor(String texto) {
+        return texto == null ? "" : texto;
+    }
+
+    private void erroDeBanco(SQLException e) {
+        e.printStackTrace();
+        mostrarMensagem("Não foi possível acessar o banco de dados. Tente novamente.", VERMELHO);
+    }
+
+    private void mostrarMensagem(String texto, Color cor) {
+        labelMensagem.setText(texto);
+        labelMensagem.setTextFill(cor);
+        labelMensagem.setVisible(true);
+        labelMensagem.setManaged(true);
+    }
+
+    /** Mensagem do painel de vínculos (fica junto da tabela, sem precisar rolar a tela). */
+    private void mostrarAvisoVinculo(String texto, Color cor) {
+        labelAvisoVinculos.setText(texto);
+        labelAvisoVinculos.setTextFill(cor);
+    }
+
+    private void esconderMensagem() {
+        labelMensagem.setVisible(false);
+        labelMensagem.setManaged(false);
+    }
+}

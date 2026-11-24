@@ -2,7 +2,7 @@ package br.com.crechesementinhas.util;
 
 /**
  * Funções de apoio para CPF: tirar a máscara, conferir os dígitos
- * verificadores e formatar para exibição (RN-12 exige CPF único).
+ * verificadores e formatar para exibição (o CPF é único no banco, seção 6.2).
  */
 public final class Cpf {
 
