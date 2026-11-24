@@ -8,6 +8,7 @@ import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.ResponsavelContrato;
 import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.GeradorPdf;
+import br.com.crechesementinhas.util.Transacao;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,7 @@ public class ContratoService {
     private static final String MODELO = "/br/com/crechesementinhas/modelos/contrato_modelo.txt";
 
     private final ContratoDAO dao = new ContratoDAO();
+    private final AuditoriaService auditoria = new AuditoriaService();
 
     public List<MatriculaResumo> listarMatriculasAtivas() throws SQLException {
         return dao.listarMatriculasAtivas();
@@ -120,8 +122,21 @@ public class ContratoService {
             throw new IllegalArgumentException("A vigência deve ser uma data futura.");
         }
 
-        novo.setIdMatricula(dados.getIdMatricula());
-        return dao.criarNovaVersao(novo);
+                novo.setIdMatricula(dados.getIdMatricula());
+
+        // RNF-02: contrato e auditoria na MESMA transação (grava os dois ou nenhum)
+        return Transacao.executar(conexao -> {
+            Integer idAnterior = dao.travarEBuscarVigente(conexao, novo.getIdMatricula());
+            int idNovo = dao.criarNovaVersao(conexao, novo);
+
+            if (idAnterior != null) {
+                auditoria.registrarAlteracao(conexao, "contrato", idAnterior,
+                        "status", "VIGENTE", "ENCERRADO",
+                        "Substituído pela versão " + novo.getVersao());
+            }
+            auditoria.registrarInsercao(conexao, "contrato", idNovo);
+            return novo.getVersao();
+        });
     }
     
     /**

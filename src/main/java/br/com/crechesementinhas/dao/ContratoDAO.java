@@ -154,17 +154,41 @@ public class ContratoDAO {
         return c;
     }
     
+        /**
+     * RN-06: trava a matrícula (FOR UPDATE) e devolve o id do contrato VIGENTE,
+     * ou null se ainda não houver contrato.
+     * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
+     */
+    public Integer travarEBuscarVigente(Connection conexao, int idMatricula) throws SQLException {
+        String sqlTravar = "SELECT id_matricula FROM matricula WHERE id_matricula = ? FOR UPDATE";
+        String sqlVigente = """
+                SELECT id_contrato FROM contrato
+                WHERE id_matricula = ? AND status = 'VIGENTE'
+                """;
+
+        // Trava: se outro computador estiver gerando contrato desta matrícula, este espera.
+        try (PreparedStatement ps = conexao.prepareStatement(sqlTravar)) {
+            ps.setInt(1, idMatricula);
+            ps.executeQuery().close();
+        }
+
+        try (PreparedStatement ps = conexao.prepareStatement(sqlVigente)) {
+            ps.setInt(1, idMatricula);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("id_contrato") : null;
+            }
+        }
+    }
+
     /**
      * RF-08 / RN-06 / EX-04: cria uma NOVA versão do contrato.
-     * Tudo acontece numa TRANSAÇÃO (ou faz tudo, ou não faz nada):
-     *   1. trava a matrícula (evita que dois computadores gerem ao mesmo tempo);
-     *   2. descobre o próximo número de versão;
-     *   3. ENCERRA a versão vigente anterior (histórico não é apagado);
-     *   4. grava a nova versão como VIGENTE.
-     * Devolve o número da versão criada.
+     *   1. descobre o próximo número de versão;
+     *   2. ENCERRA a versão vigente anterior (histórico não é apagado);
+     *   3. grava a nova versão como VIGENTE.
+     * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
+     * Preenche a versão e o id no objeto "novo" e devolve o id do contrato criado.
      */
-    public int criarNovaVersao(Contrato novo) throws SQLException {
-        String sqlTravar = "SELECT id_matricula FROM matricula WHERE id_matricula = ? FOR UPDATE";
+    public int criarNovaVersao(Connection conexao, Contrato novo) throws SQLException {
         String sqlProxima = "SELECT COALESCE(MAX(versao), 0) + 1 FROM contrato WHERE id_matricula = ?";
         String sqlEncerrar = """
                 UPDATE contrato SET status = 'ENCERRADO'
@@ -175,52 +199,41 @@ public class ContratoDAO {
                     forma_pagamento, data_vencimento_mensalidade, vigencia_contrato,
                     data_assinatura, versao, status, valor_mensalidade)
                 VALUES (?, ?, ?, ?, ?, ?, NULL, ?, 'VIGENTE', ?)
+                RETURNING id_contrato
                 """;
 
-        try (Connection con = ConnectionFactory.getConnection()) {
-            con.setAutoCommit(false); // começa a transação
-            try {
-                try (PreparedStatement ps = con.prepareStatement(sqlTravar)) {
-                    ps.setInt(1, novo.getIdMatricula());
-                    ps.executeQuery().close();
-                }
-
-                int proximaVersao;
-                try (PreparedStatement ps = con.prepareStatement(sqlProxima)) {
-                    ps.setInt(1, novo.getIdMatricula());
-                    try (ResultSet rs = ps.executeQuery()) {
-                        rs.next();
-                        proximaVersao = rs.getInt(1);
-                    }
-                }
-
-                try (PreparedStatement ps = con.prepareStatement(sqlEncerrar)) {
-                    ps.setInt(1, novo.getIdMatricula());
-                    ps.executeUpdate();
-                }
-
-                try (PreparedStatement ps = con.prepareStatement(sqlInserir)) {
-                    ps.setInt(1, novo.getIdMatricula());
-                    ps.setInt(2, novo.getIdResponsavelFinanceiro());
-                    ps.setString(3, novo.getPlano());
-                    ps.setString(4, novo.getFormaPagamento());
-                    ps.setInt(5, novo.getDiaVencimento());
-                    ps.setDate(6, Date.valueOf(novo.getVigenciaAte()));
-                    ps.setInt(7, proximaVersao);
-                    ps.setBigDecimal(8, novo.getValorMensalidade());
-                    ps.executeUpdate();
-                }
-
-                con.commit(); // deu tudo certo: confirma
-                // RNF-02 (etapa 4 - integração): registrar aqui no historico_alteracao,
-                // usando o serviço de auditoria da Frente A.
-                return proximaVersao;
-
-            } catch (SQLException e) {
-                con.rollback(); // deu erro: desfaz tudo
-                throw e;
+        int proximaVersao;
+        try (PreparedStatement ps = conexao.prepareStatement(sqlProxima)) {
+            ps.setInt(1, novo.getIdMatricula());
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                proximaVersao = rs.getInt(1);
             }
         }
+
+        try (PreparedStatement ps = conexao.prepareStatement(sqlEncerrar)) {
+            ps.setInt(1, novo.getIdMatricula());
+            ps.executeUpdate();
+        }
+
+        try (PreparedStatement ps = conexao.prepareStatement(sqlInserir)) {
+            ps.setInt(1, novo.getIdMatricula());
+            ps.setInt(2, novo.getIdResponsavelFinanceiro());
+            ps.setString(3, novo.getPlano());
+            ps.setString(4, novo.getFormaPagamento());
+            ps.setInt(5, novo.getDiaVencimento());
+            ps.setDate(6, Date.valueOf(novo.getVigenciaAte()));
+            ps.setInt(7, proximaVersao);
+            ps.setBigDecimal(8, novo.getValorMensalidade());
+            // RETURNING faz o INSERT devolver o id gerado, que a auditoria precisa
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                novo.setIdContrato(rs.getInt("id_contrato"));
+            }
+        }
+
+        novo.setVersao(proximaVersao);
+        return novo.getIdContrato();
     }
     
     /** RN-05: grava a data em que o responsável legal assinou. */
