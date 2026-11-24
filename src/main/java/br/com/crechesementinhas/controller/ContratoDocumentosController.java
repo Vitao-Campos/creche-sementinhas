@@ -478,4 +478,18 @@ public class ContratoDocumentosController {
             erro("Erro ao validar o documento", e);
         }
     }
+    
+    @FXML
+    private void onRegistrarAssinatura() {
+        try {
+            Contrato selecionado = tabelaContratos.getSelectionModel().getSelectedItem();
+            contratoService.registrarAssinatura(selecionado, cbSignatario.getValue(), dpAssinatura.getValue());
+            recarregarContratos();
+            mensagem("Assinatura registrada. O contrato agora é válido (RN-05).");
+        } catch (IllegalArgumentException e) {
+            aviso(e.getMessage());
+        } catch (SQLException e) {
+            erro("Erro ao registrar a assinatura", e);
+        }
+    }
 }
