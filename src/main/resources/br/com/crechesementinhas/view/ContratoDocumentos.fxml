@@ -74,8 +74,8 @@
                </GridPane>
 
                <HBox spacing="8.0">
-                  <Button onAction="#onGerarNovaVersao" text="Gerar nova versão" defaultButton="true" />
-                  <Button onAction="#onRematricula" text="Rematrícula (próximo ano)" />
+                  <Button fx:id="btnGerarVersao" onAction="#onGerarNovaVersao" text="Gerar nova versão" defaultButton="true" />
+                  <Button fx:id="btnRematricula" onAction="#onRematricula" text="Rematrícula (próximo ano)" />
                </HBox>
 
                <Separator />
@@ -100,7 +100,7 @@
                   <ComboBox fx:id="cbSignatario" prefWidth="280.0" />
                   <Label text="em" />
                   <DatePicker fx:id="dpAssinatura" prefWidth="130.0" />
-                  <Button onAction="#onRegistrarAssinatura" text="Registrar assinatura" />
+                  <Button fx:id="btnAssinar" onAction="#onRegistrarAssinatura" text="Registrar assinatura" />
                   <Separator orientation="VERTICAL" />
                   <Button onAction="#onSalvarPdf" text="Salvar PDF" />
                   <Button onAction="#onAbrirImprimir" text="Abrir para imprimir" />
@@ -118,7 +118,7 @@
                <HBox alignment="CENTER_LEFT" spacing="8.0">
                   <Label text="Tipo:" />
                   <ComboBox fx:id="cbTipoDocumento" prefWidth="240.0" promptText="Selecione o tipo" />
-                  <Button onAction="#onAnexarDocumento" text="Escolher arquivo e anexar..." />
+                  <Button fx:id="btnAnexar" onAction="#onAnexarDocumento" text="Escolher arquivo e anexar..." />
                   <Label text="Aceita PDF, JPEG ou PNG de até 5 MB" />
                </HBox>
                <TableView fx:id="tabelaDocumentos" VBox.vgrow="ALWAYS">
@@ -131,7 +131,7 @@
                </TableView>
                <HBox spacing="8.0">
                   <Button onAction="#onAbrirDocumento" text="Abrir documento" />
-                  <Button onAction="#onValidarDocumento" text="Marcar como validado" />
+                  <Button fx:id="btnValidar" onAction="#onValidarDocumento" text="Marcar como validado" />
                </HBox>
             </VBox>
          </Tab>

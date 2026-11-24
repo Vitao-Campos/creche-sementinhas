@@ -4,8 +4,10 @@ import br.com.crechesementinhas.model.Contrato;
 import br.com.crechesementinhas.model.DadosContrato;
 import br.com.crechesementinhas.model.Documento;
 import br.com.crechesementinhas.model.MatriculaResumo;
+import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.ResponsavelContrato;
 import br.com.crechesementinhas.service.ContratoService;
+import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.DocumentoService;
 import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.Navegacao;
@@ -22,6 +24,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -80,6 +83,13 @@ public class ContratoDocumentosController {
 
     // ---------- rodapé ----------
     @FXML private Label lblMensagem;
+    
+    // ---------- botões que gravam (RNF-03) ----------
+    @FXML private Button btnGerarVersao;
+    @FXML private Button btnRematricula;
+    @FXML private Button btnAssinar;
+    @FXML private Button btnAnexar;
+    @FXML private Button btnValidar;
 
     private final ContratoService contratoService = new ContratoService();
     private final DocumentoService documentoService = new DocumentoService();
@@ -273,6 +283,15 @@ public class ContratoDocumentosController {
         cbMatricula.valueProperty().addListener((obs, antiga, nova) -> carregarMatricula(nova));
 
         dpAssinatura.setValue(LocalDate.now());
+        
+        // RNF-03: quem não tem permissão nem vê os botões de gravação ativos.
+        // (A proteção de verdade está no service; aqui é só conforto visual.)
+        boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
+        btnGerarVersao.setDisable(!podeGravar);
+        btnRematricula.setDisable(!podeGravar);
+        btnAssinar.setDisable(!podeGravar);
+        btnAnexar.setDisable(!podeGravar);
+        btnValidar.setDisable(!podeGravar);
         carregarMatriculas();
     }
 
