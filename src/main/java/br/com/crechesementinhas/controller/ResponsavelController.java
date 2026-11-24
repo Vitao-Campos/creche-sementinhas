@@ -77,6 +77,7 @@ public class ResponsavelController {
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoAluno;
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoParentesco;
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoLegal;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoFinanceiro;
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoInicio;
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoFim;
     @FXML private Button botaoEncerrar;
@@ -84,6 +85,7 @@ public class ResponsavelController {
     @FXML private ComboBox<String> comboParentesco;
     @FXML private DatePicker campoVinculoInicio;
     @FXML private CheckBox checkLegal;
+    @FXML private CheckBox checkFinanceiro;
     @FXML private Button botaoVincular;
 
     private final ResponsavelService responsavelService = new ResponsavelService();
@@ -128,6 +130,8 @@ public class ResponsavelController {
         colunaVinculoParentesco.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getGrauParentesco()));
         colunaVinculoLegal.setCellValueFactory(c ->
                 new ReadOnlyStringWrapper(c.getValue().isResponsavelLegal() ? "Sim" : "Não"));
+        colunaVinculoFinanceiro.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().isResponsavelFinanceiro() ? "Sim" : "Não"));
         colunaVinculoInicio.setCellValueFactory(c ->
                 new ReadOnlyStringWrapper(FORMATO_DATA.format(c.getValue().getDataInicio())));
         colunaVinculoFim.setCellValueFactory(c -> new ReadOnlyStringWrapper(
@@ -306,6 +310,7 @@ public class ResponsavelController {
         comboParentesco.setValue(null);
         comboParentesco.getEditor().clear();
         checkLegal.setSelected(false);
+        checkFinanceiro.setSelected(false);
         campoVinculoInicio.setValue(LocalDate.now());
         campoVinculoInicio.getEditor().setText(FORMATO_DATA.format(LocalDate.now()));
         mostrarAvisoVinculo(salvo ? "" : "Salve o responsável para poder vincular crianças.", CINZA);
@@ -347,6 +352,7 @@ public class ResponsavelController {
         vinculo.setIdAluno(aluno == null ? null : aluno.getIdAluno());
         vinculo.setGrauParentesco(comboParentesco.getEditor().getText());
         vinculo.setResponsavelLegal(checkLegal.isSelected());
+        vinculo.setResponsavelFinanceiro(checkFinanceiro.isSelected());
         vinculo.setDataInicio(inicio);
 
         try {
@@ -354,7 +360,8 @@ public class ResponsavelController {
             carregarVinculos();
             comboAluno.setValue(null);
             checkLegal.setSelected(false);
-            avisarSeSemResponsavelLegal(vinculo.getIdAluno(), "Vínculo criado.");
+            checkFinanceiro.setSelected(false);
+            avisarPendencias(vinculo.getIdAluno(), "Vínculo criado.");
         } catch (CadastroResponsavelException | SecurityException e) {
             mostrarAvisoVinculo(e.getMessage(), VERMELHO);
         } catch (SQLException e) {
@@ -381,7 +388,7 @@ public class ResponsavelController {
             responsavelService.encerrarVinculo(escolhido.getIdAlunoResponsavel(), LocalDate.now(),
                     campoJustificativa.getText());
             carregarVinculos();
-            avisarSeSemResponsavelLegal(escolhido.getIdAluno(), "Vínculo encerrado.");
+            avisarPendencias(escolhido.getIdAluno(), "Vínculo encerrado.");
         } catch (CadastroResponsavelException | SecurityException e) {
             mostrarAvisoVinculo(e.getMessage(), VERMELHO);
         } catch (SQLException e) {
@@ -389,13 +396,24 @@ public class ResponsavelController {
         }
     }
 
-    /** RN-04: avisa quando a criança ficou sem responsável legal vigente. */
-    private void avisarSeSemResponsavelLegal(Integer idAluno, String mensagemOk) throws SQLException {
+    /**
+     * Depois de criar ou encerrar um vínculo, avisa o que ainda falta na criança:
+     * responsável legal (RN-04) e responsável financeiro (quem paga a mensalidade).
+     */
+    private void avisarPendencias(Integer idAluno, String mensagemOk) throws SQLException {
+        StringBuilder pendencias = new StringBuilder();
         if (idAluno != null && !responsavelService.alunoTemResponsavelLegal(idAluno)) {
-            mostrarAvisoVinculo(mensagemOk + " Atenção (RN-04): esta criança ainda não tem nenhum "
-                    + "responsável legal vigente; a matrícula só pode ser concluída com pelo menos um.", LARANJA);
-        } else {
+            pendencias.append(" Atenção (RN-04): esta criança ainda não tem nenhum responsável legal vigente;")
+                      .append(" a matrícula só pode ser concluída com pelo menos um.");
+        }
+        if (idAluno != null && !responsavelService.alunoTemResponsavelFinanceiro(idAluno)) {
+            pendencias.append(" Falta indicar o responsável financeiro (quem paga a mensalidade): marque a opção")
+                      .append(" ao vincular o responsável legal ou cadastre outra pessoa que pague.");
+        }
+        if (pendencias.length() == 0) {
             mostrarAvisoVinculo(mensagemOk, VERDE);
+        } else {
+            mostrarAvisoVinculo(mensagemOk + pendencias, LARANJA);
         }
     }
 

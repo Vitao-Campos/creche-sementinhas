@@ -98,8 +98,13 @@ public class ResponsavelService {
         return vinculoDAO.listarPorResponsavel(idResponsavel);
     }
 
+    /** Responsáveis da criança (ficha do aluno): legais primeiro, vigentes antes dos encerrados. */
+    public List<AlunoResponsavel> listarVinculosDoAluno(int idAluno) throws SQLException {
+        return vinculoDAO.listarPorAluno(idAluno);
+    }
+
     /**
-     * Vincula o responsável a uma criança (parentesco, responsável legal, datas).
+     * Vincula o responsável a uma criança (parentesco, responsável legal, responsável financeiro, datas).
      *
      * @throws CadastroResponsavelException dados inválidos ou vínculo vigente repetido
      */
@@ -121,6 +126,13 @@ public class ResponsavelService {
                 throw new CadastroResponsavelException(
                         "Este responsável já está vinculado a esta criança. "
                         + "Encerre o vínculo atual antes de criar outro.");
+            }
+            // Um só pagador por criança: o contrato aponta para UM responsável financeiro.
+            if (vinculo.isResponsavelFinanceiro()
+                    && vinculoDAO.contarFinanceirosVigentes(conexao, vinculo.getIdAluno(), LocalDate.now()) > 0) {
+                throw new CadastroResponsavelException(
+                        "Esta criança já tem um responsável financeiro vigente. "
+                        + "Encerre o vínculo dele antes de indicar outro.");
             }
             int id = vinculoDAO.inserir(conexao, vinculo);
             vinculo.setIdAlunoResponsavel(id);
@@ -166,6 +178,12 @@ public class ResponsavelService {
     public boolean alunoTemResponsavelLegal(int idAluno) throws SQLException {
         return Transacao.executar(conexao ->
                 vinculoDAO.contarLegaisVigentes(conexao, idAluno, LocalDate.now()) > 0);
+    }
+
+    /** A criança tem alguém indicado como responsável financeiro vigente hoje? */
+    public boolean alunoTemResponsavelFinanceiro(int idAluno) throws SQLException {
+        return Transacao.executar(conexao ->
+                vinculoDAO.contarFinanceirosVigentes(conexao, idAluno, LocalDate.now()) > 0);
     }
 
     // ------------------------------------------------------------ internos

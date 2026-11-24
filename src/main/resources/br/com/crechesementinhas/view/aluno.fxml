@@ -5,6 +5,8 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
@@ -19,7 +21,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.crechesementinhas.controller.AlunoController"
-            prefWidth="1060" prefHeight="660"
+            prefWidth="1180" prefHeight="720"
             stylesheets="@estilo.css"
             style="-fx-background-color: #f4f6f9;">
 
@@ -39,16 +41,16 @@
 
     <!-- Esquerda: busca e lista de alunos -->
     <left>
-        <VBox spacing="10" prefWidth="480">
+        <VBox spacing="10" prefWidth="440">
             <padding>
                 <Insets top="20" right="10" bottom="20" left="20"/>
             </padding>
-            <Label text="Buscar aluno pelo nome" style="-fx-font-weight: bold;"/>
-            <TextField fx:id="campoBusca" promptText="Digite parte do nome"/>
+            <Label text="Buscar aluno pelo nome:" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="campoBusca" promptText=""/>
             <TableView fx:id="tabelaAlunos" VBox.vgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="190"/>
-                    <TableColumn fx:id="colunaNascimento" text="Nascimento" prefWidth="90"/>
+                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="160"/>
+                    <TableColumn fx:id="colunaNascimento" text="Data de Nascimento" prefWidth="120"/>
                     <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="100"/>
                     <TableColumn fx:id="colunaCpf" text="CPF" prefWidth="100"/>
                 </columns>
@@ -59,6 +61,7 @@
 
     <!-- Centro: formulário de cadastro e edição -->
     <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f4f6f9;">
         <VBox spacing="10">
             <padding>
                 <Insets top="20" right="20" bottom="20" left="10"/>
@@ -117,6 +120,78 @@
                 <Button fx:id="botaoNovo" text="Novo aluno" onAction="#novoAluno"
                         style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
             </HBox>
+
+            <Separator/>
+
+            <!-- Ficha: responsáveis, responsável financeiro e pessoas autorizadas (RF-04, RF-12, RF-13) -->
+            <VBox fx:id="painelFicha" spacing="8">
+                <Label text="Responsáveis"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+                <Label fx:id="labelResumoLegal" wrapText="true" style="-fx-font-weight: bold;"/>
+                <Label fx:id="labelResumoFinanceiro" wrapText="true" style="-fx-font-weight: bold;"/>
+
+                <TableView fx:id="tabelaResponsaveisAluno" prefHeight="130" minHeight="130">
+                    <columns>
+                        <TableColumn fx:id="colunaRespNome" text="Nome" prefWidth="150"/>
+                        <TableColumn fx:id="colunaRespParentesco" text="Parentesco" prefWidth="85"/>
+                        <TableColumn fx:id="colunaRespLegal" text="Legal" prefWidth="50"/>
+                        <TableColumn fx:id="colunaRespFinanceiro" text="Financeiro" prefWidth="72"/>
+                        <TableColumn fx:id="colunaRespTelefone" text="Telefone" prefWidth="105"/>
+                        <TableColumn fx:id="colunaRespSituacao" text="Situação" prefWidth="100"/>
+                    </columns>
+                </TableView>
+                <Label wrapText="true" style="-fx-text-fill: #607d8b;"
+                       text="Para vincular ou encerrar responsáveis (inclusive quem paga a mensalidade), use a tela Responsáveis do menu."/>
+
+                <Label text="Pessoas autorizadas à buscar a criança:"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-padding: 10 0 0 0;"/>
+                <TableView fx:id="tabelaAutorizados" prefHeight="130" minHeight="130">
+                    <columns>
+                        <TableColumn fx:id="colunaAutNome" text="Nome" prefWidth="140"/>
+                        <TableColumn fx:id="colunaAutRg" text="RG" prefWidth="90"/>
+                        <TableColumn fx:id="colunaAutTelefone" text="Telefone" prefWidth="105"/>
+                        <TableColumn fx:id="colunaAutParentesco" text="Parentesco" prefWidth="80"/>
+                        <TableColumn fx:id="colunaAutTipo" text="Autoriza" prefWidth="150"/>
+                        <TableColumn fx:id="colunaAutSituacao" text="Situação" prefWidth="60"/>
+                    </columns>
+                </TableView>
+                <HBox spacing="10">
+                    <Button fx:id="botaoRetirar" text="Retirar autorização selecionada" onAction="#retirarAutorizacao"
+                            style="-fx-background-color: white; -fx-text-fill: #c62828; -fx-border-color: #c62828;"/>
+                </HBox>
+
+                <Label text="Autorizar nova pessoa:" style="-fx-font-weight: bold; -fx-padding: 6 0 0 0;"/>
+                <GridPane hgap="10" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="130" prefWidth="130"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <Label text="Nome *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoAutNome" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="RG *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoAutRg" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Telefone *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoAutTelefone" promptText="(00) 00000-0000"
+                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="Parentesco" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="comboAutParentesco" editable="true" maxWidth="Infinity"
+                              promptText="Escolha ou digite" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="Pode *" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <ComboBox fx:id="comboAutTipo" maxWidth="Infinity"
+                              GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                </GridPane>
+                <Label fx:id="labelAvisoFicha" wrapText="true"/>
+                <HBox spacing="10">
+                    <Button fx:id="botaoAutorizar" text="Autorizar" onAction="#autorizar"
+                            style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                </HBox>
+            </VBox>
         </VBox>
+        </ScrollPane>
     </center>
 </BorderPane>

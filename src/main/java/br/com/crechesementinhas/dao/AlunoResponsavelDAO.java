@@ -19,26 +19,34 @@ public class AlunoResponsavelDAO {
 
     private static final String SQL_INSERIR = """
             INSERT INTO aluno_responsavel
-                   (id_aluno, id_responsavel, grau_parentesco, responsavel_legal, data_inicio, data_fim)
-            VALUES (?, ?, ?, ?, ?, ?)
+                   (id_aluno, id_responsavel, grau_parentesco, responsavel_legal,
+                    responsavel_financeiro, data_inicio, data_fim)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             RETURNING id_aluno_responsavel
             """;
 
-    private static final String SQL_BUSCAR_POR_ID = """
-            SELECT ar.id_aluno_responsavel, ar.id_aluno, a.nome AS nome_aluno, ar.id_responsavel,
-                   ar.grau_parentesco, ar.responsavel_legal, ar.data_inicio, ar.data_fim
+    // Base das consultas: traz o nome da criança e do responsável para as telas.
+    private static final String SQL_SELECT = """
+            SELECT ar.id_aluno_responsavel, ar.id_aluno, a.nome AS nome_aluno,
+                   ar.id_responsavel, r.nome AS nome_responsavel, r.telefone AS telefone_responsavel,
+                   ar.grau_parentesco, ar.responsavel_legal, ar.responsavel_financeiro,
+                   ar.data_inicio, ar.data_fim
               FROM aluno_responsavel ar
               JOIN aluno a ON a.id_aluno = ar.id_aluno
-             WHERE ar.id_aluno_responsavel = ?
+              JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
             """;
 
-    private static final String SQL_LISTAR_POR_RESPONSAVEL = """
-            SELECT ar.id_aluno_responsavel, ar.id_aluno, a.nome AS nome_aluno, ar.id_responsavel,
-                   ar.grau_parentesco, ar.responsavel_legal, ar.data_inicio, ar.data_fim
-              FROM aluno_responsavel ar
-              JOIN aluno a ON a.id_aluno = ar.id_aluno
+    private static final String SQL_BUSCAR_POR_ID = SQL_SELECT + " WHERE ar.id_aluno_responsavel = ?";
+
+    // Vigentes primeiro (data_fim IS NOT NULL = false vem antes), depois por nome.
+    private static final String SQL_LISTAR_POR_RESPONSAVEL = SQL_SELECT + """
              WHERE ar.id_responsavel = ?
              ORDER BY ar.data_fim IS NOT NULL, a.nome, ar.data_inicio DESC
+            """;
+
+    private static final String SQL_LISTAR_POR_ALUNO = SQL_SELECT + """
+             WHERE ar.id_aluno = ?
+             ORDER BY ar.data_fim IS NOT NULL, ar.responsavel_legal DESC, r.nome, ar.data_inicio DESC
             """;
 
     private static final String SQL_ATUALIZAR_DATA_FIM =
@@ -59,14 +67,21 @@ public class AlunoResponsavelDAO {
                AND data_inicio <= ? AND (data_fim IS NULL OR data_fim >= ?)
             """;
 
+    private static final String SQL_CONTAR_FINANCEIROS_VIGENTES = """
+            SELECT COUNT(*) FROM aluno_responsavel
+             WHERE id_aluno = ? AND responsavel_financeiro
+               AND data_inicio <= ? AND (data_fim IS NULL OR data_fim >= ?)
+            """;
+
     public int inserir(Connection conexao, AlunoResponsavel v) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_INSERIR)) {
             comando.setInt(1, v.getIdAluno());
             comando.setInt(2, v.getIdResponsavel());
             comando.setString(3, v.getGrauParentesco());
             comando.setBoolean(4, v.isResponsavelLegal());
-            comando.setDate(5, Date.valueOf(v.getDataInicio()));
-            comando.setDate(6, v.getDataFim() == null ? null : Date.valueOf(v.getDataFim()));
+            comando.setBoolean(5, v.isResponsavelFinanceiro());
+            comando.setDate(6, Date.valueOf(v.getDataInicio()));
+            comando.setDate(7, v.getDataFim() == null ? null : Date.valueOf(v.getDataFim()));
             try (ResultSet resultado = comando.executeQuery()) {
                 resultado.next();
                 return resultado.getInt(1);
@@ -85,10 +100,19 @@ public class AlunoResponsavelDAO {
 
     /** Todos os vínculos do responsável (vigentes primeiro). */
     public List<AlunoResponsavel> listarPorResponsavel(int idResponsavel) throws SQLException {
+        return listar(SQL_LISTAR_POR_RESPONSAVEL, idResponsavel);
+    }
+
+    /** Todos os vínculos da criança (vigentes primeiro, responsáveis legais antes). */
+    public List<AlunoResponsavel> listarPorAluno(int idAluno) throws SQLException {
+        return listar(SQL_LISTAR_POR_ALUNO, idAluno);
+    }
+
+    private List<AlunoResponsavel> listar(String sql, int id) throws SQLException {
         List<AlunoResponsavel> lista = new ArrayList<>();
         try (Connection conexao = ConnectionFactory.getConnection();
-             PreparedStatement comando = conexao.prepareStatement(SQL_LISTAR_POR_RESPONSAVEL)) {
-            comando.setInt(1, idResponsavel);
+             PreparedStatement comando = conexao.prepareStatement(sql)) {
+            comando.setInt(1, id);
             try (ResultSet resultado = comando.executeQuery()) {
                 while (resultado.next()) {
                     lista.add(mapear(resultado));
@@ -124,7 +148,16 @@ public class AlunoResponsavelDAO {
 
     /** Quantos responsáveis legais vigentes a criança tem? (RN-04) */
     public int contarLegaisVigentes(Connection conexao, int idAluno, LocalDate hoje) throws SQLException {
-        try (PreparedStatement comando = conexao.prepareStatement(SQL_CONTAR_LEGAIS_VIGENTES)) {
+        return contar(conexao, SQL_CONTAR_LEGAIS_VIGENTES, idAluno, hoje);
+    }
+
+    /** Quantos responsáveis financeiros vigentes a criança tem? (deve ser no máximo 1) */
+    public int contarFinanceirosVigentes(Connection conexao, int idAluno, LocalDate hoje) throws SQLException {
+        return contar(conexao, SQL_CONTAR_FINANCEIROS_VIGENTES, idAluno, hoje);
+    }
+
+    private int contar(Connection conexao, String sql, int idAluno, LocalDate hoje) throws SQLException {
+        try (PreparedStatement comando = conexao.prepareStatement(sql)) {
             comando.setInt(1, idAluno);
             comando.setDate(2, Date.valueOf(hoje));
             comando.setDate(3, Date.valueOf(hoje));
@@ -141,8 +174,11 @@ public class AlunoResponsavelDAO {
         v.setIdAluno(rs.getInt("id_aluno"));
         v.setNomeAluno(rs.getString("nome_aluno"));
         v.setIdResponsavel(rs.getInt("id_responsavel"));
+        v.setNomeResponsavel(rs.getString("nome_responsavel"));
+        v.setTelefoneResponsavel(rs.getString("telefone_responsavel"));
         v.setGrauParentesco(rs.getString("grau_parentesco"));
         v.setResponsavelLegal(rs.getBoolean("responsavel_legal"));
+        v.setResponsavelFinanceiro(rs.getBoolean("responsavel_financeiro"));
         v.setDataInicio(rs.getObject("data_inicio", LocalDate.class));
         v.setDataFim(rs.getObject("data_fim", LocalDate.class));
         return v;

@@ -65,7 +65,7 @@
                     <Insets top="20" right="20" bottom="20" left="10"/>
                 </padding>
 
-                <Label fx:id="labelTituloForm" text="Novo responsável"
+                <Label fx:id="labelTituloForm" text="Novo responsável:"
                        style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
 
                 <GridPane hgap="10" vgap="8">
@@ -117,7 +117,7 @@
 
                 <!-- Vínculos com as crianças (só depois que o responsável estiver salvo) -->
                 <VBox fx:id="painelVinculos" spacing="8">
-                    <Label text="Crianças vinculadas"
+                    <Label text="Crianças vinculadas:"
                            style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
                     <Label fx:id="labelAvisoVinculos" wrapText="true"/>
 
@@ -125,7 +125,8 @@
                         <columns>
                             <TableColumn fx:id="colunaVinculoAluno" text="Criança" prefWidth="190"/>
                             <TableColumn fx:id="colunaVinculoParentesco" text="Parentesco" prefWidth="110"/>
-                            <TableColumn fx:id="colunaVinculoLegal" text="Resp. legal" prefWidth="80"/>
+                            <TableColumn fx:id="colunaVinculoLegal" text="Legal" prefWidth="55"/>
+                            <TableColumn fx:id="colunaVinculoFinanceiro" text="Financeiro" prefWidth="75"/>
                             <TableColumn fx:id="colunaVinculoInicio" text="Início" prefWidth="85"/>
                             <TableColumn fx:id="colunaVinculoFim" text="Fim" prefWidth="85"/>
                         </columns>
@@ -157,6 +158,13 @@
 
                         <CheckBox fx:id="checkLegal" text="É responsável legal desta criança"
                                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <CheckBox fx:id="checkFinanceiro" text="É quem paga a mensalidade (responsável financeiro)"
+                                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                        <Label wrapText="true" style="-fx-text-fill: #607d8b;"
+                               text="Quem paga pode ser outra pessoa (avô, padrinho, tio...): cadastre-a como responsável, vincule à criança sem marcar &quot;legal&quot; e marque &quot;responsável financeiro&quot;."
+                               GridPane.rowIndex="5" GridPane.columnIndex="1"/>
                     </GridPane>
 
                     <HBox spacing="10">

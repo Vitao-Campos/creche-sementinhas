@@ -1,20 +1,29 @@
 package br.com.crechesementinhas.controller;
 
 import br.com.crechesementinhas.model.Aluno;
+import br.com.crechesementinhas.model.AlunoPessoaAutorizada;
+import br.com.crechesementinhas.model.AlunoResponsavel;
 import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.Sexo;
+import br.com.crechesementinhas.model.TipoAutorizacao;
 import br.com.crechesementinhas.service.AlunoService;
+import br.com.crechesementinhas.service.AutorizadoService;
+import br.com.crechesementinhas.service.CadastroAutorizadoException;
 import br.com.crechesementinhas.service.CadastroAlunoException;
 import br.com.crechesementinhas.service.ControleAcesso;
+import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.CalculadoraIdade;
 import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Navegacao;
+import br.com.crechesementinhas.util.Telefone;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
@@ -26,6 +35,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
@@ -64,7 +75,41 @@ public class AlunoController {
     @FXML private Button botaoSalvar;
     @FXML private Button botaoNovo;
 
+    private static final Color VERMELHO = Color.web("#c62828");
+    private static final Color VERDE = Color.web("#2e7d32");
+    private static final Color LARANJA = Color.web("#e65100");
+    private static final Color CINZA = Color.web("#607d8b");
+
+    // Ficha do aluno: responsáveis (somente leitura aqui) e pessoas autorizadas a buscar a criança.
+    @FXML private VBox painelFicha;
+    @FXML private Label labelResumoLegal;
+    @FXML private Label labelResumoFinanceiro;
+    @FXML private TableView<AlunoResponsavel> tabelaResponsaveisAluno;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaRespNome;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaRespParentesco;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaRespLegal;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaRespFinanceiro;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaRespTelefone;
+    @FXML private TableColumn<AlunoResponsavel, String> colunaRespSituacao;
+    @FXML private TableView<AlunoPessoaAutorizada> tabelaAutorizados;
+    @FXML private TableColumn<AlunoPessoaAutorizada, String> colunaAutNome;
+    @FXML private TableColumn<AlunoPessoaAutorizada, String> colunaAutRg;
+    @FXML private TableColumn<AlunoPessoaAutorizada, String> colunaAutTelefone;
+    @FXML private TableColumn<AlunoPessoaAutorizada, String> colunaAutParentesco;
+    @FXML private TableColumn<AlunoPessoaAutorizada, String> colunaAutTipo;
+    @FXML private TableColumn<AlunoPessoaAutorizada, String> colunaAutSituacao;
+    @FXML private Button botaoRetirar;
+    @FXML private TextField campoAutNome;
+    @FXML private TextField campoAutRg;
+    @FXML private TextField campoAutTelefone;
+    @FXML private ComboBox<String> comboAutParentesco;
+    @FXML private ComboBox<TipoAutorizacao> comboAutTipo;
+    @FXML private Label labelAvisoFicha;
+    @FXML private Button botaoAutorizar;
+
     private final AlunoService alunoService = new AlunoService();
+    private final ResponsavelService responsavelService = new ResponsavelService();
+    private final AutorizadoService autorizadoService = new AutorizadoService();
 
     /** Aluno que está sendo editado; null quando o formulário é de um aluno novo. */
     private Aluno alunoEmEdicao;
@@ -76,11 +121,13 @@ public class AlunoController {
     private void initialize() {
         configurarTabela();
         configurarFormulario();
+        configurarFicha();
 
         // RNF-03: quem não pode cadastrar só consulta.
         boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
         botaoSalvar.setDisable(!podeGravar);
         botaoNovo.setDisable(!podeGravar);
+        botaoAutorizar.setDisable(!podeGravar);
 
         esperaBusca.setOnFinished(e -> carregarLista());
         campoBusca.textProperty().addListener((obs, antigo, novo) -> esperaBusca.playFromStart());
@@ -161,6 +208,7 @@ public class AlunoController {
         preencherCampos(null);
         mostrarJustificativa(false);
         esconderMensagem();
+        atualizarFicha();
         campoNome.requestFocus();
     }
 
@@ -170,6 +218,7 @@ public class AlunoController {
         preencherCampos(aluno);
         mostrarJustificativa(true);
         esconderMensagem();
+        atualizarFicha();
     }
 
     private void preencherCampos(Aluno aluno) {
@@ -251,6 +300,174 @@ public class AlunoController {
                 return;
             }
         }
+    }
+
+    // ------------------------------------------------- ficha: responsáveis e autorizados
+
+    private void configurarFicha() {
+        colunaRespNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNomeResponsavel()));
+        colunaRespParentesco.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getGrauParentesco()));
+        colunaRespLegal.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().isResponsavelLegal() ? "Sim" : "Não"));
+        colunaRespFinanceiro.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().isResponsavelFinanceiro() ? "Sim" : "Não"));
+        colunaRespTelefone.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(Telefone.formatar(c.getValue().getTelefoneResponsavel())));
+        colunaRespSituacao.setCellValueFactory(c -> new ReadOnlyStringWrapper(
+                c.getValue().getDataFim() == null ? "Vigente"
+                        : "Até " + FORMATO_DATA.format(c.getValue().getDataFim())));
+        tabelaResponsaveisAluno.setPlaceholder(new Label("Nenhum responsável vinculado."));
+
+        colunaAutNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNome()));
+        colunaAutRg.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getRg()));
+        colunaAutTelefone.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().getTelefoneFormatado()));
+        colunaAutParentesco.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(valor(c.getValue().getParentesco())));
+        colunaAutTipo.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().getTipoAutorizacao().getDescricao()));
+        colunaAutSituacao.setCellValueFactory(c ->
+                new ReadOnlyStringWrapper(c.getValue().isAtivo() ? "Ativa" : "Retirada"));
+        tabelaAutorizados.setPlaceholder(new Label("Ninguém autorizado ainda."));
+        tabelaAutorizados.getSelectionModel().selectedItemProperty().addListener(
+                (obs, antigo, escolhido) -> atualizarBotaoRetirar());
+
+        comboAutParentesco.getItems().setAll("Avó", "Avô", "Tia", "Tio", "Irmã", "Irmão",
+                "Madrinha", "Padrinho", "Vizinho(a)", "Amigo(a) da família");
+        comboAutTipo.getItems().setAll(TipoAutorizacao.values());
+
+        campoAutTelefone.focusedProperty().addListener((obs, tinha, tem) -> {
+            if (!tem) {
+                campoAutTelefone.setText(Telefone.formatar(Telefone.normalizar(campoAutTelefone.getText())));
+            }
+        });
+    }
+
+    /** A ficha só funciona com a criança já gravada (os vínculos precisam do id dela). */
+    private void atualizarFicha() {
+        boolean salvo = alunoEmEdicao != null;
+        painelFicha.setDisable(!salvo);
+        tabelaResponsaveisAluno.getItems().clear();
+        tabelaAutorizados.getItems().clear();
+        limparFormularioAutorizado();
+        labelResumoLegal.setText("");
+        labelResumoFinanceiro.setText("");
+        mostrarAvisoFicha(salvo ? "" : "Salve a criança para ver os responsáveis e autorizar pessoas.", CINZA);
+        if (salvo) {
+            carregarResponsaveisDoAluno();
+            carregarAutorizados();
+        }
+        atualizarBotaoRetirar();
+    }
+
+    private void carregarResponsaveisDoAluno() {
+        try {
+            List<AlunoResponsavel> vinculos =
+                    responsavelService.listarVinculosDoAluno(alunoEmEdicao.getIdAluno());
+            tabelaResponsaveisAluno.getItems().setAll(vinculos);
+
+            LocalDate hoje = LocalDate.now();
+            List<AlunoResponsavel> vigentes = vinculos.stream().filter(v -> v.estaVigente(hoje)).toList();
+            resumir(labelResumoLegal, "Responsável legal", "Nenhum responsável legal vigente (RN-04)",
+                    vigentes.stream().filter(AlunoResponsavel::isResponsavelLegal).toList());
+            resumir(labelResumoFinanceiro, "Responsável financeiro (paga a mensalidade)",
+                    "Nenhum responsável financeiro indicado",
+                    vigentes.stream().filter(AlunoResponsavel::isResponsavelFinanceiro).toList());
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    /** "Título: Nome (Parentesco), Nome (Parentesco)", ou o texto de falta em laranja. */
+    private void resumir(Label rotulo, String titulo, String semNinguem, List<AlunoResponsavel> pessoas) {
+        if (pessoas.isEmpty()) {
+            rotulo.setText(semNinguem);
+            rotulo.setTextFill(LARANJA);
+        } else {
+            rotulo.setText(titulo + ": " + pessoas.stream()
+                    .map(v -> v.getNomeResponsavel() + " (" + v.getGrauParentesco() + ")")
+                    .collect(Collectors.joining(", ")));
+            rotulo.setTextFill(VERDE);
+        }
+    }
+
+    private void carregarAutorizados() {
+        try {
+            tabelaAutorizados.getItems().setAll(
+                    autorizadoService.listarPorAluno(alunoEmEdicao.getIdAluno()));
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    private void atualizarBotaoRetirar() {
+        AlunoPessoaAutorizada escolhida = tabelaAutorizados.getSelectionModel().getSelectedItem();
+        boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
+        botaoRetirar.setDisable(!podeGravar || escolhida == null || !escolhida.isAtivo());
+    }
+
+    @FXML
+    private void autorizar() {
+        AlunoPessoaAutorizada dados = new AlunoPessoaAutorizada();
+        dados.setIdAluno(alunoEmEdicao == null ? null : alunoEmEdicao.getIdAluno());
+        dados.setNome(campoAutNome.getText());
+        dados.setRg(campoAutRg.getText());
+        dados.setTelefone(campoAutTelefone.getText());
+        dados.setParentesco(comboAutParentesco.getEditor().getText());
+        dados.setTipoAutorizacao(comboAutTipo.getValue());
+
+        try {
+            autorizadoService.autorizar(dados);
+            carregarAutorizados();
+            limparFormularioAutorizado();
+            mostrarAvisoFicha("Pessoa autorizada.", VERDE);
+        } catch (CadastroAutorizadoException | SecurityException e) {
+            mostrarAvisoFicha(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    @FXML
+    private void retirarAutorizacao() {
+        AlunoPessoaAutorizada escolhida = tabelaAutorizados.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            return;
+        }
+        TextInputDialog dialogo = new TextInputDialog();
+        dialogo.setTitle("Retirar autorização");
+        dialogo.setHeaderText(escolhida.getNome() + " deixará de poder buscar a criança.\n"
+                + "O histórico é mantido; nada é apagado.");
+        dialogo.setContentText("Motivo (opcional):");
+        Optional<String> motivo = dialogo.showAndWait();
+        if (motivo.isEmpty()) {
+            return; // cancelou
+        }
+
+        try {
+            autorizadoService.desativar(escolhida.getIdAlunoPessoaAutorizada(), motivo.get());
+            carregarAutorizados();
+            mostrarAvisoFicha("Autorização retirada.", VERDE);
+        } catch (CadastroAutorizadoException | SecurityException e) {
+            mostrarAvisoFicha(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    private void limparFormularioAutorizado() {
+        campoAutNome.clear();
+        campoAutRg.clear();
+        campoAutTelefone.clear();
+        comboAutParentesco.setValue(null);
+        comboAutParentesco.getEditor().clear();
+        comboAutTipo.setValue(null);
+    }
+
+    /** Mensagem da ficha (fica junto das tabelas, sem precisar rolar a tela). */
+    private void mostrarAvisoFicha(String texto, Color cor) {
+        labelAvisoFicha.setText(texto);
+        labelAvisoFicha.setTextFill(cor);
     }
 
     @FXML
