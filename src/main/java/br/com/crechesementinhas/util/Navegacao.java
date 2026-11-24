@@ -16,6 +16,9 @@ public final class Navegacao {
     // A "/" no começo indica caminho absoluto, a partir de src/main/resources.
     private static final String PASTA_TELAS = "/br/com/crechesementinhas/view/";
 
+    // Só o login é pequeno e de tamanho fixo; todas as outras telas abrem maximizadas.
+    private static final String TELA_LOGIN = "login.fxml";
+
     private static Stage janelaPrincipal;
 
     private Navegacao() {
@@ -44,10 +47,32 @@ public final class Navegacao {
 
         try {
             Parent tela = new FXMLLoader(local).load();
-            janelaPrincipal.setScene(new Scene(tela));
+            // Reaproveita a cena: trocar só o conteúdo mantém a janela como está
+            // (maximizada ou no tamanho que o usuário escolheu).
+            Scene cena = janelaPrincipal.getScene();
+            if (cena == null) {
+                janelaPrincipal.setScene(new Scene(tela));
+            } else {
+                cena.setRoot(tela);
+            }
             janelaPrincipal.setTitle("Creche Sementinhas - " + titulo);
-            janelaPrincipal.sizeToScene();     // ajusta a janela ao tamanho da nova tela
-            janelaPrincipal.centerOnScreen();
+
+            if (TELA_LOGIN.equals(arquivoFxml)) {
+                // Login (também ao clicar em Sair): janela pequena, fixa e centralizada.
+                janelaPrincipal.setMaximized(false);
+                janelaPrincipal.setResizable(false);
+                janelaPrincipal.setMinWidth(0);
+                janelaPrincipal.setMinHeight(0);
+                janelaPrincipal.sizeToScene();
+                janelaPrincipal.centerOnScreen();
+            } else if (!janelaPrincipal.isResizable()) {
+                // Primeira tela depois do login: libera o tamanho e maximiza.
+                // Nas trocas seguintes a janela já é redimensionável e fica como o usuário deixou.
+                janelaPrincipal.setResizable(true);
+                janelaPrincipal.setMinWidth(1000);
+                janelaPrincipal.setMinHeight(650);
+                janelaPrincipal.setMaximized(true);
+            }
         } catch (IOException e) {
             throw new IllegalStateException("Erro ao carregar a tela " + arquivoFxml, e);
         }

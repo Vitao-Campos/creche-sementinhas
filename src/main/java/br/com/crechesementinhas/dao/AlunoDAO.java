@@ -42,7 +42,7 @@ public class AlunoDAO {
     private static final String SQL_BUSCAR_POR_ID =
             "SELECT " + COLUNAS + " FROM aluno WHERE id_aluno = ?";
 
-    // ILIKE ignora maiúsculas e minúsculas (RNF-04 pede busca pelo nome).
+    // ILIKE ignora maiúsculas e minúsculas (a busca pelo nome é a mais usada pela secretaria).
     // LIMIT: a lista nunca cresce sem controle na tela.
     private static final String SQL_LISTAR = """
             SELECT id_aluno, nome, data_nascimento, cpf, sexo,
@@ -123,7 +123,7 @@ public class AlunoDAO {
     }
 
     /**
-     * Já existe aluno com este CPF? (RN-12)
+     * Já existe aluno com este CPF? (único no banco)
      *
      * @param cpf          os 11 dígitos
      * @param idIgnorado   id do próprio aluno na edição (para não acusar ele mesmo); null no cadastro

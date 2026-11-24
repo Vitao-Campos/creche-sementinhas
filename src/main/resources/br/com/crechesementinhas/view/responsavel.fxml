@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.ResponsavelController"
+            prefWidth="1100" prefHeight="720"
+            stylesheets="@estilo.css"
+            style="-fx-background-color: #f4f6f9;">
+
+    <!-- Barra superior: título e volta para o menu -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label text="Responsáveis"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Voltar ao menu" onAction="#voltar"
+                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Esquerda: busca e lista de responsáveis -->
+    <left>
+        <VBox spacing="10" prefWidth="400">
+            <padding>
+                <Insets top="20" right="10" bottom="20" left="20"/>
+            </padding>
+            <Label text="Buscar por nome ou CPF" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="campoBusca" promptText="Digite parte do nome ou do CPF"/>
+            <TableView fx:id="tabelaResponsaveis" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="170"/>
+                    <TableColumn fx:id="colunaCpf" text="CPF" prefWidth="100"/>
+                    <TableColumn fx:id="colunaTelefone" text="Telefone" prefWidth="105"/>
+                </columns>
+            </TableView>
+            <Label fx:id="labelTotal" style="-fx-text-fill: #607d8b;"/>
+        </VBox>
+    </left>
+
+    <!-- Centro: formulário do responsável e vínculos com as crianças -->
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f4f6f9;">
+            <VBox spacing="10">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="10"/>
+                </padding>
+
+                <Label fx:id="labelTituloForm" text="Novo responsável"
+                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+
+                <GridPane hgap="10" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="110" prefWidth="110"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <Label text="Nome *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoNome" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="CPF *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoCpf" promptText="000.000.000-00"
+                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                    <Label text="Telefone *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoTelefone" promptText="(00) 00000-0000"
+                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                    <Label text="E-mail" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoEmail" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                    <Label text="CEP" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoCep" promptText="00000-000"
+                               GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                    <Label text="Endereço" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoEndereco" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                    <Label text="Profissão" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoProfissao" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                    <Label fx:id="rotuloJustificativa" text="Motivo da alteração"
+                           GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+                    <TextField fx:id="campoJustificativa" promptText="Opcional: vai para o histórico"
+                               GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <Label fx:id="labelMensagem" wrapText="true" visible="false" managed="false"/>
+
+                <HBox spacing="10">
+                    <Button fx:id="botaoSalvar" text="Salvar" defaultButton="true" onAction="#salvar"
+                            style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                    <Button fx:id="botaoNovo" text="Novo responsável" onAction="#novoResponsavel"
+                            style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+                    <Button fx:id="botaoHistorico" text="Ver histórico de alterações" onAction="#verHistorico"
+                            style="-fx-background-color: white; -fx-text-fill: #37474f; -fx-border-color: #90a4ae;"/>
+                </HBox>
+
+                <Separator/>
+
+                <!-- Vínculos com as crianças (só depois que o responsável estiver salvo) -->
+                <VBox fx:id="painelVinculos" spacing="8">
+                    <Label text="Crianças vinculadas"
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+                    <Label fx:id="labelAvisoVinculos" wrapText="true"/>
+
+                    <TableView fx:id="tabelaVinculos" prefHeight="150" minHeight="150">
+                        <columns>
+                            <TableColumn fx:id="colunaVinculoAluno" text="Criança" prefWidth="190"/>
+                            <TableColumn fx:id="colunaVinculoParentesco" text="Parentesco" prefWidth="110"/>
+                            <TableColumn fx:id="colunaVinculoLegal" text="Legal" prefWidth="55"/>
+                            <TableColumn fx:id="colunaVinculoFinanceiro" text="Financeiro" prefWidth="75"/>
+                            <TableColumn fx:id="colunaVinculoInicio" text="Início" prefWidth="85"/>
+                            <TableColumn fx:id="colunaVinculoFim" text="Fim" prefWidth="85"/>
+                        </columns>
+                    </TableView>
+
+                    <HBox spacing="10">
+                        <Button fx:id="botaoEncerrar" text="Encerrar vínculo selecionado" onAction="#encerrarVinculo"
+                                style="-fx-background-color: white; -fx-text-fill: #c62828; -fx-border-color: #c62828;"/>
+                    </HBox>
+
+                    <Label text="Novo vínculo" style="-fx-font-weight: bold; -fx-padding: 8 0 0 0;"/>
+                    <GridPane hgap="10" vgap="8">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="110" prefWidth="110"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Criança *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="comboAluno" maxWidth="Infinity" promptText="Escolha a criança"
+                                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="Parentesco *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="comboParentesco" editable="true" maxWidth="Infinity"
+                                  promptText="Escolha ou digite" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="Início *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <DatePicker fx:id="campoVinculoInicio" editable="true" promptText="dd/mm/aaaa"
+                                    maxWidth="Infinity" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                        <CheckBox fx:id="checkLegal" text="É responsável legal desta criança"
+                                  GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <CheckBox fx:id="checkFinanceiro" text="É quem paga a mensalidade (responsável financeiro)"
+                                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                        <Label wrapText="true" style="-fx-text-fill: #607d8b;"
+                               text="Quem paga pode ser outra pessoa (avô, padrinho, tio...): cadastre-a como responsável, vincule à criança sem marcar &quot;legal&quot; e marque &quot;responsável financeiro&quot;."
+                               GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                    </GridPane>
+
+                    <HBox spacing="10">
+                        <Button fx:id="botaoVincular" text="Vincular" onAction="#vincular"
+                                style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
