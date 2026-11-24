@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,8 +65,18 @@ public final class CalculadoraMensalidade {
                 .divide(BigDecimal.valueOf(diasNoMes), 2, RoundingMode.HALF_UP);
     }
 
-    /** RN-12: primeira data de saída aceita quando o desligamento é registrado em "hoje". */
+    /** RN-12: primeira data de saída com os 30 dias de aviso, a partir de "hoje". */
     public static LocalDate dataMinimaDesligamento(LocalDate hoje) {
         return hoje.plusDays(AVISO_PREVIO_DIAS);
+    }
+
+    /** RN-12: dias corridos de aviso entre hoje (registro) e a data de saída; nunca negativo. */
+    public static long diasDeAviso(LocalDate hoje, LocalDate desligamento) {
+        return Math.max(0, ChronoUnit.DAYS.between(hoje, desligamento));
+    }
+
+    /** RN-12: o aviso foi menor que 30 dias? (exige confirmação e fica na auditoria) */
+    public static boolean avisoCurto(long diasDeAviso) {
+        return diasDeAviso < AVISO_PREVIO_DIAS;
     }
 }

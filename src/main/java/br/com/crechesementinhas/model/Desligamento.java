@@ -13,6 +13,7 @@ import java.time.LocalDate;
  * @param diasCobrados        dias do mês até a data de desligamento (inclusive)
  * @param diasNoMes           quantidade de dias do mês do desligamento
  * @param valorProporcional   valor a cobrar no mês do desligamento
+ * @param diasDeAviso         dias corridos entre hoje (registro) e a data de saída (RN-12)
  */
 public record Desligamento(
         LocalDate dataDesligamento,
@@ -20,5 +21,6 @@ public record Desligamento(
         String origemMensalidade,
         int diasCobrados,
         int diasNoMes,
-        BigDecimal valorProporcional) {
+        BigDecimal valorProporcional,
+        long diasDeAviso) {
 }

@@ -98,16 +98,9 @@ class MatriculaValidadorTest {
     }
 
     @Test
-    void desligamentoComDataDeHojeEhRecusado() {
-        // RN-12: 30 dias corridos de antecedência
-        List<String> erros = MatriculaValidador.validarDesligamento(ativa(), HOJE, "Mudança", HOJE);
-        assertEquals(1, erros.size());
-        assertTrue(erros.get(0).contains("24/12/2026"));
-    }
-
-    @Test
-    void desligamentoComVinteENoveDiasEhRecusado() {
-        assertEquals(1, MatriculaValidador.validarDesligamento(ativa(), HOJE.plusDays(29), "Mudança", HOJE).size());
+    void avisoCurtoNaoEhErroDeDados() {
+        // RN-12: o aviso curto é tratado no service (confirmação + auditoria), não como erro
+        assertTrue(MatriculaValidador.validarDesligamento(ativa(), HOJE.plusDays(5), "Mudança", HOJE).isEmpty());
     }
 
     @Test

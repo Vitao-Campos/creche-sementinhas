@@ -37,8 +37,8 @@ public class MatriculaService {
     private final AuditoriaService auditoria = new AuditoriaService();
 
     /** Crianças cadastradas, filtrando por parte do nome ("" = todas). */
-    public List<Aluno> listarAlunos(String trechoNome) throws SQLException {
-        return alunoDAO.listar(trechoNome);
+    public List<Aluno> buscarAlunos(String filtro) throws SQLException {
+        return alunoDAO.listar(filtro == null ? "" : filtro.trim());
     }
 
     /** RN-01: a criança tem pelo menos um responsável legal vigente hoje? */
@@ -151,25 +151,39 @@ public class MatriculaService {
                 desligamento, base, origem,
                 CalculadoraMensalidade.diasCobrados(desligamento),
                 YearMonth.from(desligamento).lengthOfMonth(),
-                CalculadoraMensalidade.proporcional(base, desligamento));
+                CalculadoraMensalidade.proporcional(base, desligamento),
+                CalculadoraMensalidade.diasDeAviso(LocalDate.now(), desligamento));
     }
 
     /**
-     * Desliga a criança: exige 30 dias de antecedência (RN-12), calcula o proporcional (RN-030),
-     * encerra a matrícula e o contrato vigente, tudo com auditoria (RNF-02).
-     * Só Direção e Suporte (RNF-03).
+     * Desliga a criança: calcula o proporcional (RN-030), encerra a matrícula e o contrato
+     * vigente, tudo com auditoria (RNF-02). Só Direção e Suporte (RNF-03).
+     * RN-12: com menos de 30 dias de aviso, só com confirmação, e a exceção fica no histórico.
+     *
+     * @param confirmouAvisoCurto o usuário confirmou desligar com menos de 30 dias de aviso
      */
     public Desligamento desligar(Matricula matricula, Aluno aluno, LocalDate desligamento,
-                                 String justificativa) throws SQLException {
+                                 String justificativa, boolean confirmouAvisoCurto) throws SQLException {
         ControleAcesso.exigir(Permissao.DESLIGAR_ALUNO);
         exigirSemErros(MatriculaValidador.validarDesligamento(
                 matricula, desligamento, justificativa, LocalDate.now()));
 
         Desligamento calculo = simularDesligamento(matricula, aluno, desligamento);
+        boolean curto = CalculadoraMensalidade.avisoCurto(calculo.diasDeAviso());
+        if (curto && !confirmouAvisoCurto) { // RN-12
+            throw new MatriculaException("O aviso foi de " + calculo.diasDeAviso() + " dias (a RN-12 pede "
+                    + CalculadoraMensalidade.AVISO_PREVIO_DIAS + "). Confirme para desligar mesmo assim.");
+        }
 
+        // RN-12 / RNF-02: a exceção de aviso curto fica registrada no histórico.
+        // Uma atribuição só: "motivo" é usado dentro do lambda da Transacao (effectively final).
+        String avisoCurto = curto
+                ? " | Aviso prévio de " + calculo.diasDeAviso() + " dias, confirmado pelo usuário"
+                : "";
         String motivo = MatriculaValidador.aparar(justificativa)
                 + " | Último mês: " + Formatador.dinheiro(calculo.valorProporcional())
-                + " (" + calculo.diasCobrados() + "/" + calculo.diasNoMes() + " dias)";
+                + " (" + calculo.diasCobrados() + "/" + calculo.diasNoMes() + " dias)"
+                + avisoCurto;
 
         Transacao.executar(conexao -> {
             matriculaDAO.encerrar(conexao, matricula.getIdMatricula(), desligamento);

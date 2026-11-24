@@ -94,6 +94,19 @@ class CalculadoraMensalidadeTest {
     }
 
     @Test
+    void avisoDe29DiasEhCurtoE30NaoEh() {
+        LocalDate hoje = LocalDate.of(2026, 11, 24);
+        assertEquals(29, CalculadoraMensalidade.diasDeAviso(hoje, LocalDate.of(2026, 12, 23)));
+        assertTrue(CalculadoraMensalidade.avisoCurto(29));
+        assertTrue(!CalculadoraMensalidade.avisoCurto(30));
+    }
+
+    @Test
+    void saidaNoPassadoContaZeroDiasDeAviso() {
+        assertEquals(0, CalculadoraMensalidade.diasDeAviso(LocalDate.of(2026, 11, 24), LocalDate.of(2026, 11, 20)));
+    }
+
+    @Test
     void dataMinimaDeDesligamentoEhHojeMais30DiasCorridos() {
         assertEquals(LocalDate.of(2026, 12, 24),
                 CalculadoraMensalidade.dataMinimaDesligamento(LocalDate.of(2026, 11, 24)));

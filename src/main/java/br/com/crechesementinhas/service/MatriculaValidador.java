@@ -4,7 +4,6 @@ import br.com.crechesementinhas.model.Aluno;
 import br.com.crechesementinhas.model.Matricula;
 import br.com.crechesementinhas.model.Turma;
 import br.com.crechesementinhas.util.CalculadoraIdade;
-import br.com.crechesementinhas.util.Formatador;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,8 @@ import java.util.Optional;
 public final class MatriculaValidador {
 
     static final int MAX_MOTIVO_ANDARILHA = 200;   // tamanho da coluna motivo_andarilha
-    static final int MAX_JUSTIFICATIVA = 180;      // sobra espaço no histórico para o valor final
+    // Coluna justificativa tem 255: sobram ~100 para "Último mês: ..." e "Aviso prévio de N dias..."
+    static final int MAX_JUSTIFICATIVA = 150;
     static final int MESES_MAX_ANTECEDENCIA = 12;  // matrícula pode começar até 1 ano à frente
 
     private MatriculaValidador() {
@@ -93,12 +93,8 @@ public final class MatriculaValidador {
                     && desligamento.isBefore(matricula.getDataMatricula())) {
                 erros.add("A data de desligamento não pode ser antes da data da matrícula.");
             }
-            LocalDate minima = CalculadoraMensalidade.dataMinimaDesligamento(hoje);
-            if (desligamento.isBefore(minima)) { // RN-12
-                erros.add("O desligamento precisa ser comunicado com pelo menos "
-                        + CalculadoraMensalidade.AVISO_PREVIO_DIAS
-                        + " dias de antecedência. Data de saída mínima: " + Formatador.data(minima) + ".");
-            }
+            // RN-12: aviso menor que 30 dias NÃO bloqueia aqui; o service exige
+            // a confirmação da Direção/Suporte e registra a exceção na auditoria.
         }
         String texto = aparar(justificativa);
         if (texto == null) {

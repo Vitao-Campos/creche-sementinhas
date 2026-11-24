@@ -122,7 +122,7 @@ public class MatriculaController {
 
     private void carregarAlunos(String filtro) {
         try {
-            tabelaAlunos.setItems(FXCollections.observableArrayList(matriculaService.listarAlunos(filtro)));
+            tabelaAlunos.setItems(FXCollections.observableArrayList(matriculaService.buscarAlunos(filtro)));
         } catch (SQLException e) {
             erro("Não foi possível carregar as crianças: " + e.getMessage());
         }
@@ -270,13 +270,14 @@ public class MatriculaController {
                     + " (" + d.origemMensalidade() + ") × " + d.diasCobrados() + " ÷ "
                     + d.diasNoMes() + " dias do mês");
             labelValorProporcional.setText("Valor do último mês: " + Formatador.dinheiro(d.valorProporcional()));
-            LocalDate minima = CalculadoraMensalidade.dataMinimaDesligamento(LocalDate.now());
-            if (d.dataDesligamento().isBefore(minima)) { // RN-12
-                labelAviso.setText("A data de saída precisa ser a partir de " + Formatador.data(minima)
-                        + " (" + CalculadoraMensalidade.AVISO_PREVIO_DIAS + " dias de aviso prévio, RN-12).");
-                labelAviso.setStyle("-fx-text-fill: #c62828; -fx-font-weight: bold;");
+            if (CalculadoraMensalidade.avisoCurto(d.diasDeAviso())) { // RN-12
+                labelAviso.setText("Atenção: aviso de " + d.diasDeAviso() + " dias. A RN-12 pede "
+                        + CalculadoraMensalidade.AVISO_PREVIO_DIAS + " (saída a partir de "
+                        + Formatador.data(CalculadoraMensalidade.dataMinimaDesligamento(LocalDate.now()))
+                        + "). Para desligar antes, será pedida confirmação e isso fica no histórico.");
+                labelAviso.setStyle("-fx-text-fill: #e65100; -fx-font-weight: bold;");
             } else {
-                labelAviso.setText("Aviso prévio de 30 dias respeitado (RN-12).");
+                labelAviso.setText("Aviso prévio de " + d.diasDeAviso() + " dias: dentro da RN-12.");
                 labelAviso.setStyle("-fx-text-fill: #607d8b;");
             }
         } catch (MatriculaException | IllegalArgumentException e) {
@@ -298,16 +299,20 @@ public class MatriculaController {
             Desligamento d = matriculaService.simularDesligamento(matriculaAtiva, alunoSelecionado,
                     campoDataDesligamento.getValue());
 
+            boolean avisoCurto = CalculadoraMensalidade.avisoCurto(d.diasDeAviso());
             String texto = "Desligar " + alunoSelecionado.getNome() + " em "
                     + Formatador.data(d.dataDesligamento()) + "?\n\n"
                     + "Valor do último mês: " + Formatador.dinheiro(d.valorProporcional()) + "\n"
+                    + (avisoCurto ? "\nATENÇÃO: aviso de apenas " + d.diasDeAviso() + " dias (a RN-12 pede "
+                                    + CalculadoraMensalidade.AVISO_PREVIO_DIAS
+                                    + "). Essa exceção ficará registrada no histórico.\n" : "")
                     + "\nA matrícula e o contrato vigente serão encerrados.";
             if (!confirmar("Confirmar desligamento", texto)) {
                 return;
             }
             Matricula encerrada = matriculaAtiva;
             Desligamento feito = matriculaService.desligar(encerrada, alunoSelecionado,
-                    campoDataDesligamento.getValue(), campoJustificativa.getText());
+                    campoDataDesligamento.getValue(), campoJustificativa.getText(), avisoCurto);
 
             sucesso("Matrícula " + encerrada.getNumeroMatricula() + " encerrada. Valor do último mês: "
                     + Formatador.dinheiro(feito.valorProporcional()) + ".");
