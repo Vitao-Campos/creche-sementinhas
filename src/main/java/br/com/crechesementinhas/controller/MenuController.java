@@ -29,7 +29,7 @@ public class MenuController {
 
     @FXML
     private void novaMatricula() {
-        emDesenvolvimento("Nova Matrícula", "B");
+        Navegacao.abrir("matricula.fxml", "Matrícula");
     }
 
     @FXML
