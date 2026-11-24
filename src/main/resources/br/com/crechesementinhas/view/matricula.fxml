@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.MatriculaController"
+            prefWidth="1060" prefHeight="660"
+            stylesheets="@estilo.css"
+            style="-fx-background-color: #f4f6f9;">
+
+    <!-- Barra superior: mesmo padrão da tela de Alunos -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label text="Matrículas e Desligamento"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Voltar ao menu" onAction="#voltar"
+                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Esquerda: seleção do aluno e visualização da matrícula -->
+    <left>
+        <VBox spacing="10" prefWidth="460">
+            <padding>
+                <Insets top="20" right="10" bottom="20" left="20"/>
+            </padding>
+            <Label text="Buscar aluno" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="campoBusca" promptText="Digite parte do nome do aluno"/>
+            <TableView fx:id="tabelaAlunos" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colunaId" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="210"/>
+                    <TableColumn fx:id="colunaNascimento" text="Nascimento" prefWidth="95"/>
+                    <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="95"/>
+                </columns>
+            </TableView>
+            <Label fx:id="labelStatusAluno" text="Selecione um aluno na tabela acima" style="-fx-text-fill: #607d8b;"/>
+        </VBox>
+    </left>
+
+    <!-- Centro: efetivação de matrícula e desligamento proporcional -->
+    <center>
+        <VBox spacing="14">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="10"/>
+            </padding>
+
+            <!-- BLOCO 1: NOVA MATRÍCULA -->
+            <Label text="Efetivar Matrícula (RF-03 / RN-07)"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="150" prefWidth="150"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Label text="Aluno selecionado" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="labelAlunoSelecionado" text="Nenhum aluno selecionado"
+                       style="-fx-font-weight: bold;" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Mensalidade (RN-07)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="labelMensalidadeEstimada" text="R$ 0,00"
+                       style="-fx-font-weight: bold; -fx-text-fill: #2e7d32;" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="ID da Turma *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoIdTurma" promptText="Informe o ID da turma"
+                           GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <Label text="Data da Matrícula *" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <DatePicker fx:id="campoDataMatricula" editable="true" maxWidth="Infinity"
+                            GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                <CheckBox fx:id="checkAndarilha" text="Andarilha" onAction="#aoAlternarAndarilha"
+                          GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoMotivoAndarilha" disable="true"
+                           promptText="Motivo (obrigatório se marcada como andarilha)"
+                           GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <HBox spacing="10">
+                <Button fx:id="botaoMatricular" text="Efetivar Matrícula" onAction="#efetivarMatricula"
+                        style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <Separator/>
+
+            <!-- BLOCO 2: DESLIGAMENTO PROPORCIONAL -->
+            <Label text="Desligamento de Aluno (RF-04 / RN-12)"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #c62828;"/>
+
+            <GridPane hgap="10" vgap="10">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="150" prefWidth="150"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <Label text="Matrícula Ativa" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="labelMatriculaAtiva" text="—" style="-fx-font-weight: bold;"
+                       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Data de Saída *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <DatePicker fx:id="campoDataEncerramento" onAction="#simularProporcional"
+                            maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Mensalidade Atual (R$) *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoMensalidadeAtual" onKeyReleased="#simularProporcional"
+                           promptText="Ex.: 850.00" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <Label text="Proporcional (RN-12)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <Label fx:id="labelValorProporcional" text="R$ 0,00"
+                       style="-fx-font-weight: bold; -fx-text-fill: #c62828;" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                <Label text="Justificativa *" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="campoJustificativaDesligamento"
+                           promptText="Motivo obrigatório para o histórico"
+                           GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <Label fx:id="labelMensagem" wrapText="true" visible="false" managed="false"/>
+
+            <HBox spacing="10">
+                <Button fx:id="botaoDesligar" text="Confirmar Desligamento" onAction="#desligarAluno"
+                        style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
