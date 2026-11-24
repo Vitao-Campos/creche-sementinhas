@@ -1,200 +1,183 @@
 package br.com.crechesementinhas.service;
 
-import br.com.crechesementinhas.dao.AlunoDAO;
+import br.com.crechesementinhas.dao.ContratoDAO;
 import br.com.crechesementinhas.dao.MatriculaDAO;
+import br.com.crechesementinhas.dao.TurmaDAO;
 import br.com.crechesementinhas.model.Aluno;
+import br.com.crechesementinhas.model.Contrato;
+import br.com.crechesementinhas.model.Desligamento;
+import br.com.crechesementinhas.model.FaixaMensalidade;
 import br.com.crechesementinhas.model.Matricula;
-import br.com.crechesementinhas.util.ControleAcesso;
-import br.com.crechesementinhas.util.Permissao;
+import br.com.crechesementinhas.model.Permissao;
+import br.com.crechesementinhas.model.Turma;
+import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.Transacao;
-
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.Period;
-import java.time.Year;
 import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
 
+/**
+ * Efetivação da matrícula (RF-03, UC-01) e desligamento com cálculo proporcional (RF-10, RN-12).
+ * O cadastro dos dados da criança (RF-02) fica no AlunoService; aqui a criança já existe.
+ */
 public class MatriculaService {
 
-    // Valores de referência por faixa etária (ajuste conforme tabela oficial RN-07)
-    private static final BigDecimal MENSALIDADE_BERCARIO = new BigDecimal("850.00");    // 0 a 11 meses
-    private static final BigDecimal MENSALIDADE_MATERNAL_I = new BigDecimal("780.00");  // 12 a 23 meses
-    private static final BigDecimal MENSALIDADE_MATERNAL_II = new BigDecimal("720.00"); // 24 a 35 meses
-    private static final BigDecimal MENSALIDADE_JARDIM = new BigDecimal("680.00");      // 36 meses ou mais
+    private final MatriculaDAO matriculaDAO = new MatriculaDAO();
+    private final TurmaDAO turmaDAO = new TurmaDAO();
+    private final ContratoDAO contratoDAO = new ContratoDAO();
+    private final MensalidadeService mensalidadeService = new MensalidadeService();
+    private final AuditoriaService auditoria = new AuditoriaService();
 
-    private final AlunoDAO alunoDAO;
-    private final MatriculaDAO matriculaDAO;
-    private final AuditoriaService auditoriaService;
+    public List<Turma> listarTurmas() throws SQLException {
+        return turmaDAO.listar();
+    }
 
-    public MatriculaService() {
-        this.alunoDAO = new AlunoDAO();
-        this.matriculaDAO = new MatriculaDAO();
-        this.auditoriaService = new AuditoriaService();
+    public Optional<Matricula> buscarAtiva(Aluno aluno) throws SQLException {
+        return matriculaDAO.buscarAtivaPorAluno(aluno.getIdAluno());
+    }
+
+    public List<Matricula> historico(Aluno aluno) throws SQLException {
+        return matriculaDAO.listarPorAluno(aluno.getIdAluno());
+    }
+
+    /** Aviso de faixa etária para a tela pedir confirmação antes de efetivar. */
+    public Optional<String> avisoFaixaEtaria(Aluno aluno, Turma turma, LocalDate dataMatricula) {
+        return MatriculaValidador.avisoFaixaEtaria(aluno, turma, dataMatricula);
     }
 
     /**
-     * Calcula a idade exata da criança em meses completos na data de referência.
+     * RF-03 / RN-09: efetiva a matrícula da criança na turma, já como ATIVA.
+     *
+     * @param confirmouForaDaFaixa o usuário confirmou o aviso de faixa etária (se houve)
      */
-    public int calcularIdadeEmMeses(LocalDate dataNascimento, LocalDate dataReferencia) {
-        if (dataNascimento == null || dataReferencia == null || dataNascimento.isAfter(dataReferencia)) {
-            throw new IllegalArgumentException("EX-06: Data de nascimento inválida ou futura.");
-        }
-        return (int) ChronoUnit.MONTHS.between(dataNascimento, dataReferencia);
-    }
+    public Matricula efetivar(Aluno aluno, Turma turma, LocalDate dataMatricula, boolean andarilha,
+                              String motivoAndarilha, boolean confirmouForaDaFaixa) throws SQLException {
+        ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA); // RNF-03
 
-    /**
-     * Formata a idade para exibição na interface (ex.: "1 ano(s) e 4 mês(es)").
-     */
-    public String formatarIdade(LocalDate dataNascimento) {
-        LocalDate hoje = LocalDate.now();
-        if (dataNascimento == null || dataNascimento.isAfter(hoje)) {
-            return "Data inválida";
-        }
-        Period periodo = Period.between(dataNascimento, hoje);
-        return periodo.getYears() + " ano(s) e " + periodo.getMonths() + " mês(es)";
-    }
-
-    /**
-     * RN-07: Calcula o valor da mensalidade conforme a faixa etária da criança.
-     */
-    public BigDecimal calcularMensalidadePorFaixaEtaria(LocalDate dataNascimento) {
-        int meses = calcularIdadeEmMeses(dataNascimento, LocalDate.now());
-
-        if (meses < 12) {
-            return MENSALIDADE_BERCARIO;
-        } else if (meses < 24) {
-            return MENSALIDADE_MATERNAL_I;
-        } else if (meses < 36) {
-            return MENSALIDADE_MATERNAL_II;
-        } else {
-            return MENSALIDADE_JARDIM;
-        }
-    }
-
-    /**
-     * RF-02, RF-03, RN-09: Cadastra o aluno e efetiva a matrícula em uma única transação.
-     */
-    public Matricula cadastrarAlunoEMatricula(Aluno aluno, int idTurma, LocalDate dataMatricula,
-                                              boolean andarilha, String motivoAndarilha) throws Exception {
-        // RNF-03: Apenas perfis autorizados podem cadastrar matrícula
-        ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA);
-
-        // EX-06: Valida campos obrigatórios e regras de negócio
-        validarDadosCadastro(aluno, idTurma, dataMatricula, andarilha, motivoAndarilha);
+        // Primeira conferência, rápida, só com os dados da tela (EX-06)
+        exigirSemErros(MatriculaValidador.validarEfetivacao(aluno, turma, dataMatricula,
+                andarilha, motivoAndarilha, false, LocalDate.now()));
 
         Matricula matricula = new Matricula();
-        matricula.setNumeroMatricula(gerarNumeroMatricula());
-        matricula.setIdTurma(idTurma);
-        matricula.setStatus("ATIVA"); // RN-09: Matrícula inicia como ATIVA
+        matricula.setIdAluno(aluno.getIdAluno());
+        matricula.setIdTurma(turma.getIdTurma());
+        matricula.setStatus(Matricula.ATIVA); // RN-09: a matrícula efetivada nasce ATIVA
         matricula.setDataMatricula(dataMatricula);
         matricula.setAndarilha(andarilha);
-        matricula.setMotivoAndarilha(andarilha ? motivoAndarilha.trim() : null);
+        matricula.setMotivoAndarilha(andarilha ? MatriculaValidador.aparar(motivoAndarilha) : null);
 
-        Transacao.executar(conexao -> {
-            alunoDAO.inserir(conexao, aluno);
+        return Transacao.executar(conexao -> {
+            // Segunda conferência, com a turma TRAVADA: vale o que está no banco agora
+            Turma atual = turmaDAO.buscarETravar(conexao, turma.getIdTurma())
+                    .orElseThrow(() -> new MatriculaException("Turma não encontrada."));
+            boolean temAtiva = matriculaDAO.buscarAtivaPorAluno(conexao, aluno.getIdAluno()).isPresent();
+            exigirSemErros(MatriculaValidador.validarEfetivacao(aluno, atual, dataMatricula,
+                    andarilha, motivoAndarilha, temAtiva, LocalDate.now()));
 
-            matricula.setIdAluno(aluno.getIdAluno());
+            Optional<String> aviso = MatriculaValidador.avisoFaixaEtaria(aluno, atual, dataMatricula);
+            if (aviso.isPresent() && !confirmouForaDaFaixa) {
+                throw new MatriculaException(aviso.get() + " Confirme para matricular mesmo assim.");
+            }
+
+            matricula.setNumeroMatricula(matriculaDAO.proximoNumero(conexao, dataMatricula.getYear()));
             matriculaDAO.inserir(conexao, matricula);
+            matricula.setNomeTurma(atual.getNome());
 
-            // RNF-02: Grava auditoria na tabela historico_alteracao
-            auditoriaService.registrarInsercao(conexao, "aluno", aluno.getIdAluno());
-            auditoriaService.registrarInsercao(conexao, "matricula", matricula.getIdMatricula());
-            return null;
+            // RNF-02
+            auditoria.registrarInsercao(conexao, "matricula", matricula.getIdMatricula());
+            if (aviso.isPresent()) {
+                auditoria.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
+                        "id_turma", null, atual.getNome(),
+                        "Matrícula fora da faixa etária confirmada pelo usuário.");
+            }
+            if (matricula.isAndarilha()) {
+                auditoria.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
+                        "motivo_andarilha", null, matricula.getMotivoAndarilha(), "Matrícula andarilha.");
+            }
+            return matricula;
         });
-
-        return matricula;
     }
 
     /**
-     * RN-12: Calcula o valor proporcional da mensalidade no mês de desligamento.
+     * RF-10 / RN-12: calcula o desligamento SEM gravar (para a tela mostrar antes de confirmar).
+     * A mensalidade base é a do contrato VIGENTE; sem contrato, a da tabela por faixa etária (RN-07).
      */
-    public BigDecimal calcularValorProporcionalDesligamento(BigDecimal valorMensalidade, LocalDate dataEncerramento) {
-        if (valorMensalidade == null || valorMensalidade.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("EX-06: Valor da mensalidade inválido para cálculo proporcional.");
+    public Desligamento simularDesligamento(Matricula matricula, Aluno aluno,
+                                            LocalDate comunicacao, LocalDate desligamento) throws SQLException {
+        if (matricula == null || desligamento == null || comunicacao == null) {
+            throw new MatriculaException("Informe as datas de comunicação e de desligamento.");
         }
-        if (dataEncerramento == null) {
-            throw new IllegalArgumentException("EX-06: Informe a data de desligamento.");
+        BigDecimal base = null;
+        String origem = "contrato vigente";
+        for (Contrato c : contratoDAO.listarPorMatricula(matricula.getIdMatricula())) {
+            if ("VIGENTE".equals(c.getStatus()) && c.getValorMensalidade() != null) {
+                base = c.getValorMensalidade();
+            }
         }
-
-        int diasNoMes = YearMonth.from(dataEncerramento).lengthOfMonth();
-        int diasUtilizados = dataEncerramento.getDayOfMonth();
-
-        // RN-12: Proporcional aos dias corridos utilizados no mês
-        return valorMensalidade
-                .multiply(BigDecimal.valueOf(diasUtilizados))
-                .divide(BigDecimal.valueOf(diasNoMes), 2, RoundingMode.HALF_UP);
+        if (base == null) {
+            origem = "tabela por faixa etária";
+            base = mensalidadeService.calcular(aluno.getDataNascimento(), desligamento)
+                    .map(FaixaMensalidade::getValor)
+                    .orElseThrow(() -> new MatriculaException(
+                            "Não há faixa de mensalidade para a idade da criança. Confira a tabela de mensalidades."));
+        }
+        return new Desligamento(
+                desligamento, base, origem,
+                CalculadoraMensalidade.diasCobrados(desligamento),
+                YearMonth.from(desligamento).lengthOfMonth(),
+                CalculadoraMensalidade.proporcional(base, desligamento),
+                CalculadoraMensalidade.diasDeAviso(comunicacao, desligamento));
     }
 
     /**
-     * RF-04, RN-12, RNF-02: Encerra uma matrícula ativa e registra o histórico de auditoria.
+     * RF-10 / RN-12: desliga a criança. Encerra a matrícula e o contrato vigente,
+     * tudo com auditoria (RNF-02). Só Direção e Suporte (RNF-03).
+     *
+     * @param confirmouAvisoCurto o usuário confirmou desligar com menos de 30 dias de aviso
      */
-    public BigDecimal desligarAluno(Matricula matricula, LocalDate dataEncerramento,
-                                    BigDecimal valorMensalidadeAtual, String justificativa) throws Exception {
-        // RNF-03: Apenas Direção e Suporte têm permissão para desligar aluno
+    public Desligamento desligar(Matricula matricula, Aluno aluno, LocalDate comunicacao,
+                                 LocalDate desligamento, String justificativa,
+                                 boolean confirmouAvisoCurto) throws SQLException {
         ControleAcesso.exigir(Permissao.DESLIGAR_ALUNO);
+        exigirSemErros(MatriculaValidador.validarDesligamento(matricula, comunicacao, desligamento, justificativa));
 
-        // EX-06: Validações de encerramento
-        if (matricula == null || matricula.getIdMatricula() == null) {
-            throw new IllegalArgumentException("EX-06: Selecione uma matrícula válida.");
-        }
-        if (!"ATIVA".equals(matricula.getStatus())) {
-            throw new IllegalStateException("EX-06: Apenas matrículas com status ATIVA podem ser encerradas.");
-        }
-        if (dataEncerramento == null || dataEncerramento.isBefore(matricula.getDataMatricula())) {
-            throw new IllegalArgumentException("EX-06: A data de desligamento não pode ser anterior à data da matrícula.");
-        }
-        if (justificativa == null || justificativa.isBlank()) {
-            throw new IllegalArgumentException("EX-06: A justificativa do desligamento é obrigatória.");
+        Desligamento calculo = simularDesligamento(matricula, aluno, comunicacao, desligamento);
+        if (calculo.diasDeAviso() < CalculadoraMensalidade.AVISO_PREVIO_DIAS && !confirmouAvisoCurto) {
+            throw new MatriculaException("O aviso foi de " + calculo.diasDeAviso() + " dias (o contrato pede "
+                    + CalculadoraMensalidade.AVISO_PREVIO_DIAS + "). Confirme para desligar mesmo assim.");
         }
 
-        // RN-12: Calcula o proporcional devido no mês de saída
-        BigDecimal valorProporcional = calcularValorProporcionalDesligamento(valorMensalidadeAtual, dataEncerramento);
-        String statusAnterior = matricula.getStatus();
+        String motivo = MatriculaValidador.aparar(justificativa)
+                + " | Último mês: " + Formatador.dinheiro(calculo.valorProporcional())
+                + " (" + calculo.diasCobrados() + "/" + calculo.diasNoMes() + " dias)";
 
         Transacao.executar(conexao -> {
-            matriculaDAO.encerrarMatricula(conexao, matricula.getIdMatricula(), dataEncerramento);
+            matriculaDAO.encerrar(conexao, matricula.getIdMatricula(), desligamento);
+            auditoria.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
+                    "status", Matricula.ATIVA, Matricula.ENCERRADA, motivo);
+            auditoria.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
+                    "data_encerramento", null, desligamento, motivo);
 
-            // RNF-02: Registra alteração de status e data de encerramento na auditoria
-            auditoriaService.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
-                    "status", statusAnterior, "ENCERRADA", justificativa);
-            auditoriaService.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
-                    "data_encerramento", null, dataEncerramento.toString(), justificativa);
+            Integer idContrato = contratoDAO.encerrarVigentePorDesligamento(
+                    conexao, matricula.getIdMatricula(), desligamento);
+            if (idContrato != null) {
+                auditoria.registrarAlteracao(conexao, "contrato", idContrato,
+                        "status", "VIGENTE", "ENCERRADO", motivo);
+            }
             return null;
         });
 
-        matricula.setStatus("ENCERRADA");
-        matricula.setDataEncerramento(dataEncerramento);
-
-        return valorProporcional;
+        matricula.setStatus(Matricula.ENCERRADA);
+        matricula.setDataEncerramento(desligamento);
+        return calculo;
     }
 
-    private void validarDadosCadastro(Aluno aluno, int idTurma, LocalDate dataMatricula,
-                                      boolean andarilha, String motivoAndarilha) {
-        if (aluno == null || aluno.getNome() == null || aluno.getNome().isBlank()) {
-            throw new IllegalArgumentException("EX-06: O nome da criança é obrigatório.");
+    private static void exigirSemErros(List<String> erros) {
+        if (!erros.isEmpty()) {
+            throw new MatriculaException(String.join("\n", erros));
         }
-        if (aluno.getDataNascimento() == null || aluno.getDataNascimento().isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("EX-06: Informe uma data de nascimento válida.");
-        }
-        if (aluno.getSexo() == null || (!aluno.getSexo().equals("F") && !aluno.getSexo().equals("M"))) {
-            throw new IllegalArgumentException("EX-06: Selecione o sexo da criança (F ou M).");
-        }
-        if (idTurma <= 0) {
-            throw new IllegalArgumentException("EX-06: Informe o ID da turma.");
-        }
-        if (dataMatricula == null) {
-            throw new IllegalArgumentException("EX-06: A data da matrícula é obrigatória.");
-        }
-        if (andarilha && (motivoAndarilha == null || motivoAndarilha.isBlank())) {
-            throw new IllegalArgumentException("EX-06: Informe o motivo quando a matrícula for marcada como andarilha.");
-        }
-    }
-
-    private String gerarNumeroMatricula() {
-        String sufixo = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        return Year.now().getValue() + "-" + sufixo;
     }
 }
