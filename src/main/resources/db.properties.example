@@ -5,3 +5,6 @@
 db.url=jdbc:postgresql://localhost:5432/creche
 db.user=postgres
 db.password=SUA_SENHA
+
+# Pasta onde ficam os documentos anexados (Contrato e documentos). Opcional.
+# docs.pasta=C:/CrecheSementinhas/documentos
