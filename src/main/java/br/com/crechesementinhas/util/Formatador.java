@@ -49,8 +49,12 @@ public final class Formatador {
             throw new IllegalArgumentException("Informe o valor da mensalidade.");
         }
         String limpo = texto.replace("R$", "").replace(" ", "").trim();
-        if (limpo.contains(",")) {
+         if (limpo.contains(",")) {
+            // Padrão brasileiro com vírgula: "1.150,00" -> "1150.00"
             limpo = limpo.replace(".", "").replace(",", ".");
+        } else if (limpo.matches("\\d{1,3}(\\.\\d{3})+")) {
+            // Ponto de milhar sem vírgula: "1.150" -> "1150" e "12.500" -> "12500"
+            limpo = limpo.replace(".", "");
         }
         try {
             return new BigDecimal(limpo);
