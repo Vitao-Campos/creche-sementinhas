@@ -4,6 +4,7 @@ import br.com.crechesementinhas.dao.DocumentoDAO;
 import br.com.crechesementinhas.model.Documento;
 import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.util.PastaDocumentos;
+import br.com.crechesementinhas.util.Transacao;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,6 +43,7 @@ public class DocumentoService {
     private static final DateTimeFormatter CARIMBO = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final DocumentoDAO dao = new DocumentoDAO();
+        private final AuditoriaService auditoria = new AuditoriaService();
 
     public List<Documento> listar(int idMatricula) throws SQLException {
         return dao.listarPorMatricula(idMatricula);
@@ -96,8 +98,13 @@ public class DocumentoService {
         d.setStatus("ENTREGUE");
 
         try {
-            dao.inserir(d);
-        } catch (SQLException e) {
+            // RNF-02: documento e auditoria na MESMA transação
+            Transacao.executar(conexao -> {
+                int idDocumento = dao.inserir(conexao, d);
+                auditoria.registrarInsercao(conexao, "documento", idDocumento);
+                return null;
+            });
+        } catch (SQLException | RuntimeException e) {
             Files.deleteIfExists(destino); // se o banco falhou, não deixa arquivo "órfão"
             throw e;
         }
@@ -118,7 +125,13 @@ public class DocumentoService {
         if (d == null) {
             throw new IllegalArgumentException("Selecione um documento na tabela.");
         }
-        dao.alterarStatus(d.getIdDocumento(), "VALIDADO");
+                // RNF-02: alteração e auditoria na MESMA transação
+        Transacao.executar(conexao -> {
+            dao.alterarStatus(conexao, d.getIdDocumento(), "VALIDADO");
+            auditoria.registrarAlteracao(conexao, "documento", d.getIdDocumento(),
+                    "status", d.getStatus(), "VALIDADO", null);
+            return null;
+        });
     }
 
     /** Caminho completo do arquivo no disco (para abrir). */

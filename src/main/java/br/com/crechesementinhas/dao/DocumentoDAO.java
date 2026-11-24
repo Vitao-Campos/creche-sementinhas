@@ -16,20 +16,27 @@ import java.util.List;
  */
 public class DocumentoDAO {
 
-    public void inserir(Documento d) throws SQLException {
+        /**
+     * Grava o documento e devolve o id gerado (a auditoria precisa dele).
+     * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
+     */
+    public int inserir(Connection conexao, Documento d) throws SQLException {
         String sql = """
                 INSERT INTO documento (id_matricula, nome, tipo, arquivo, data, status)
                 VALUES (?, ?, ?, ?, ?, ?)
+                RETURNING id_documento
                 """;
-        try (Connection con = ConnectionFactory.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setInt(1, d.getIdMatricula());
             ps.setString(2, d.getNome());
             ps.setString(3, d.getTipo());
             ps.setString(4, d.getArquivo());
             ps.setDate(5, Date.valueOf(d.getData()));
             ps.setString(6, d.getStatus());
-            ps.executeUpdate();
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt("id_documento");
+            }
         }
     }
     
@@ -60,15 +67,16 @@ public class DocumentoDAO {
         return lista;
     }
     
-    /** Muda o status (ex.: de ENTREGUE para VALIDADO). */
-    public void alterarStatus(int idDocumento, String novoStatus) throws SQLException {
+        /**
+     * Muda o status (ex.: de ENTREGUE para VALIDADO).
+     * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
+     */
+    public void alterarStatus(Connection conexao, int idDocumento, String novoStatus) throws SQLException {
         String sql = "UPDATE documento SET status = ? WHERE id_documento = ?";
-        try (Connection con = ConnectionFactory.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setString(1, novoStatus);
             ps.setInt(2, idDocumento);
             ps.executeUpdate();
         }
-        // RNF-02 (etapa 4 - integração): registrar a mudança no historico_alteracao.
     }
 }
