@@ -74,6 +74,9 @@ cd creche-sementinhas
    1. `database/V1__criar_tabelas.sql` (cria as tabelas)
    2. `database/V2__usuario_admin_inicial.sql` (cria o usuário administrador)
    3. `database/V3__seguranca.sql` (log de acesso e perfil Suporte do admin)
+   4. `database/V4__contrato.sql` (contrato versionado e documentos)
+   5. `database/V5__financeiro_e_autorizados.sql` (responsável financeiro e pessoas autorizadas)
+   6. `database/V6__matricula_e_mensalidade.sql` (tabela de mensalidades por faixa etária e turmas iniciais)
 
 > O login inicial do administrador está no comentário do script `V2__usuario_admin_inicial.sql`.
 > ⚠️ Na instalação real na creche, essa senha **deve ser trocada** antes de cadastrar dados reais.
@@ -248,6 +251,14 @@ No **service**, barre a operação (proteção de verdade):
 ```java
 ControleAcesso.exigir(Permissao.DESLIGAR_ALUNO);
 ```
+
+### Mensalidade por faixa etária (RN-07)
+A Frente B calcula a mensalidade pela tabela `faixa_mensalidade` (script V6):
+```java
+new MensalidadeService().calcular(dataNascimento, LocalDate.now())
+        .ifPresent(faixa -> campo.setText(Formatador.dinheiro(faixa.getValor())));
+```
+A tela de Contrato já usa isso para sugerir o valor do primeiro contrato.
 
 ### Estilo visual
 Para manter as telas com a mesma aparência, use a folha de estilos compartilhada no seu FXML:
