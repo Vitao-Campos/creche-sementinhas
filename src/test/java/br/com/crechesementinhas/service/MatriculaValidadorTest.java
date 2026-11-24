@@ -93,19 +93,32 @@ class MatriculaValidadorTest {
     }
 
     @Test
-    void desligamentoCompletoEhValido() {
-        assertTrue(MatriculaValidador.validarDesligamento(ativa(), HOJE, HOJE.plusDays(30), "Mudança").isEmpty());
+    void desligamentoComTrintaDiasEhValido() {
+        assertTrue(MatriculaValidador.validarDesligamento(ativa(), HOJE.plusDays(30), "Mudança", HOJE).isEmpty());
+    }
+
+    @Test
+    void desligamentoComDataDeHojeEhRecusado() {
+        // RN-12: 30 dias corridos de antecedência
+        List<String> erros = MatriculaValidador.validarDesligamento(ativa(), HOJE, "Mudança", HOJE);
+        assertEquals(1, erros.size());
+        assertTrue(erros.get(0).contains("24/12/2026"));
+    }
+
+    @Test
+    void desligamentoComVinteENoveDiasEhRecusado() {
+        assertEquals(1, MatriculaValidador.validarDesligamento(ativa(), HOJE.plusDays(29), "Mudança", HOJE).size());
     }
 
     @Test
     void desligamentoDeMatriculaEncerradaImpede() {
         Matricula m = ativa();
         m.setStatus(Matricula.ENCERRADA);
-        assertEquals(1, MatriculaValidador.validarDesligamento(m, HOJE, HOJE, "Mudança").size());
+        assertEquals(1, MatriculaValidador.validarDesligamento(m, HOJE.plusDays(30), "Mudança", HOJE).size());
     }
 
     @Test
-    void desligamentoSemMotivoEAntesDaComunicacaoDaDoisErros() {
-        assertEquals(2, MatriculaValidador.validarDesligamento(ativa(), HOJE, HOJE.minusDays(1), " ").size());
+    void desligamentoSemMotivoESemDataDaDoisErros() {
+        assertEquals(2, MatriculaValidador.validarDesligamento(ativa(), null, " ", HOJE).size());
     }
 }

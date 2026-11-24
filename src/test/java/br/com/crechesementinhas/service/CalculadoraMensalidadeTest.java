@@ -87,7 +87,15 @@ class CalculadoraMensalidadeTest {
     }
 
     @Test
-    void diasDeAviso() {
-        assertEquals(30, CalculadoraMensalidade.diasDeAviso(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 12, 1)));
+    void metadeDoMesCobraMetade() {
+        // sugestão da revisão: dia 15 de um mês de 30 dias = metade do valor
+        assertEquals(new BigDecimal("390.00"),
+                CalculadoraMensalidade.proporcional(new BigDecimal("780.00"), LocalDate.of(2026, 11, 15)));
+    }
+
+    @Test
+    void dataMinimaDeDesligamentoEhHojeMais30DiasCorridos() {
+        assertEquals(LocalDate.of(2026, 12, 24),
+                CalculadoraMensalidade.dataMinimaDesligamento(LocalDate.of(2026, 11, 24)));
     }
 }

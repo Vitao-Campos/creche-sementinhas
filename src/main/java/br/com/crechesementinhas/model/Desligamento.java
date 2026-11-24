@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Resultado do cálculo do desligamento (RF-10 / RN-12): quanto é cobrado no último mês.
+ * Resultado do cálculo do desligamento: quanto é cobrado no último mês
+ * (proporcional, RN-030 do modelo de domínio).
  *
  * @param dataDesligamento    último dia em que a criança frequenta
  * @param mensalidadeBase     mensalidade usada no cálculo (a do contrato vigente ou a da tabela)
@@ -12,7 +13,6 @@ import java.time.LocalDate;
  * @param diasCobrados        dias do mês até a data de desligamento (inclusive)
  * @param diasNoMes           quantidade de dias do mês do desligamento
  * @param valorProporcional   valor a cobrar no mês do desligamento
- * @param diasDeAviso         dias entre a comunicação e o desligamento
  */
 public record Desligamento(
         LocalDate dataDesligamento,
@@ -20,6 +20,5 @@ public record Desligamento(
         String origemMensalidade,
         int diasCobrados,
         int diasNoMes,
-        BigDecimal valorProporcional,
-        long diasDeAviso) {
+        BigDecimal valorProporcional) {
 }

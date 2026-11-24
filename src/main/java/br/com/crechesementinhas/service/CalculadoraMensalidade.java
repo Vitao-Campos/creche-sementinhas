@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +13,7 @@ import java.util.Optional;
  */
 public final class CalculadoraMensalidade {
 
-    /** Aviso prévio do desligamento voluntário (cláusula do contrato). */
+    /** RN-12: o desligamento exige comunicação com 30 dias corridos de antecedência. */
     public static final int AVISO_PREVIO_DIAS = 30;
 
     private CalculadoraMensalidade() {
@@ -49,7 +48,7 @@ public final class CalculadoraMensalidade {
     }
 
     /**
-     * RN-12: valor proporcional do último mês = mensalidade × dias cobrados ÷ dias do mês,
+     * RN-030 (modelo de domínio): valor proporcional do último mês = mensalidade × dias cobrados ÷ dias do mês,
      * arredondado para centavos (meio para cima).
      */
     public static BigDecimal proporcional(BigDecimal mensalidade, LocalDate dataDesligamento) {
@@ -65,8 +64,8 @@ public final class CalculadoraMensalidade {
                 .divide(BigDecimal.valueOf(diasNoMes), 2, RoundingMode.HALF_UP);
     }
 
-    /** Dias entre a comunicação do desligamento e o último dia de frequência. */
-    public static long diasDeAviso(LocalDate comunicacao, LocalDate desligamento) {
-        return ChronoUnit.DAYS.between(comunicacao, desligamento);
+    /** RN-12: primeira data de saída aceita quando o desligamento é registrado em "hoje". */
+    public static LocalDate dataMinimaDesligamento(LocalDate hoje) {
+        return hoje.plusDays(AVISO_PREVIO_DIAS);
     }
 }

@@ -19,8 +19,8 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<!-- Frente B: matrícula (RF-03), mensalidade por faixa etária (RF-04 / RN-07)
-     e desligamento com cálculo proporcional (RF-10 / RN-12). -->
+<!-- Frente B: matrícula (UC-01, RN-01), mensalidade por faixa etária (RF-04 / RN-07)
+     e desligamento com aviso prévio (RN-12) e cálculo proporcional (RN-030). -->
 <BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="br.com.crechesementinhas.controller.MatriculaController"
             prefWidth="1180" prefHeight="720"
@@ -153,22 +153,18 @@
                                 <ColumnConstraints hgrow="ALWAYS"/>
                             </columnConstraints>
 
-                            <Label text="Data da comunicação *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                            <DatePicker fx:id="campoDataComunicacao" editable="true" promptText="dd/mm/aaaa"
+                            <Label text="Último dia de frequência *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <DatePicker fx:id="campoDataDesligamento" editable="true" promptText="dd/mm/aaaa"
                                         GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                            <Label text="Último dia de frequência *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                            <DatePicker fx:id="campoDataDesligamento" editable="true" promptText="dd/mm/aaaa"
-                                        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-                            <Label text="Motivo do desligamento *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                            <Label text="Motivo do desligamento *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                             <TextField fx:id="campoJustificativa" promptText="Ex.: mudança de cidade"
-                                       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                         </GridPane>
 
                         <VBox spacing="6"
                               style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12;">
-                            <Label text="Cálculo do último mês (RN-12)" style="-fx-font-weight: bold;"/>
+                            <Label text="Cálculo do último mês (proporcional)" style="-fx-font-weight: bold;"/>
                             <Label fx:id="labelBaseCalculo" text="-" wrapText="true"/>
                             <Label fx:id="labelValorProporcional" text="-"
                                    style="-fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-font-size: 16px;"/>

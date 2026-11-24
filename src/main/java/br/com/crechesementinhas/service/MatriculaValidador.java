@@ -4,13 +4,14 @@ import br.com.crechesementinhas.model.Aluno;
 import br.com.crechesementinhas.model.Matricula;
 import br.com.crechesementinhas.model.Turma;
 import br.com.crechesementinhas.util.CalculadoraIdade;
+import br.com.crechesementinhas.util.Formatador;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Regras dos dados da matrícula e do desligamento (EX-06), sem acesso a banco.
+ * Regras dos dados da matrícula e do desligamento, sem acesso a banco.
  */
 public final class MatriculaValidador {
 
@@ -77,16 +78,13 @@ public final class MatriculaValidador {
     }
 
     /** Erros que impedem o desligamento. */
-    public static List<String> validarDesligamento(Matricula matricula, LocalDate comunicacao,
-                                                   LocalDate desligamento, String justificativa) {
+    public static List<String> validarDesligamento(Matricula matricula, LocalDate desligamento,
+                                                   String justificativa, LocalDate hoje) {
         List<String> erros = new ArrayList<>();
         if (matricula == null || matricula.getIdMatricula() == null) {
             erros.add("Selecione uma criança com matrícula ATIVA.");
         } else if (!matricula.isAtiva()) {
             erros.add("Só matrículas ATIVAS podem ser encerradas.");
-        }
-        if (comunicacao == null) {
-            erros.add("Informe a data em que o responsável comunicou o desligamento.");
         }
         if (desligamento == null) {
             erros.add("Informe a data de desligamento (último dia de frequência).");
@@ -95,8 +93,11 @@ public final class MatriculaValidador {
                     && desligamento.isBefore(matricula.getDataMatricula())) {
                 erros.add("A data de desligamento não pode ser antes da data da matrícula.");
             }
-            if (comunicacao != null && desligamento.isBefore(comunicacao)) {
-                erros.add("A data de desligamento não pode ser antes da comunicação.");
+            LocalDate minima = CalculadoraMensalidade.dataMinimaDesligamento(hoje);
+            if (desligamento.isBefore(minima)) { // RN-12
+                erros.add("O desligamento precisa ser comunicado com pelo menos "
+                        + CalculadoraMensalidade.AVISO_PREVIO_DIAS
+                        + " dias de antecedência. Data de saída mínima: " + Formatador.data(minima) + ".");
             }
         }
         String texto = aparar(justificativa);
