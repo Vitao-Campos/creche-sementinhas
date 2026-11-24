@@ -3,7 +3,7 @@ package br.com.crechesementinhas.model;
 import br.com.crechesementinhas.util.Telefone;
 
 /**
- * Pessoa que pode buscar a criança (RF-12). Espelha a tabela "pessoa_autorizada".
+ * Pessoa que pode buscar a criança (RF-02, RN-04). Espelha a tabela "pessoa_autorizada".
  * A mesma pessoa pode estar autorizada para várias crianças (irmãos).
  */
 public class PessoaAutorizada {

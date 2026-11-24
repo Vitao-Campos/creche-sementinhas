@@ -7,6 +7,7 @@ import br.com.crechesementinhas.model.Responsavel;
 import br.com.crechesementinhas.service.AlunoService;
 import br.com.crechesementinhas.service.CadastroResponsavelException;
 import br.com.crechesementinhas.service.ControleAcesso;
+import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Navegacao;
@@ -36,7 +37,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 /**
- * Controller da tela de responsáveis (responsavel.fxml). RF-04.
+ * Controller da tela de responsáveis (responsavel.fxml). RF-02.
  * Esquerda: busca e lista. Centro: dados do responsável e, abaixo, os vínculos com as crianças.
  * O controller só cuida da tela: as regras ficam no ResponsavelService.
  */
@@ -70,6 +71,7 @@ public class ResponsavelController {
     @FXML private Label labelMensagem;
     @FXML private Button botaoSalvar;
     @FXML private Button botaoNovo;
+    @FXML private Button botaoHistorico;
 
     @FXML private VBox painelVinculos;
     @FXML private Label labelAvisoVinculos;
@@ -90,6 +92,7 @@ public class ResponsavelController {
 
     private final ResponsavelService responsavelService = new ResponsavelService();
     private final AlunoService alunoService = new AlunoService();
+    private final HistoricoService historicoService = new HistoricoService();
 
     /** Responsável que está sendo editado; null quando o formulário é de um novo. */
     private Responsavel responsavelEmEdicao;
@@ -305,6 +308,7 @@ public class ResponsavelController {
     private void atualizarPainelVinculos() {
         boolean salvo = responsavelEmEdicao != null;
         painelVinculos.setDisable(!salvo);
+        botaoHistorico.setDisable(!salvo);
         tabelaVinculos.getItems().clear();
         comboAluno.setValue(null);
         comboParentesco.setValue(null);
@@ -398,12 +402,12 @@ public class ResponsavelController {
 
     /**
      * Depois de criar ou encerrar um vínculo, avisa o que ainda falta na criança:
-     * responsável legal (RN-04) e responsável financeiro (quem paga a mensalidade).
+     * responsável legal (RN-01) e responsável financeiro (quem paga a mensalidade).
      */
     private void avisarPendencias(Integer idAluno, String mensagemOk) throws SQLException {
         StringBuilder pendencias = new StringBuilder();
         if (idAluno != null && !responsavelService.alunoTemResponsavelLegal(idAluno)) {
-            pendencias.append(" Atenção (RN-04): esta criança ainda não tem nenhum responsável legal vigente;")
+            pendencias.append(" Atenção (RN-01): esta criança ainda não tem nenhum responsável legal vigente;")
                       .append(" a matrícula só pode ser concluída com pelo menos um.");
         }
         if (idAluno != null && !responsavelService.alunoTemResponsavelFinanceiro(idAluno)) {
@@ -414,6 +418,21 @@ public class ResponsavelController {
             mostrarAvisoVinculo(mensagemOk, VERDE);
         } else {
             mostrarAvisoVinculo(mensagemOk + pendencias, LARANJA);
+        }
+    }
+
+    /** Abre, em janela separada, quem alterou o quê e quando neste responsável e nos vínculos dele (RNF-02). */
+    @FXML
+    private void verHistorico() {
+        if (responsavelEmEdicao == null) {
+            return;
+        }
+        try {
+            HistoricoController.abrir(botaoHistorico.getScene().getWindow(),
+                    "Histórico de alterações — " + responsavelEmEdicao.getNome(),
+                    historicoService.consultarDoResponsavel(responsavelEmEdicao.getIdResponsavel()));
+        } catch (SQLException e) {
+            erroDeBanco(e);
         }
     }
 

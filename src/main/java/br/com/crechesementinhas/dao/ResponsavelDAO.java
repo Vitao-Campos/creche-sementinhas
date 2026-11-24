@@ -106,7 +106,7 @@ public class ResponsavelDAO {
         return lista;
     }
 
-    /** Já existe responsável com este CPF? (RN-12). idIgnorado = o próprio na edição; null no cadastro. */
+    /** Já existe responsável com este CPF? (único no banco). idIgnorado = o próprio na edição; null no cadastro. */
     public boolean existeCpf(Connection conexao, String cpf, Integer idIgnorado) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_EXISTE_CPF)) {
             comando.setString(1, cpf);

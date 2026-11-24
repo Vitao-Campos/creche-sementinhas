@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Regras dos DADOS do responsável e do vínculo com a criança (RF-04, RN-12),
+ * Regras dos DADOS do responsável e do vínculo com a criança (RF-02),
  * sem acesso a banco, para poder ser testada sozinha.
  */
 public final class ResponsavelValidador {
@@ -48,7 +48,7 @@ public final class ResponsavelValidador {
             erros.add("O nome pode ter no máximo " + MAX_NOME + " caracteres.");
         }
 
-        // RN-12: CPF é obrigatório para o responsável (e único, conferido no service).
+        // CPF é obrigatório para o responsável (e único, conferido no service).
         if (r.getCpf() == null) {
             erros.add("Informe o CPF do responsável.");
         } else if (!Cpf.valido(r.getCpf())) {

@@ -3,7 +3,7 @@ package br.com.crechesementinhas.model;
 import java.time.LocalDate;
 
 /**
- * Vínculo entre uma criança e um responsável (RF-04).
+ * Vínculo entre uma criança e um responsável (RF-02, RN-01 a RN-03).
  * Espelha a tabela "aluno_responsavel"; "nomeAluno" vem do JOIN, só para exibir.
  */
 public class AlunoResponsavel {

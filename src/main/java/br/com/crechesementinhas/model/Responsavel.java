@@ -4,7 +4,7 @@ import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Telefone;
 
 /**
- * Pai, mãe ou outro responsável pela criança (RF-04).
+ * Pai, mãe ou outro responsável pela criança (RF-02).
  * Espelha a tabela "responsavel" do banco.
  */
 public class Responsavel {

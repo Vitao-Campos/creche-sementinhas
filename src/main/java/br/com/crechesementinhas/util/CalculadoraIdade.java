@@ -6,7 +6,7 @@ import java.time.Period;
 /**
  * Calcula a idade a partir da data de nascimento (RF-03).
  * A idade nunca é gravada no banco: é sempre calculada na hora.
- * Em meses, porque a faixa etária das turmas é em meses (RN-01).
+ * Em meses, porque a faixa etária das turmas é em meses (RN-07).
  */
 public final class CalculadoraIdade {
 

@@ -9,6 +9,7 @@ import br.com.crechesementinhas.model.TipoAutorizacao;
 import br.com.crechesementinhas.service.AlunoService;
 import br.com.crechesementinhas.service.AutorizadoService;
 import br.com.crechesementinhas.service.CadastroAutorizadoException;
+import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.CadastroAlunoException;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.ResponsavelService;
@@ -42,7 +43,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 /**
- * Controller da tela de alunos (aluno.fxml). RF-03.
+ * Controller da tela de alunos (aluno.fxml). RF-02.
  * Lista e busca pelo nome à esquerda; cadastro e edição à direita.
  * O controller só cuida da tela: as regras ficam no AlunoService.
  */
@@ -74,6 +75,7 @@ public class AlunoController {
     @FXML private Label labelMensagem;
     @FXML private Button botaoSalvar;
     @FXML private Button botaoNovo;
+    @FXML private Button botaoHistorico;
 
     private static final Color VERMELHO = Color.web("#c62828");
     private static final Color VERDE = Color.web("#2e7d32");
@@ -110,6 +112,7 @@ public class AlunoController {
     private final AlunoService alunoService = new AlunoService();
     private final ResponsavelService responsavelService = new ResponsavelService();
     private final AutorizadoService autorizadoService = new AutorizadoService();
+    private final HistoricoService historicoService = new HistoricoService();
 
     /** Aluno que está sendo editado; null quando o formulário é de um aluno novo. */
     private Aluno alunoEmEdicao;
@@ -347,6 +350,7 @@ public class AlunoController {
     private void atualizarFicha() {
         boolean salvo = alunoEmEdicao != null;
         painelFicha.setDisable(!salvo);
+        botaoHistorico.setDisable(!salvo);
         tabelaResponsaveisAluno.getItems().clear();
         tabelaAutorizados.getItems().clear();
         limparFormularioAutorizado();
@@ -368,7 +372,7 @@ public class AlunoController {
 
             LocalDate hoje = LocalDate.now();
             List<AlunoResponsavel> vigentes = vinculos.stream().filter(v -> v.estaVigente(hoje)).toList();
-            resumir(labelResumoLegal, "Responsável legal", "Nenhum responsável legal vigente (RN-04)",
+            resumir(labelResumoLegal, "Responsável legal", "Nenhum responsável legal vigente (RN-01)",
                     vigentes.stream().filter(AlunoResponsavel::isResponsavelLegal).toList());
             resumir(labelResumoFinanceiro, "Responsável financeiro (paga a mensalidade)",
                     "Nenhum responsável financeiro indicado",
@@ -450,6 +454,21 @@ public class AlunoController {
             mostrarAvisoFicha("Autorização retirada.", VERDE);
         } catch (CadastroAutorizadoException | SecurityException e) {
             mostrarAvisoFicha(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
+    }
+
+    /** Abre, em janela separada, quem alterou o quê e quando na ficha desta criança (RNF-02). */
+    @FXML
+    private void verHistorico() {
+        if (alunoEmEdicao == null) {
+            return;
+        }
+        try {
+            HistoricoController.abrir(botaoHistorico.getScene().getWindow(),
+                    "Histórico de alterações — " + alunoEmEdicao.getNome(),
+                    historicoService.consultarDoAluno(alunoEmEdicao.getIdAluno()));
         } catch (SQLException e) {
             erroDeBanco(e);
         }

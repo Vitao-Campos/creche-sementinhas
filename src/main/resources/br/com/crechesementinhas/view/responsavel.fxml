@@ -65,7 +65,7 @@
                     <Insets top="20" right="20" bottom="20" left="10"/>
                 </padding>
 
-                <Label fx:id="labelTituloForm" text="Novo responsável:"
+                <Label fx:id="labelTituloForm" text="Novo responsável"
                        style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
 
                 <GridPane hgap="10" vgap="8">
@@ -111,13 +111,15 @@
                             style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
                     <Button fx:id="botaoNovo" text="Novo responsável" onAction="#novoResponsavel"
                             style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+                    <Button fx:id="botaoHistorico" text="Ver histórico de alterações" onAction="#verHistorico"
+                            style="-fx-background-color: white; -fx-text-fill: #37474f; -fx-border-color: #90a4ae;"/>
                 </HBox>
 
                 <Separator/>
 
                 <!-- Vínculos com as crianças (só depois que o responsável estiver salvo) -->
                 <VBox fx:id="painelVinculos" spacing="8">
-                    <Label text="Crianças vinculadas:"
+                    <Label text="Crianças vinculadas"
                            style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
                     <Label fx:id="labelAvisoVinculos" wrapText="true"/>
 

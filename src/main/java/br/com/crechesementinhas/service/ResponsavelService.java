@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Regras do cadastro de responsáveis e dos vínculos com as crianças
- * (RF-04, RN-04, RN-12, RNF-02, RNF-03).
+ * (RF-02, RN-01 a RN-03, RNF-02, RNF-03; CPF único conforme a seção 6.2).
  * Toda gravação e o seu registro de auditoria acontecem na mesma transação.
  */
 public class ResponsavelService {
@@ -38,12 +38,12 @@ public class ResponsavelService {
         this.auditoria = auditoria;
     }
 
-    /** Lista em ordem alfabética, filtrando por parte do nome ou do CPF (RNF-04). */
+    /** Lista em ordem alfabética, filtrando por parte do nome ou do CPF. */
     public List<Responsavel> listar(String busca) throws SQLException {
         return responsavelDAO.listar(busca);
     }
 
-    /** Cadastra um responsável novo (RN-12: CPF obrigatório, válido e único). */
+    /** Cadastra um responsável novo (CPF obrigatório, válido e único). */
     public Responsavel cadastrar(Responsavel responsavel) throws SQLException {
         ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA);
         prepararEValidar(responsavel);
@@ -172,7 +172,7 @@ public class ResponsavelService {
     }
 
     /**
-     * RN-04: a criança tem pelo menos um responsável legal vigente hoje?
+     * RN-01: a criança tem pelo menos um responsável legal vigente hoje?
      * A tela usa para avisar; a matrícula (frente B) deve usar para bloquear a conclusão.
      */
     public boolean alunoTemResponsavelLegal(int idAluno) throws SQLException {
@@ -196,7 +196,7 @@ public class ResponsavelService {
         }
     }
 
-    /** RN-12: o CPF do responsável não se repete. */
+    /** CPF único (seção 6.2): o CPF do responsável não se repete. */
     private void conferirCpfUnico(Connection conexao, Responsavel responsavel) throws SQLException {
         if (responsavelDAO.existeCpf(conexao, responsavel.getCpf(), responsavel.getIdResponsavel())) {
             throw new CadastroResponsavelException(MSG_CPF_REPETIDO);

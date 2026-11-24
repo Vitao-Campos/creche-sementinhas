@@ -146,7 +146,7 @@ public class AlunoResponsavelDAO {
         }
     }
 
-    /** Quantos responsáveis legais vigentes a criança tem? (RN-04) */
+    /** Quantos responsáveis legais vigentes a criança tem? (RN-01) */
     public int contarLegaisVigentes(Connection conexao, int idAluno, LocalDate hoje) throws SQLException {
         return contar(conexao, SQL_CONTAR_LEGAIS_VIGENTES, idAluno, hoje);
     }

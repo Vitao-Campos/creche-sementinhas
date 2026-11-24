@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Regras dos DADOS da pessoa autorizada (RF-12), sem acesso a banco.
+ * Regras dos DADOS da pessoa autorizada (RF-02, RN-04), sem acesso a banco.
  * Trabalha sobre AlunoPessoaAutorizada: nome, RG e telefone da pessoa + parentesco e tipo.
  */
 public final class AutorizadoValidador {

@@ -1,7 +1,7 @@
 package br.com.crechesementinhas.model;
 
 /**
- * O que a pessoa autorizada pode fazer pela criança (RF-12).
+ * O que a pessoa autorizada pode fazer pela criança (RF-02, RN-04).
  * Os nomes (RETIRADA, EMERGENCIA, AMBOS) são os aceitos pelo CHECK do banco.
  */
 public enum TipoAutorizacao {

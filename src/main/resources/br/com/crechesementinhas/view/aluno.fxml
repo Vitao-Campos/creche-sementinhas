@@ -45,12 +45,12 @@
             <padding>
                 <Insets top="20" right="10" bottom="20" left="20"/>
             </padding>
-            <Label text="Buscar aluno pelo nome:" style="-fx-font-weight: bold;"/>
-            <TextField fx:id="campoBusca" promptText=""/>
+            <Label text="Buscar aluno pelo nome" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="campoBusca" promptText="Digite parte do nome"/>
             <TableView fx:id="tabelaAlunos" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="colunaNome" text="Nome" prefWidth="160"/>
-                    <TableColumn fx:id="colunaNascimento" text="Data de Nascimento" prefWidth="120"/>
+                    <TableColumn fx:id="colunaNascimento" text="Nascimento" prefWidth="90"/>
                     <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="100"/>
                     <TableColumn fx:id="colunaCpf" text="CPF" prefWidth="100"/>
                 </columns>
@@ -119,11 +119,13 @@
                         style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 <Button fx:id="botaoNovo" text="Novo aluno" onAction="#novoAluno"
                         style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+                <Button fx:id="botaoHistorico" text="Ver histórico de alterações" onAction="#verHistorico"
+                        style="-fx-background-color: white; -fx-text-fill: #37474f; -fx-border-color: #90a4ae;"/>
             </HBox>
 
             <Separator/>
 
-            <!-- Ficha: responsáveis, responsável financeiro e pessoas autorizadas (RF-04, RF-12, RF-13) -->
+            <!-- Ficha: responsáveis, responsável financeiro e pessoas autorizadas (RF-02, RN-01 a RN-04) -->
             <VBox fx:id="painelFicha" spacing="8">
                 <Label text="Responsáveis"
                        style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
@@ -143,7 +145,7 @@
                 <Label wrapText="true" style="-fx-text-fill: #607d8b;"
                        text="Para vincular ou encerrar responsáveis (inclusive quem paga a mensalidade), use a tela Responsáveis do menu."/>
 
-                <Label text="Pessoas autorizadas à buscar a criança:"
+                <Label text="Pessoas autorizadas a buscar a criança"
                        style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-padding: 10 0 0 0;"/>
                 <TableView fx:id="tabelaAutorizados" prefHeight="130" minHeight="130">
                     <columns>
@@ -151,7 +153,7 @@
                         <TableColumn fx:id="colunaAutRg" text="RG" prefWidth="90"/>
                         <TableColumn fx:id="colunaAutTelefone" text="Telefone" prefWidth="105"/>
                         <TableColumn fx:id="colunaAutParentesco" text="Parentesco" prefWidth="80"/>
-                        <TableColumn fx:id="colunaAutTipo" text="Autoriza" prefWidth="150"/>
+                        <TableColumn fx:id="colunaAutTipo" text="Autoriza" prefWidth="110"/>
                         <TableColumn fx:id="colunaAutSituacao" text="Situação" prefWidth="60"/>
                     </columns>
                 </TableView>
@@ -160,7 +162,7 @@
                             style="-fx-background-color: white; -fx-text-fill: #c62828; -fx-border-color: #c62828;"/>
                 </HBox>
 
-                <Label text="Autorizar nova pessoa:" style="-fx-font-weight: bold; -fx-padding: 6 0 0 0;"/>
+                <Label text="Autorizar nova pessoa" style="-fx-font-weight: bold; -fx-padding: 6 0 0 0;"/>
                 <GridPane hgap="10" vgap="8">
                     <columnConstraints>
                         <ColumnConstraints minWidth="130" prefWidth="130"/>

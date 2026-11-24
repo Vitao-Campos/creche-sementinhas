@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Regras de quem pode buscar a criança (RF-12, RF-13, RNF-02, RNF-03).
+ * Regras de quem pode buscar a criança (RF-02, RN-04, RNF-02, RNF-03).
  * Gravação e auditoria acontecem na mesma transação.
  */
 public class AutorizadoService {
@@ -36,7 +36,7 @@ public class AutorizadoService {
         this.auditoria = auditoria;
     }
 
-    /** RF-13: quem pode buscar a criança (ativos primeiro). */
+    /** RN-04: quem pode buscar a criança (ativos primeiro); equivale à consulta Q02 do documento. */
     public List<AlunoPessoaAutorizada> listarPorAluno(int idAluno) throws SQLException {
         return autorizacaoDAO.listarPorAluno(idAluno);
     }

@@ -3,7 +3,7 @@ package br.com.crechesementinhas.model;
 import br.com.crechesementinhas.util.Telefone;
 
 /**
- * Autorização de uma pessoa para uma criança (RF-12, RF-13).
+ * Autorização de uma pessoa para uma criança (RF-02, RN-04).
  * Espelha "aluno_pessoa_autorizada"; nome, RG e telefone vêm do JOIN, só para exibir.
  */
 public class AlunoPessoaAutorizada {

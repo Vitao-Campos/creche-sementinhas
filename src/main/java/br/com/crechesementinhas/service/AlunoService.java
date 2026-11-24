@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Regras do cadastro de alunos (RF-03, RN-12, RNF-02, RNF-03).
+ * Regras do cadastro de alunos (RF-02, RNF-02, RNF-03; CPF único conforme a seção 6.2).
  * Toda gravação de aluno e o seu registro de auditoria acontecem na mesma transação.
  */
 public class AlunoService {
@@ -31,7 +31,7 @@ public class AlunoService {
     }
 
     /**
-     * Lista os alunos em ordem alfabética, filtrando por parte do nome (RNF-04).
+     * Lista os alunos em ordem alfabética, filtrando por parte do nome.
      *
      * @param busca parte do nome; vazio ou null lista todos
      */
@@ -44,7 +44,7 @@ public class AlunoService {
      *
      * @param aluno os dados digitados (o objeto é limpo e recebe o id gerado)
      * @return o próprio aluno, já com o id
-     * @throws CadastroAlunoException se algum dado for inválido ou o CPF já existir (RN-12)
+     * @throws CadastroAlunoException se algum dado for inválido ou o CPF já existir (UNIQUE da seção 6.2)
      * @throws SecurityException      se o perfil do usuário não puder cadastrar
      */
     public Aluno cadastrar(Aluno aluno) throws SQLException {
@@ -105,7 +105,7 @@ public class AlunoService {
         }
     }
 
-    /** RN-12: o CPF da criança (quando houver) não se repete. */
+    /** CPF único (seção 6.2): o CPF da criança (quando houver) não se repete. */
     private void conferirCpfUnico(Connection conexao, Aluno aluno) throws SQLException {
         if (aluno.getCpf() != null
                 && alunoDAO.existeCpf(conexao, aluno.getCpf(), aluno.getIdAluno())) {

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Regras dos DADOS do aluno (RF-03, RN-12), sem acesso a banco.
+ * Regras dos DADOS do aluno (RF-02), sem acesso a banco.
  * Fica separada do AlunoService para poder ser testada sozinha.
  */
 public final class AlunoValidador {
