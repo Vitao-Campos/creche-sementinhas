@@ -1,6 +1,6 @@
 -- =====================================================================
--- V3 - Ajustes da Frente F (Contrato e documentos)
--- Execute DEPOIS do V1 e do V2, no banco "creche" (pgAdmin > Query Tool > F5).
+-- V4 - Ajustes da Frente F (Contrato e documentos)
+-- Execute DEPOIS do V1, V2 e V3, no banco "creche" (pgAdmin > Query Tool > F5).
 -- =====================================================================
 
 -- 1) Valor da mensalidade gravado no contrato.
