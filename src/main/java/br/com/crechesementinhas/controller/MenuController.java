@@ -54,7 +54,7 @@ public class MenuController {
 
     @FXML
     private void turmas() {
-        emDesenvolvimento("Turmas", "E");
+        Navegacao.abrir("turmas.fxml", "Turmas");
     }
 
     @FXML
