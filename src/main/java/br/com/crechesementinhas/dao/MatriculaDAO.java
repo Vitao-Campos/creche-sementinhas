@@ -138,4 +138,51 @@ public class MatriculaDAO {
         m.setNomeTurma(rs.getString("nome_turma"));
         return m;
     }
+
+    // =================================================================
+    //  Frente E: troca de turma e andarilha
+    // =================================================================
+
+    /**
+     * Busca a matrícula e TRAVA a linha (FOR UPDATE) para alterá-la com segurança:
+     * se outra pessoa estiver mexendo na mesma matrícula, espera ela terminar.
+     */
+    public Optional<Matricula> buscarETravar(Connection conexao, int idMatricula) throws SQLException {
+        try (PreparedStatement stmt = conexao.prepareStatement(
+                SQL_SELECT + " WHERE m.id_matricula = ? FOR UPDATE OF m")) {
+            stmt.setInt(1, idMatricula);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? Optional.of(mapear(rs)) : Optional.empty();
+            }
+        }
+    }
+
+    /** Troca a turma de uma matrícula ATIVA. */
+    public void trocarTurma(Connection conexao, int idMatricula, int idTurmaNova) throws SQLException {
+        String sql = "UPDATE matricula SET id_turma = ? WHERE id_matricula = ? AND status = 'ATIVA'";
+        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setInt(1, idTurmaNova);
+            stmt.setInt(2, idMatricula);
+            if (stmt.executeUpdate() != 1) {
+                throw new SQLException("A matrícula não está mais ATIVA (foi alterada por outro usuário?).");
+            }
+        }
+    }
+
+    /** Marca ou desmarca a matrícula como andarilha (motivo null quando desmarca). */
+    public void atualizarAndarilha(Connection conexao, int idMatricula, boolean andarilha,
+                                   String motivo) throws SQLException {
+        String sql = """
+                UPDATE matricula SET andarilha = ?, motivo_andarilha = ?
+                 WHERE id_matricula = ? AND status = 'ATIVA'
+                """;
+        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setBoolean(1, andarilha);
+            stmt.setString(2, motivo);
+            stmt.setInt(3, idMatricula);
+            if (stmt.executeUpdate() != 1) {
+                throw new SQLException("A matrícula não está mais ATIVA (foi alterada por outro usuário?).");
+            }
+        }
+    }
 }
