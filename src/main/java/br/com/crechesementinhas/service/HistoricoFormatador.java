@@ -23,7 +23,8 @@ public final class HistoricoFormatador {
             "responsavel", "Responsável",
             "aluno_responsavel", "Vínculo com responsável",
             "pessoa_autorizada", "Pessoa autorizada",
-            "aluno_pessoa_autorizada", "Autorização para buscar");
+            "aluno_pessoa_autorizada", "Autorização para buscar",
+            "matricula", "Matrícula");
 
     private static final Map<String, String> CAMPOS = Map.ofEntries(
             Map.entry("nome", "Nome"),
@@ -39,7 +40,12 @@ public final class HistoricoFormatador {
             Map.entry("endereco", "Endereço"),
             Map.entry("profissao", "Profissão"),
             Map.entry("data_fim", "Data de fim do vínculo"),
-            Map.entry("ativo", "Autorização ativa"));
+            Map.entry("ativo", "Autorização ativa"),
+            Map.entry("id_turma", "Turma"),
+            Map.entry("andarilha", "Andarilha"),
+            Map.entry("motivo_andarilha", "Motivo da andarilha"),
+            Map.entry("status", "Situação"),
+            Map.entry("data_encerramento", "Data de encerramento"));
 
     private HistoricoFormatador() {
     }
