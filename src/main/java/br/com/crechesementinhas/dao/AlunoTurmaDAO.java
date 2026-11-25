@@ -18,12 +18,12 @@ public class AlunoTurmaDAO {
 
     private static final String SQL_BUSCAR = """
             SELECT a.id_aluno, a.nome, a.data_nascimento,
-                   m.id_matricula, m.numero_matricula, m.andarilha, m.motivo_andarilha,
+                   m.id_matricula, m.numero_matricula, m.andarilha, m.motivo_andarilha, m.andarilha_ate,
                    t.id_turma, t.nome AS nome_turma, t.idade_minima, t.idade_maxima
               FROM aluno a
               LEFT JOIN matricula m ON m.id_aluno = a.id_aluno AND m.status = 'ATIVA'
               LEFT JOIN turma t ON t.id_turma = m.id_turma
-             WHERE a.nome ILIKE ?
+             WHERE a.nome ILIKE ? ESCAPE '\\'
                AND (CAST(? AS INT) IS NULL OR t.id_turma = ?)
                AND (? = FALSE OR m.id_matricula IS NOT NULL)
              ORDER BY a.nome
@@ -38,7 +38,7 @@ public class AlunoTurmaDAO {
         List<AlunoTurma> lista = new ArrayList<>();
         try (Connection conexao = ConnectionFactory.getConnection();
              PreparedStatement comando = conexao.prepareStatement(SQL_BUSCAR)) {
-            comando.setString(1, "%" + (trechoNome == null ? "" : trechoNome.trim()) + "%");
+            comando.setString(1, "%" + escaparCuringas(trechoNome == null ? "" : trechoNome.trim()) + "%");
             if (idTurma == null) {
                 comando.setNull(2, Types.INTEGER);
                 comando.setNull(3, Types.INTEGER);
@@ -56,6 +56,11 @@ public class AlunoTurmaDAO {
         return lista;
     }
 
+    /** O usuário digita "%" ou "_" no nome? Trata como letra comum (igual ao AlunoDAO). */
+    private String escaparCuringas(String texto) {
+        return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
     private AlunoTurma mapear(ResultSet rs) throws SQLException {
         AlunoTurma a = new AlunoTurma();
         a.setIdAluno(rs.getInt("id_aluno"));
@@ -65,6 +70,7 @@ public class AlunoTurmaDAO {
         a.setNumeroMatricula(rs.getString("numero_matricula"));
         a.setAndarilha(rs.getBoolean("andarilha"));
         a.setMotivoAndarilha(rs.getString("motivo_andarilha"));
+        a.setAndarilhaAte(rs.getObject("andarilha_ate", LocalDate.class));
         a.setIdTurma((Integer) rs.getObject("id_turma"));
         a.setNomeTurma(rs.getString("nome_turma"));
         a.setIdadeMinimaMeses(rs.getInt("idade_minima"));

@@ -18,6 +18,7 @@ public class AlunoTurma {
     private String numeroMatricula;
     private boolean andarilha;
     private String motivoAndarilha;
+    private LocalDate andarilhaAte;
 
     // Turma da matrícula ativa
     private Integer idTurma;
@@ -33,10 +34,16 @@ public class AlunoTurma {
         return CalculadoraIdade.emMeses(dataNascimento, referencia);
     }
 
-    /** Alerta de faixa etária: a idade da criança hoje ainda cabe na turma dela? */
+    /**
+     * Alerta de faixa etária (RF-07): a idade da criança hoje ainda cabe na turma dela?
+     * A andarilha (RN-08) é a exceção: vale o prazo previsto, não a idade.
+     */
     public SituacaoFaixaEtaria situacaoFaixa(LocalDate referencia) {
         if (!temMatriculaAtiva()) {
             return SituacaoFaixaEtaria.SEM_MATRICULA;
+        }
+        if (andarilha) {
+            return SituacaoFaixaEtaria.deAndarilha(andarilhaAte, referencia);
         }
         return SituacaoFaixaEtaria.de(idadeEmMeses(referencia), idadeMinimaMeses, idadeMaximaMeses);
     }
@@ -65,6 +72,9 @@ public class AlunoTurma {
 
     public String getMotivoAndarilha() { return motivoAndarilha; }
     public void setMotivoAndarilha(String motivoAndarilha) { this.motivoAndarilha = motivoAndarilha; }
+
+    public LocalDate getAndarilhaAte() { return andarilhaAte; }
+    public void setAndarilhaAte(LocalDate andarilhaAte) { this.andarilhaAte = andarilhaAte; }
 
     public Integer getIdTurma() { return idTurma; }
     public void setIdTurma(Integer idTurma) { this.idTurma = idTurma; }

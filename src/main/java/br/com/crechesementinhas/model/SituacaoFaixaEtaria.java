@@ -1,7 +1,11 @@
 package br.com.crechesementinhas.model;
 
+import java.time.LocalDate;
+
 /**
- * Situação da idade da criança em relação à faixa etária da turma (alerta da Frente E).
+ * Situação da idade da criança em relação à faixa etária da turma (alerta RF-07).
+ * A andarilha (RF-11 / RN-08) é a exceção: dentro do prazo não alerta;
+ * com o prazo vencido volta a alertar e conta como fora da faixa.
  */
 public enum SituacaoFaixaEtaria {
 
@@ -9,6 +13,8 @@ public enum SituacaoFaixaEtaria {
     ULTIMO_MES("Último mês na faixa", true),
     ACIMA("Acima da faixa", true),
     ABAIXO("Abaixo da faixa", true),
+    ANDARILHA("Andarilha", false),
+    ANDARILHA_VENCIDA("Prazo vencido", true),
     SEM_MATRICULA("Sem matrícula ativa", false);
 
     private final String descricao;
@@ -28,9 +34,9 @@ public enum SituacaoFaixaEtaria {
         return alerta;
     }
 
-    /** Fora da faixa de verdade (acima ou abaixo)? */
+    /** Fora da faixa de verdade (entra no contador do alerta)? */
     public boolean isForaDaFaixa() {
-        return this == ACIMA || this == ABAIXO;
+        return this == ACIMA || this == ABAIXO || this == ANDARILHA_VENCIDA;
     }
 
     /**
@@ -45,6 +51,14 @@ public enum SituacaoFaixaEtaria {
             return ACIMA;
         }
         return idadeMeses == maximaMeses ? ULTIMO_MES : DENTRO;
+    }
+
+    /**
+     * RN-08: a matrícula andarilha é a exceção da faixa etária.
+     * No prazo (até o dia andarilhaAte, inclusive) não alerta; depois, ou sem prazo, alerta.
+     */
+    public static SituacaoFaixaEtaria deAndarilha(LocalDate andarilhaAte, LocalDate hoje) {
+        return andarilhaAte != null && !hoje.isAfter(andarilhaAte) ? ANDARILHA : ANDARILHA_VENCIDA;
     }
 
     @Override
