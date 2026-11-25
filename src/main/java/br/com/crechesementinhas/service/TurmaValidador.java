@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Regras da troca de turma e do registro de andarilha (Frente E), sem acesso a banco.
+ * Regras da troca de turma (EX-07) e do registro de andarilha (RF-11 / RN-08), sem acesso a banco.
  */
 public final class TurmaValidador {
 
@@ -62,8 +62,9 @@ public final class TurmaValidador {
                 + nova.getIdadeMaximaMeses() + " meses).");
     }
 
-    /** Erros que impedem gravar o registro de andarilha. */
-    public static List<String> validarAndarilha(AlunoTurma aluno, boolean andarilha, String motivo) {
+    /** Erros que impedem gravar o registro de andarilha (RF-11: motivo e prazo previsto). */
+    public static List<String> validarAndarilha(AlunoTurma aluno, boolean andarilha, String motivo,
+                                                LocalDate andarilhaAte, LocalDate hoje) {
         List<String> erros = new ArrayList<>();
         if (aluno == null) {
             erros.add("Selecione a criança na tabela.");
@@ -79,9 +80,14 @@ public final class TurmaValidador {
         } else if (texto != null && texto.length() > MAX_MOTIVO_ANDARILHA) {
             erros.add("O motivo pode ter no máximo " + MAX_MOTIVO_ANDARILHA + " caracteres.");
         }
+        if (andarilha) {
+            MatriculaValidador.validarPrazoAndarilha(andarilhaAte, hoje, erros);
+        }
         String motivoNovo = andarilha ? texto : null;
+        LocalDate prazoNovo = andarilha ? andarilhaAte : null;
         if (erros.isEmpty() && aluno.isAndarilha() == andarilha
-                && Objects.equals(MatriculaValidador.aparar(aluno.getMotivoAndarilha()), motivoNovo)) {
+                && Objects.equals(MatriculaValidador.aparar(aluno.getMotivoAndarilha()), motivoNovo)
+                && Objects.equals(aluno.getAndarilhaAte(), prazoNovo)) {
             erros.add("Nada mudou no registro de andarilha.");
         }
         return erros;

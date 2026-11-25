@@ -70,12 +70,13 @@ public class MatriculaService {
      * @param confirmouForaDaFaixa o usuário confirmou o aviso de faixa etária (se houve)
      */
     public Matricula efetivar(Aluno aluno, Turma turma, LocalDate dataMatricula, boolean andarilha,
-                              String motivoAndarilha, boolean confirmouForaDaFaixa) throws SQLException {
+                              String motivoAndarilha, LocalDate andarilhaAte,
+                              boolean confirmouForaDaFaixa) throws SQLException {
         ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA); // RNF-03
 
         // Primeira conferência, rápida, só com os dados da tela (EX-06)
         exigirSemErros(MatriculaValidador.validarEfetivacao(aluno, turma, dataMatricula,
-                andarilha, motivoAndarilha, false, LocalDate.now()));
+                andarilha, motivoAndarilha, andarilhaAte, false, LocalDate.now()));
 
         Matricula matricula = new Matricula();
         matricula.setIdAluno(aluno.getIdAluno());
@@ -84,6 +85,7 @@ public class MatriculaService {
         matricula.setDataMatricula(dataMatricula);
         matricula.setAndarilha(andarilha);
         matricula.setMotivoAndarilha(andarilha ? MatriculaValidador.aparar(motivoAndarilha) : null);
+        matricula.setAndarilhaAte(andarilha ? andarilhaAte : null); // RF-11
 
         return Transacao.executar(conexao -> {
             // Segunda conferência, com a turma TRAVADA: vale o que está no banco agora
@@ -91,7 +93,7 @@ public class MatriculaService {
                     .orElseThrow(() -> new MatriculaException("Turma não encontrada."));
             boolean temAtiva = matriculaDAO.buscarAtivaPorAluno(conexao, aluno.getIdAluno()).isPresent();
             exigirSemErros(MatriculaValidador.validarEfetivacao(aluno, atual, dataMatricula,
-                    andarilha, motivoAndarilha, temAtiva, LocalDate.now()));
+                    andarilha, motivoAndarilha, andarilhaAte, temAtiva, LocalDate.now()));
 
             // RN-01 / EX-01: sem responsável legal, a matrícula não é gravada
             if (alunoResponsavelDAO.contarLegaisVigentes(conexao, aluno.getIdAluno(), LocalDate.now()) == 0) {
@@ -118,6 +120,8 @@ public class MatriculaService {
             if (matricula.isAndarilha()) {
                 auditoria.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
                         "motivo_andarilha", null, matricula.getMotivoAndarilha(), "Matrícula andarilha.");
+                auditoria.registrarAlteracao(conexao, "matricula", matricula.getIdMatricula(),
+                        "andarilha_ate", null, matricula.getAndarilhaAte(), "Matrícula andarilha.");
             }
             return matricula;
         });

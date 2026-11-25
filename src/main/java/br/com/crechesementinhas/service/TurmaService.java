@@ -8,6 +8,7 @@ import br.com.crechesementinhas.model.Matricula;
 import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.Turma;
 import br.com.crechesementinhas.util.Transacao;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -93,15 +94,27 @@ public class TurmaService {
                     + (aviso.isPresent() ? " | Fora da faixa etária, confirmado pelo usuário" : "");
             auditoria.registrarAlteracao(conexao, "matricula", atual.getIdMatricula(),
                     "id_turma", atual.getNomeTurma(), travada.getNome(), motivo);
+
+            // RF-11 / RN-08: a andarilha era a exceção para a turma antiga; na troca ela termina
+            if (atual.isAndarilha()) {
+                matriculaDAO.atualizarAndarilha(conexao, atual.getIdMatricula(), false, null, null);
+                registrarMudancasAndarilha(conexao, atual, false, null, null,
+                        "Andarilha encerrada pela troca de turma");
+            }
             return null;
         });
     }
 
-    /** Marca/desmarca a matrícula ATIVA como andarilha, com o motivo (auditado). */
-    public void registrarAndarilha(AlunoTurma aluno, boolean andarilha, String motivo) throws SQLException {
+    /**
+     * RF-11 / FA-02: marca/desmarca a matrícula ATIVA como andarilha,
+     * com motivo e prazo previsto (auditado).
+     */
+    public void registrarAndarilha(AlunoTurma aluno, boolean andarilha, String motivo,
+                                   LocalDate andarilhaAte) throws SQLException {
         ControleAcesso.exigir(Permissao.CONFIRMAR_MATRICULA); // RNF-03
-        exigirSemErros(TurmaValidador.validarAndarilha(aluno, andarilha, motivo));
+        exigirSemErros(TurmaValidador.validarAndarilha(aluno, andarilha, motivo, andarilhaAte, LocalDate.now()));
         String motivoNovo = andarilha ? MatriculaValidador.aparar(motivo) : null;
+        LocalDate prazoNovo = andarilha ? andarilhaAte : null;
 
         Transacao.executar(conexao -> {
             Matricula atual = matriculaDAO.buscarETravar(conexao, aluno.getIdMatricula())
@@ -109,19 +122,30 @@ public class TurmaService {
                     .orElseThrow(() -> new MatriculaException(
                             "A matrícula não está mais ATIVA. Atualize a lista."));
 
-            matriculaDAO.atualizarAndarilha(conexao, atual.getIdMatricula(), andarilha, motivoNovo);
-
-            String justificativa = andarilha ? "Registro de andarilha" : "Andarilha removida";
-            if (atual.isAndarilha() != andarilha) {
-                auditoria.registrarAlteracao(conexao, "matricula", atual.getIdMatricula(),
-                        "andarilha", atual.isAndarilha(), andarilha, justificativa);
-            }
-            if (!Objects.equals(atual.getMotivoAndarilha(), motivoNovo)) {
-                auditoria.registrarAlteracao(conexao, "matricula", atual.getIdMatricula(),
-                        "motivo_andarilha", atual.getMotivoAndarilha(), motivoNovo, justificativa);
-            }
+            matriculaDAO.atualizarAndarilha(conexao, atual.getIdMatricula(), andarilha, motivoNovo, prazoNovo);
+            registrarMudancasAndarilha(conexao, atual, andarilha, motivoNovo, prazoNovo,
+                    andarilha ? "Registro de andarilha" : "Andarilha removida");
             return null;
         });
+    }
+
+    /** RNF-02: grava no histórico só os campos da andarilha que mudaram. */
+    private void registrarMudancasAndarilha(Connection conexao, Matricula atual, boolean andarilha,
+                                            String motivoNovo, LocalDate prazoNovo,
+                                            String justificativa) throws SQLException {
+        int id = atual.getIdMatricula();
+        if (atual.isAndarilha() != andarilha) {
+            auditoria.registrarAlteracao(conexao, "matricula", id,
+                    "andarilha", atual.isAndarilha(), andarilha, justificativa);
+        }
+        if (!Objects.equals(atual.getMotivoAndarilha(), motivoNovo)) {
+            auditoria.registrarAlteracao(conexao, "matricula", id,
+                    "motivo_andarilha", atual.getMotivoAndarilha(), motivoNovo, justificativa);
+        }
+        if (!Objects.equals(atual.getAndarilhaAte(), prazoNovo)) {
+            auditoria.registrarAlteracao(conexao, "matricula", id,
+                    "andarilha_ate", atual.getAndarilhaAte(), prazoNovo, justificativa);
+        }
     }
 
     private static void exigirSemErros(List<String> erros) {

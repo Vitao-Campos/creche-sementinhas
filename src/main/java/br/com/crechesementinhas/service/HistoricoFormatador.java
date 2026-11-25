@@ -44,6 +44,7 @@ public final class HistoricoFormatador {
             Map.entry("id_turma", "Turma"),
             Map.entry("andarilha", "Andarilha"),
             Map.entry("motivo_andarilha", "Motivo da andarilha"),
+            Map.entry("andarilha_ate", "Andarilha até"),
             Map.entry("status", "Situação"),
             Map.entry("data_encerramento", "Data de encerramento"));
 
