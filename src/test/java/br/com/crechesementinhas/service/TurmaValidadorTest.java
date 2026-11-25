@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 class TurmaValidadorTest {
 
     private static final LocalDate HOJE = LocalDate.of(2026, 11, 25);
+    private static final LocalDate PRAZO = LocalDate.of(2027, 2, 28);
 
     /** Criança de 25 meses matriculada no Maternal I (12 a 23 meses): já passou da faixa. */
     private AlunoTurma aluno() {
@@ -114,12 +115,12 @@ class TurmaValidadorTest {
 
     @Test
     void marcarAndarilhaComMotivoEhValido() {
-        assertTrue(TurmaValidador.validarAndarilha(aluno(), true, "Frequenta duas turmas").isEmpty());
+        assertTrue(TurmaValidador.validarAndarilha(aluno(), true, "Frequenta duas turmas", PRAZO, HOJE).isEmpty());
     }
 
     @Test
     void marcarAndarilhaSemMotivoImpede() {
-        assertEquals(1, TurmaValidador.validarAndarilha(aluno(), true, " ").size());
+        assertEquals(1, TurmaValidador.validarAndarilha(aluno(), true, " ", PRAZO, HOJE).size());
     }
 
     @Test
@@ -127,7 +128,9 @@ class TurmaValidadorTest {
         AlunoTurma a = aluno();
         a.setAndarilha(true);
         a.setMotivoAndarilha("Frequenta duas turmas");
-        assertTrue(TurmaValidador.validarAndarilha(a, true, " Frequenta duas turmas ").get(0).contains("Nada mudou"));
+        a.setAndarilhaAte(PRAZO);
+        assertTrue(TurmaValidador.validarAndarilha(a, true, " Frequenta duas turmas ", PRAZO, HOJE)
+                .get(0).contains("Nada mudou"));
     }
 
     @Test
@@ -135,6 +138,56 @@ class TurmaValidadorTest {
         AlunoTurma a = aluno();
         a.setAndarilha(true);
         a.setMotivoAndarilha("Frequenta duas turmas");
-        assertTrue(TurmaValidador.validarAndarilha(a, false, "").isEmpty());
+        assertTrue(TurmaValidador.validarAndarilha(a, false, "", null, HOJE).isEmpty());
+    }
+
+    // ---------- andarilha x alerta de faixa (RN-08) e prazo (RF-11)
+
+    private AlunoTurma andarilha(LocalDate ate) {
+        AlunoTurma a = aluno(); // 25 meses no Maternal I (12 a 23): fora da faixa pela idade
+        a.setAndarilha(true);
+        a.setMotivoAndarilha("Adaptação com o irmão");
+        a.setAndarilhaAte(ate);
+        return a;
+    }
+
+    @Test
+    void andarilhaNoPrazoNaoAlertaENaoContaComoFora() {
+        SituacaoFaixaEtaria s = andarilha(PRAZO).situacaoFaixa(HOJE);
+        assertEquals(SituacaoFaixaEtaria.ANDARILHA, s);
+        assertTrue(!s.isAlerta() && !s.isForaDaFaixa());
+    }
+
+    @Test
+    void andarilhaValeAteOUltimoDiaDoPrazo() {
+        assertEquals(SituacaoFaixaEtaria.ANDARILHA, andarilha(HOJE).situacaoFaixa(HOJE));
+    }
+
+    @Test
+    void andarilhaVencidaVoltaAAlertarEContaComoFora() {
+        SituacaoFaixaEtaria s = andarilha(HOJE.minusDays(1)).situacaoFaixa(HOJE);
+        assertEquals(SituacaoFaixaEtaria.ANDARILHA_VENCIDA, s);
+        assertTrue(s.isAlerta() && s.isForaDaFaixa());
+    }
+
+    @Test
+    void andarilhaAntigaSemPrazoContaComoVencida() {
+        assertEquals(SituacaoFaixaEtaria.ANDARILHA_VENCIDA, andarilha(null).situacaoFaixa(HOJE));
+    }
+
+    @Test
+    void marcarAndarilhaSemPrazoImpede() {
+        assertTrue(TurmaValidador.validarAndarilha(aluno(), true, "Motivo", null, HOJE).get(0).contains("prazo"));
+    }
+
+    @Test
+    void marcarAndarilhaComPrazoNoPassadoImpede() {
+        assertEquals(1, TurmaValidador.validarAndarilha(aluno(), true, "Motivo", HOJE.minusDays(3), HOJE).size());
+    }
+
+    @Test
+    void renovarSoOPrazoEhUmaMudancaValida() {
+        AlunoTurma a = andarilha(HOJE.minusDays(1)); // vencida
+        assertTrue(TurmaValidador.validarAndarilha(a, true, "Adaptação com o irmão", PRAZO, HOJE).isEmpty());
     }
 }

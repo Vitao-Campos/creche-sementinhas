@@ -35,8 +35,31 @@ class MatriculaValidadorTest {
         return t;
     }
 
+    private static final LocalDate PRAZO = HOJE.plusMonths(3);
+
     private List<String> validar(Aluno a, Turma t, boolean andarilha, String motivo, boolean temAtiva) {
-        return MatriculaValidador.validarEfetivacao(a, t, HOJE, andarilha, motivo, temAtiva, HOJE);
+        return MatriculaValidador.validarEfetivacao(a, t, HOJE, andarilha, motivo,
+                andarilha ? PRAZO : null, temAtiva, HOJE);
+    }
+
+    @Test
+    void andarilhaComMotivoEPrazoEhValida() {
+        assertTrue(validar(aluno(), turma(12, 23, 14, 0), true, "Frequenta duas turmas", false).isEmpty());
+    }
+
+    @Test
+    void andarilhaSemPrazoImpede() {
+        // RF-11: tempo previsto de permanência é obrigatório
+        List<String> erros = MatriculaValidador.validarEfetivacao(aluno(), turma(12, 23, 14, 0), HOJE,
+                true, "Frequenta duas turmas", null, false, HOJE);
+        assertEquals(1, erros.size());
+        assertTrue(erros.get(0).contains("prazo"));
+    }
+
+    @Test
+    void andarilhaComPrazoHojeImpede() {
+        assertEquals(1, MatriculaValidador.validarEfetivacao(aluno(), turma(12, 23, 14, 0), HOJE,
+                true, "Frequenta duas turmas", HOJE, false, HOJE).size());
     }
 
     @Test
@@ -69,7 +92,7 @@ class MatriculaValidadorTest {
     @Test
     void dataAntesDoNascimentoImpede() {
         List<String> erros = MatriculaValidador.validarEfetivacao(aluno(), turma(0, 23, 14, 0),
-                LocalDate.of(2025, 1, 1), false, null, false, HOJE);
+                LocalDate.of(2025, 1, 1), false, null, null, false, HOJE);
         assertTrue(erros.get(0).contains("nascimento"));
     }
 
