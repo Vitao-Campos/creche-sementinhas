@@ -9,9 +9,12 @@ import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.MatriculaException;
 import br.com.crechesementinhas.service.TurmaService;
 import br.com.crechesementinhas.util.CalculadoraIdade;
+import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.Navegacao;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import javafx.beans.property.SimpleObjectProperty;
@@ -23,11 +26,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.util.StringConverter;
 
 /**
  * Tela "Consulta e Turmas" (turmas.fxml), Frente E.
@@ -60,6 +65,7 @@ public class TurmasController {
     @FXML private Button botaoTrocar;
     @FXML private CheckBox checkAndarilha;
     @FXML private TextField campoMotivoAndarilha;
+    @FXML private DatePicker campoAndarilhaAte;
     @FXML private Button botaoAndarilha;
     @FXML private Label labelMensagem;
 
@@ -80,6 +86,7 @@ public class TurmasController {
     @FXML
     private void initialize() {
         configurarTabelas();
+        configurarData(campoAndarilhaAte);
 
         campoBusca.textProperty().addListener((obs, antigo, novo) -> carregarAlunos());
         comboFiltroTurma.valueProperty().addListener((obs, antigo, novo) -> carregarAlunos());
@@ -174,7 +181,9 @@ public class TurmasController {
 
         checkAndarilha.setSelected(ativa && aluno.isAndarilha());
         campoMotivoAndarilha.setText(ativa && aluno.getMotivoAndarilha() != null ? aluno.getMotivoAndarilha() : "");
+        campoAndarilhaAte.setValue(ativa ? aluno.getAndarilhaAte() : null);
         campoMotivoAndarilha.setDisable(!checkAndarilha.isSelected() || !podeAlterar);
+        campoAndarilhaAte.setDisable(!checkAndarilha.isSelected() || !podeAlterar);
 
         botaoHistorico.setDisable(aluno == null);
         comboNovaTurma.setDisable(!ativa || !podeAlterar);
@@ -207,6 +216,9 @@ public class TurmasController {
                     + " para a turma " + nova.getNome() + "?"
                     + aviso.map(a -> "\n\nATENÇÃO: " + a + "\nEssa exceção ficará registrada no histórico.")
                            .orElse("")
+                    + (selecionado.isAndarilha()
+                       ? "\n\nA criança é andarilha: o registro de andarilha (motivo e prazo) será encerrado."
+                       : "")
                     + "\n\nA troca fica registrada no histórico da criança.";
             if (!confirmar("Confirmar troca de turma", texto)) {
                 return;
@@ -229,8 +241,10 @@ public class TurmasController {
     @FXML
     private void aoAlternarAndarilha() {
         campoMotivoAndarilha.setDisable(!checkAndarilha.isSelected());
+        campoAndarilhaAte.setDisable(!checkAndarilha.isSelected());
         if (!checkAndarilha.isSelected()) {
             campoMotivoAndarilha.clear();
+            campoAndarilhaAte.setValue(null);
         }
     }
 
@@ -248,7 +262,8 @@ public class TurmasController {
                 return;
             }
             String nome = selecionado.getNome();
-            turmaService.registrarAndarilha(selecionado, andarilha, campoMotivoAndarilha.getText());
+            turmaService.registrarAndarilha(selecionado, andarilha, campoMotivoAndarilha.getText(),
+                    campoAndarilhaAte.getValue());
             sucesso(andarilha ? "Andarilha registrada para " + nome + "."
                               : "Registro de andarilha removido de " + nome + ".");
             recarregarTudo();
@@ -306,7 +321,9 @@ public class TurmasController {
                 c.getValue().temMatriculaAtiva() ? c.getValue().getNomeTurma() : "-"));
         colunaFaixa.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getFaixaTurmaTexto()));
         colunaAndarilha.setCellValueFactory(c -> new SimpleStringProperty(
-                c.getValue().isAndarilha() ? "Sim" : ""));
+                !c.getValue().isAndarilha() ? ""
+                : c.getValue().getAndarilhaAte() == null ? "Sem prazo"
+                : Formatador.data(c.getValue().getAndarilhaAte())));
 
         // Alerta de faixa etária: vermelho fora da faixa, laranja no último mês
         colunaSituacao.setCellValueFactory(c -> new SimpleObjectProperty<>(
@@ -323,6 +340,8 @@ public class TurmasController {
                 setText(situacao.getDescricao());
                 if (situacao.isForaDaFaixa()) {
                     setStyle("-fx-text-fill: #c62828; -fx-font-weight: bold;");
+                } else if (situacao == SituacaoFaixaEtaria.ANDARILHA) {
+                    setStyle("-fx-text-fill: #1565c0;");
                 } else if (situacao.isAlerta()) {
                     setStyle("-fx-text-fill: #e65100; -fx-font-weight: bold;");
                 } else {
@@ -349,8 +368,33 @@ public class TurmasController {
             case ACIMA -> "Acima da faixa da turma: avalie a troca para a próxima turma.";
             case ABAIXO -> "Abaixo da faixa da turma: confira se a turma está certa.";
             case ULTIMO_MES -> "Último mês na faixa: no mês que vem passa da idade da turma.";
+            case ANDARILHA -> "Andarilha: fica nesta turma como exceção até o prazo previsto.";
+            case ANDARILHA_VENCIDA -> "Andarilha com prazo vencido: troque de turma ou renove o prazo.";
             default -> situacao.getDescricao();
         };
+    }
+
+    /** DatePicker no formato dd/MM/aaaa; texto inválido vira "sem data" em vez de erro. */
+    private static void configurarData(DatePicker campo) {
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        campo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate data) {
+                return data == null ? "" : data.format(formato);
+            }
+
+            @Override
+            public LocalDate fromString(String texto) {
+                if (texto == null || texto.isBlank()) {
+                    return null;
+                }
+                try {
+                    return LocalDate.parse(texto.trim(), formato);
+                } catch (DateTimeParseException e) {
+                    return null;
+                }
+            }
+        });
     }
 
     private static String periodo(String codigo) {

@@ -120,6 +120,11 @@
                             <TextField fx:id="campoMotivoAndarilha" disable="true"
                                        promptText="Motivo (obrigatório se for andarilha)"
                                        GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                            <Label text="Andarilha até (RF-11)" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                            <DatePicker fx:id="campoAndarilhaAte" editable="true" disable="true"
+                                        promptText="Prazo previsto (dd/mm/aaaa)"
+                                        GridPane.rowIndex="5" GridPane.columnIndex="1"/>
                         </GridPane>
 
                         <HBox spacing="10">

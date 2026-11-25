@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
@@ -73,12 +74,12 @@
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                                 </columnResizePolicy>
                                 <columns>
-                                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="170"/>
-                                    <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="120"/>
+                                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="155"/>
+                                    <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="115"/>
                                     <TableColumn fx:id="colunaTurma" text="Turma" prefWidth="95"/>
-                                    <TableColumn fx:id="colunaFaixa" text="Faixa (meses)" prefWidth="90"/>
-                                    <TableColumn fx:id="colunaSituacao" text="Situação" prefWidth="140"/>
-                                    <TableColumn fx:id="colunaAndarilha" text="Andarilha" prefWidth="70"/>
+                                    <TableColumn fx:id="colunaFaixa" text="Faixa (meses)" prefWidth="85"/>
+                                    <TableColumn fx:id="colunaSituacao" text="Situação" prefWidth="165"/>
+                                    <TableColumn fx:id="colunaAndarilha" text="Andarilha até" prefWidth="90"/>
                                 </columns>
                             </TableView>
                             <Label fx:id="labelTotal" text="" style="-fx-text-fill: #607d8b;"/>
@@ -124,6 +125,11 @@
                             <Label text="Andarilha" style="-fx-font-weight: bold;"/>
                             <CheckBox fx:id="checkAndarilha" text="Criança andarilha" onAction="#aoAlternarAndarilha"/>
                             <TextField fx:id="campoMotivoAndarilha" promptText="Motivo (obrigatório se for andarilha)"/>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="Até *"/>
+                                <DatePicker fx:id="campoAndarilhaAte" editable="true" maxWidth="Infinity"
+                                            promptText="Prazo previsto (dd/mm/aaaa)" HBox.hgrow="ALWAYS"/>
+                            </HBox>
                             <Button fx:id="botaoAndarilha" text="Salvar andarilha" onAction="#salvarAndarilha"
                                     disable="true"
                                     style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
