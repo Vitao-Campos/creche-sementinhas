@@ -22,6 +22,7 @@ public class MatriculaDAO {
     private static final String SQL_SELECT = """
             SELECT m.id_matricula, m.numero_matricula, m.id_aluno, m.id_turma, m.status,
                    m.data_matricula, m.data_encerramento, m.andarilha, m.motivo_andarilha,
+                   m.andarilha_ate,
                    t.nome AS nome_turma
               FROM matricula m
               JOIN turma t ON t.id_turma = m.id_turma
@@ -31,8 +32,9 @@ public class MatriculaDAO {
     public void inserir(Connection conexao, Matricula matricula) throws SQLException {
         String sql = """
                 INSERT INTO matricula (numero_matricula, id_aluno, id_turma, status,
-                                       data_matricula, data_encerramento, andarilha, motivo_andarilha)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                       data_matricula, data_encerramento, andarilha, motivo_andarilha,
+                                       andarilha_ate)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id_matricula
                 """;
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -44,6 +46,7 @@ public class MatriculaDAO {
             stmt.setObject(6, matricula.getDataEncerramento());
             stmt.setBoolean(7, matricula.isAndarilha());
             stmt.setString(8, matricula.getMotivoAndarilha());
+            stmt.setObject(9, matricula.getAndarilhaAte());
             try (ResultSet rs = stmt.executeQuery()) {
                 rs.next();
                 matricula.setIdMatricula(rs.getInt(1));
@@ -135,6 +138,7 @@ public class MatriculaDAO {
         m.setDataEncerramento(rs.getObject("data_encerramento", LocalDate.class));
         m.setAndarilha(rs.getBoolean("andarilha"));
         m.setMotivoAndarilha(rs.getString("motivo_andarilha"));
+        m.setAndarilhaAte(rs.getObject("andarilha_ate", LocalDate.class));
         m.setNomeTurma(rs.getString("nome_turma"));
         return m;
     }
@@ -169,17 +173,21 @@ public class MatriculaDAO {
         }
     }
 
-    /** Marca ou desmarca a matrícula como andarilha (motivo null quando desmarca). */
+    /**
+     * Marca ou desmarca a matrícula como andarilha (RF-11).
+     * Ao desmarcar, motivo e prazo vão como null.
+     */
     public void atualizarAndarilha(Connection conexao, int idMatricula, boolean andarilha,
-                                   String motivo) throws SQLException {
+                                   String motivo, LocalDate andarilhaAte) throws SQLException {
         String sql = """
-                UPDATE matricula SET andarilha = ?, motivo_andarilha = ?
+                UPDATE matricula SET andarilha = ?, motivo_andarilha = ?, andarilha_ate = ?
                  WHERE id_matricula = ? AND status = 'ATIVA'
                 """;
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setBoolean(1, andarilha);
             stmt.setString(2, motivo);
-            stmt.setInt(3, idMatricula);
+            stmt.setObject(3, andarilhaAte);
+            stmt.setInt(4, idMatricula);
             if (stmt.executeUpdate() != 1) {
                 throw new SQLException("A matrícula não está mais ATIVA (foi alterada por outro usuário?).");
             }
