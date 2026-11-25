@@ -20,6 +20,7 @@ public class Matricula {
     private LocalDate dataEncerramento;
     private boolean andarilha;
     private String motivoAndarilha;
+    private LocalDate andarilhaAte; // RF-11: prazo previsto da andarilha (V7)
     private String nomeTurma; // vem da consulta com JOIN (não é coluna)
 
     public Matricula() {
@@ -106,6 +107,14 @@ public class Matricula {
 
     public void setMotivoAndarilha(String motivoAndarilha) {
         this.motivoAndarilha = motivoAndarilha;
+    }
+
+    public LocalDate getAndarilhaAte() {
+        return andarilhaAte;
+    }
+
+    public void setAndarilhaAte(LocalDate andarilhaAte) {
+        this.andarilhaAte = andarilhaAte;
     }
 
     public String getNomeTurma() {

@@ -56,6 +56,7 @@ public class MatriculaController {
     @FXML private Label labelMensalidade;
     @FXML private CheckBox checkAndarilha;
     @FXML private TextField campoMotivoAndarilha;
+    @FXML private DatePicker campoAndarilhaAte;
     @FXML private Button botaoMatricular;
     @FXML private TableView<Matricula> tabelaHistorico;
     @FXML private TableColumn<Matricula, String> colunaHistNumero;
@@ -215,8 +216,10 @@ public class MatriculaController {
     private void aoAlternarAndarilha() {
         boolean marcada = checkAndarilha.isSelected();
         campoMotivoAndarilha.setDisable(!marcada);
+        campoAndarilhaAte.setDisable(!marcada);
         if (!marcada) {
             campoMotivoAndarilha.clear();
+            campoAndarilhaAte.setValue(null);
         }
     }
 
@@ -235,7 +238,8 @@ public class MatriculaController {
                 confirmou = true;
             }
             Matricula nova = matriculaService.efetivar(alunoSelecionado, turma, data,
-                    checkAndarilha.isSelected(), campoMotivoAndarilha.getText(), confirmou);
+                    checkAndarilha.isSelected(), campoMotivoAndarilha.getText(),
+                    campoAndarilhaAte.getValue(), confirmou);
 
             sucesso("Matrícula " + nova.getNumeroMatricula() + " efetivada na turma " + nova.getNomeTurma()
                     + ". Próximos passos: responsáveis, anamnese e contrato.");
@@ -413,7 +417,7 @@ public class MatriculaController {
                 }
             }
         };
-        for (DatePicker campo : new DatePicker[] {campoDataMatricula, campoDataDesligamento}) {
+        for (DatePicker campo : new DatePicker[] {campoDataMatricula, campoDataDesligamento, campoAndarilhaAte}) {
             campo.setConverter(conversor);
         }
     }

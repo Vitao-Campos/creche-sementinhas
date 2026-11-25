@@ -31,6 +31,10 @@ public class HistoricoConsultaDAO {
                           JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
                           JOIN aluno a ON a.id_aluno = ar.id_aluno
                          WHERE ar.id_aluno_responsavel = h.id_entidade)
+                     WHEN 'matricula' THEN
+                       (SELECT a.nome || ' (' || m.numero_matricula || ')' FROM matricula m
+                          JOIN aluno a ON a.id_aluno = m.id_aluno
+                         WHERE m.id_matricula = h.id_entidade)
                      WHEN 'pessoa_autorizada' THEN
                        (SELECT p.nome FROM pessoa_autorizada p WHERE p.id_pessoa_autorizada = h.id_entidade)
                      WHEN 'aluno_pessoa_autorizada' THEN
@@ -60,6 +64,8 @@ public class HistoricoConsultaDAO {
                       (SELECT id_aluno_pessoa_autorizada FROM aluno_pessoa_autorizada WHERE id_aluno = ?))
                 OR (h.entidade = 'pessoa_autorizada' AND h.id_entidade IN
                       (SELECT id_pessoa_autorizada FROM aluno_pessoa_autorizada WHERE id_aluno = ?))
+                OR (h.entidade = 'matricula' AND h.id_entidade IN
+                      (SELECT id_matricula FROM matricula WHERE id_aluno = ?))
             """ + ORDEM;
 
     // Responsável: os dados dele + os vínculos dele com as crianças.
@@ -71,7 +77,7 @@ public class HistoricoConsultaDAO {
 
     /** Histórico da ficha da criança (mais recente primeiro, no máximo 1000 linhas). */
     public List<RegistroHistorico> listarPorAluno(int idAluno) throws SQLException {
-        return listar(SQL_POR_ALUNO, 5, idAluno);
+        return listar(SQL_POR_ALUNO, 6, idAluno);
     }
 
     /** Histórico do responsável e dos vínculos dele (mais recente primeiro). */

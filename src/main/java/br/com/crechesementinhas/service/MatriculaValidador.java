@@ -25,6 +25,7 @@ public final class MatriculaValidador {
     /** Erros que impedem a matrícula. Lista vazia = pode matricular. */
     public static List<String> validarEfetivacao(Aluno aluno, Turma turma, LocalDate dataMatricula,
                                                  boolean andarilha, String motivoAndarilha,
+                                                 LocalDate andarilhaAte,
                                                  boolean jaTemMatriculaAtiva, LocalDate hoje) {
         List<String> erros = new ArrayList<>();
         if (aluno == null || aluno.getIdAluno() == null) {
@@ -56,7 +57,23 @@ public final class MatriculaValidador {
         } else if (motivo != null && motivo.length() > MAX_MOTIVO_ANDARILHA) {
             erros.add("O motivo pode ter no máximo " + MAX_MOTIVO_ANDARILHA + " caracteres.");
         }
+        if (andarilha) {
+            validarPrazoAndarilha(andarilhaAte, hoje, erros);
+            if (andarilhaAte != null && andarilhaAte.isAfter(hoje)
+                    && dataMatricula != null && !andarilhaAte.isAfter(dataMatricula)) {
+                erros.add("O prazo da andarilha deve ser depois da data de início da matrícula.");
+            }
+        }
         return erros;
+    }
+
+    /** RF-11: andarilha exige o tempo previsto de permanência, com data depois de hoje. */
+    static void validarPrazoAndarilha(LocalDate andarilhaAte, LocalDate hoje, List<String> erros) {
+        if (andarilhaAte == null) {
+            erros.add("Informe até quando a criança fica como andarilha (prazo previsto).");
+        } else if (!andarilhaAte.isAfter(hoje)) {
+            erros.add("O prazo da andarilha deve ser uma data depois de hoje.");
+        }
     }
 
     /**
