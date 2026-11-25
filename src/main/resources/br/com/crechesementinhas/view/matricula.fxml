@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- Frente B: matrícula (UC-01, RN-01), mensalidade por faixa etária (RF-04 / RN-07)
+     e desligamento com aviso prévio (RN-12) e cálculo proporcional (RN-030). -->
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.MatriculaController"
+            prefWidth="1180" prefHeight="720"
+            stylesheets="@estilo.css"
+            style="-fx-background-color: #f4f6f9;">
+
+    <!-- Barra superior: mesmo padrão das outras telas -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label text="Matrícula e Desligamento"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Voltar ao menu" onAction="#voltar"
+                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Esquerda: escolha da criança -->
+    <left>
+        <VBox spacing="10" prefWidth="430">
+            <padding>
+                <Insets top="20" right="10" bottom="20" left="20"/>
+            </padding>
+            <Label text="Buscar criança pelo nome" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="campoBusca" promptText="Digite parte do nome"/>
+            <TableView fx:id="tabelaAlunos" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colunaNome" text="Nome" prefWidth="170"/>
+                    <TableColumn fx:id="colunaNascimento" text="Nascimento" prefWidth="90"/>
+                    <TableColumn fx:id="colunaIdade" text="Idade" prefWidth="130"/>
+                </columns>
+            </TableView>
+            <Label text="A criança precisa estar cadastrada na tela Alunos."
+                   wrapText="true" style="-fx-text-fill: #607d8b;"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="12">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="10"/>
+            </padding>
+
+            <!-- Resumo da criança selecionada -->
+            <GridPane hgap="10" vgap="6"
+                      style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12;">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="170"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label text="Criança" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="labelAluno" text="Nenhuma criança selecionada" style="-fx-font-weight: bold;"
+                       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Idade hoje (RF-03)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="labelIdade" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                <Label text="Matrícula atual" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <Label fx:id="labelMatriculaAtual" text="-" style="-fx-font-weight: bold;"
+                       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            </GridPane>
+
+            <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+
+                <!-- ABA 1: efetivar matrícula -->
+                <Tab text="Efetivar matrícula">
+                    <VBox spacing="12">
+                        <padding>
+                            <Insets top="15" right="10" bottom="10" left="10"/>
+                        </padding>
+                        <GridPane hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="170"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Label text="Data de início *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <DatePicker fx:id="campoDataMatricula" editable="true" promptText="dd/mm/aaaa"
+                                        GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Turma *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <ComboBox fx:id="comboTurma" maxWidth="Infinity" promptText="Selecione a turma"
+                                      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                            <Label fx:id="labelAvisoTurma" wrapText="true" visible="false" managed="false"
+                                   style="-fx-text-fill: #e65100; -fx-font-weight: bold;"
+                                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                            <Label text="Mensalidade (RN-07)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <Label fx:id="labelMensalidade" text="-"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-font-size: 14px;"
+                                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                            <CheckBox fx:id="checkAndarilha" text="Andarilha" onAction="#aoAlternarAndarilha"
+                                      GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                            <TextField fx:id="campoMotivoAndarilha" disable="true"
+                                       promptText="Motivo (obrigatório se for andarilha)"
+                                       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                        </GridPane>
+
+                        <HBox spacing="10">
+                            <Button fx:id="botaoMatricular" text="Efetivar matrícula" onAction="#efetivarMatricula"
+                                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </HBox>
+
+                        <Separator/>
+                        <Label text="Histórico de matrículas da criança" style="-fx-font-weight: bold;"/>
+                        <TableView fx:id="tabelaHistorico" prefHeight="150" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="colunaHistNumero" text="Número" prefWidth="120"/>
+                                <TableColumn fx:id="colunaHistTurma" text="Turma" prefWidth="140"/>
+                                <TableColumn fx:id="colunaHistStatus" text="Situação" prefWidth="100"/>
+                                <TableColumn fx:id="colunaHistInicio" text="Início" prefWidth="100"/>
+                                <TableColumn fx:id="colunaHistFim" text="Encerramento" prefWidth="110"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </Tab>
+
+                <!-- ABA 2: desligamento -->
+                <Tab text="Desligamento">
+                    <VBox spacing="12">
+                        <padding>
+                            <Insets top="15" right="10" bottom="10" left="10"/>
+                        </padding>
+                        <GridPane hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="230"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+
+                            <Label text="Último dia de frequência *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <DatePicker fx:id="campoDataDesligamento" editable="true" promptText="dd/mm/aaaa"
+                                        GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                            <Label text="Motivo do desligamento *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <TextField fx:id="campoJustificativa" promptText="Ex.: mudança de cidade"
+                                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        </GridPane>
+
+                        <VBox spacing="6"
+                              style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12;">
+                            <Label text="Cálculo do último mês (proporcional)" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="labelBaseCalculo" text="-" wrapText="true"/>
+                            <Label fx:id="labelValorProporcional" text="-"
+                                   style="-fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-font-size: 16px;"/>
+                            <Label fx:id="labelAviso" text="" wrapText="true"/>
+                        </VBox>
+
+                        <Label text="Ao desligar, a matrícula e o contrato vigente são encerrados e tudo fica no histórico."
+                               wrapText="true" style="-fx-text-fill: #607d8b;"/>
+                        <HBox spacing="10">
+                            <Button fx:id="botaoDesligar" text="Desligar criança" onAction="#desligarAluno"
+                                    style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
+
+                <!-- ABA 3: tabela de mensalidades -->
+                <Tab text="Tabela de mensalidades">
+                    <VBox spacing="10">
+                        <padding>
+                            <Insets top="15" right="10" bottom="10" left="10"/>
+                        </padding>
+                        <Label text="Valor da mensalidade por faixa etária (RN-07). O reajuste vale no mês do aniversário."
+                               wrapText="true"/>
+                        <TableView fx:id="tabelaFaixas" prefHeight="170">
+                            <columns>
+                                <TableColumn fx:id="colunaFaixaDescricao" text="Faixa" prefWidth="220"/>
+                                <TableColumn fx:id="colunaFaixaIdade" text="Idade" prefWidth="140"/>
+                                <TableColumn fx:id="colunaFaixaValor" text="Valor" prefWidth="120"/>
+                            </columns>
+                        </TableView>
+                        <Label text="Reajustar a faixa selecionada (Direção e Suporte)" style="-fx-font-weight: bold;"/>
+                        <GridPane hgap="10" vgap="10">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="170"/>
+                                <ColumnConstraints hgrow="ALWAYS"/>
+                            </columnConstraints>
+                            <Label text="Novo valor *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                            <TextField fx:id="campoNovoValor" promptText="Ex.: 850,00"
+                                       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                            <Label text="Justificativa *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                            <TextField fx:id="campoJustificativaReajuste" promptText="Ex.: reajuste anual 2027"
+                                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        </GridPane>
+                        <HBox spacing="10">
+                            <Button fx:id="botaoReajustar" text="Salvar reajuste" onAction="#reajustarFaixa"
+                                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
+            </TabPane>
+
+            <Label fx:id="labelMensagem" wrapText="true" visible="false" managed="false"/>
+        </VBox>
+    </center>
+</BorderPane>

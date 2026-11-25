@@ -254,4 +254,25 @@ public class ContratoDAO {
             }
         }
     }
+
+    /**
+     * Frente B: no desligamento do aluno, encerra o contrato VIGENTE
+     * e grava a data de saída. Devolve o id do contrato encerrado, ou null se não havia.
+     * Usa a conexão da Transacao: não abre, não fecha e não faz commit.
+     */
+    public Integer encerrarVigentePorDesligamento(Connection conexao, int idMatricula,
+                                                  LocalDate dataSaida) throws SQLException {
+        String sql = """
+                UPDATE contrato SET status = 'ENCERRADO', data_saida = ?
+                WHERE id_matricula = ? AND status = 'VIGENTE'
+                RETURNING id_contrato
+                """;
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(dataSaida));
+            ps.setInt(2, idMatricula);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : null;
+            }
+        }
+    }
 }

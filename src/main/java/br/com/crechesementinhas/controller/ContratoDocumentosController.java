@@ -9,6 +9,7 @@ import br.com.crechesementinhas.model.ResponsavelContrato;
 import br.com.crechesementinhas.service.ContratoService;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.DocumentoService;
+import br.com.crechesementinhas.service.MensalidadeService;
 import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.Navegacao;
 import java.awt.Desktop;
@@ -176,8 +177,16 @@ public class ContratoDocumentosController {
                 cbFinanceiro.setValue(dadosAtuais.getResponsaveisLegais().get(0));
             }
             cbPlano.setValue(contratoService.planoPadrao(dadosAtuais.getPeriodoTurma()));
-            // INTEGRAÇÃO (etapa 4): trocar pela mensalidade calculada pela Frente B (RF-04 / RN-07)
+            // Integração com a Frente B: sugere a mensalidade da faixa etária (RF-04 / RN-07)
             txtValor.clear();
+            try {
+                new MensalidadeService()
+                        .calcular(dadosAtuais.getDataNascimentoAluno(), LocalDate.now())
+                        .ifPresent(faixa -> txtValor.setText(
+                                faixa.getValor().toPlainString().replace('.', ',')));
+            } catch (SQLException e) {
+                // Sem a tabela de mensalidades, o campo fica vazio para digitar à mão.
+            }
             txtDiaVencimento.setText("10");
             cbFormaPagamento.setValue("BOLETO");
             dpVigencia.setValue(contratoService.vigenciaPadrao());
