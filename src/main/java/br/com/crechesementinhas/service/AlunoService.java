@@ -48,12 +48,28 @@ public class AlunoService {
      * @throws SecurityException      se o perfil do usuário não puder cadastrar
      */
     public Aluno cadastrar(Aluno aluno) throws SQLException {
+        return cadastrar(aluno, false);
+    }
+
+    /**
+     * Cadastra um aluno novo, avisando quando já existe criança com o mesmo nome e data de nascimento.
+     * O CPF repetido continua bloqueando; nome + nascimento repetidos só avisam: gêmeos e homônimos existem.
+     *
+     * @param confirmouDuplicidade true quando o usuário já viu o aviso e quer cadastrar mesmo assim
+     * @throws PossivelAlunoDuplicadoException nome e nascimento já cadastrados e ainda sem confirmação
+     */
+    public Aluno cadastrar(Aluno aluno, boolean confirmouDuplicidade) throws SQLException {
         ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA);
         prepararEValidar(aluno);
 
         try {
             Transacao.executar(conexao -> {
                 conferirCpfUnico(conexao, aluno);
+                if (!confirmouDuplicidade
+                        && alunoDAO.existeNomeENascimento(conexao, aluno.getNome(), aluno.getDataNascimento(), null)) {
+                    throw new PossivelAlunoDuplicadoException(
+                            "Já existe uma criança cadastrada com este nome e esta data de nascimento.");
+                }
                 int id = alunoDAO.inserir(conexao, aluno);
                 aluno.setIdAluno(id);
                 auditoria.registrarInsercao(conexao, ENTIDADE, id);

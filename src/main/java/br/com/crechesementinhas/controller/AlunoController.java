@@ -11,6 +11,7 @@ import br.com.crechesementinhas.service.AutorizadoService;
 import br.com.crechesementinhas.service.CadastroAutorizadoException;
 import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.CadastroAlunoException;
+import br.com.crechesementinhas.service.PossivelAlunoDuplicadoException;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.CalculadoraIdade;
@@ -28,7 +29,9 @@ import java.util.stream.Collectors;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -276,8 +279,12 @@ public class AlunoController {
         boolean novo = alunoEmEdicao == null;
         try {
             Aluno salvo = novo
-                    ? alunoService.cadastrar(dados)
+                    ? cadastrarComConfirmacao(dados)
                     : alunoService.atualizar(dados, campoJustificativa.getText());
+            if (salvo == null) {
+                mostrarMensagem("Cadastro cancelado.", false);
+                return;
+            }
 
             campoBusca.clear();
             carregarLista();
@@ -291,6 +298,23 @@ public class AlunoController {
             mostrarMensagem(e.getMessage(), true);
         } catch (SQLException e) {
             erroDeBanco(e);
+        }
+    }
+
+    /** Se já há criança com o mesmo nome e nascimento, pergunta antes de cadastrar; null = desistiu. */
+    private Aluno cadastrarComConfirmacao(Aluno dados) throws SQLException {
+        try {
+            return alunoService.cadastrar(dados, false);
+        } catch (PossivelAlunoDuplicadoException e) {
+            Alert aviso = new Alert(Alert.AlertType.CONFIRMATION,
+                    e.getMessage() + "\nPode ser a mesma criança. Cadastrar mesmo assim?",
+                    ButtonType.YES, ButtonType.NO);
+            aviso.setTitle("Possível cadastro duplicado");
+            aviso.setHeaderText(null);
+            if (aviso.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) {
+                return null;
+            }
+            return alunoService.cadastrar(dados, true);
         }
     }
 

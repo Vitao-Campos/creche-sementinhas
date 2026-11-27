@@ -53,6 +53,13 @@ public class AlunoDAO {
              LIMIT 500
             """;
 
+    private static final String SQL_EXISTE_NOME_NASCIMENTO = """
+            SELECT EXISTS (
+                SELECT 1 FROM aluno
+                 WHERE LOWER(nome) = LOWER(?) AND data_nascimento = ? AND id_aluno <> ?
+            )
+            """;
+
     private static final String SQL_EXISTE_CPF = """
             SELECT EXISTS (
                 SELECT 1 FROM aluno
@@ -133,6 +140,20 @@ public class AlunoDAO {
             comando.setString(1, cpf);
             // -1 nunca é um id real: no cadastro nenhum aluno é "ignorado".
             comando.setInt(2, idIgnorado == null ? -1 : idIgnorado);
+            try (ResultSet resultado = comando.executeQuery()) {
+                resultado.next();
+                return resultado.getBoolean(1);
+            }
+        }
+    }
+
+    /** Já existe aluno com este nome (sem diferenciar maiúsculas) e esta data de nascimento? */
+    public boolean existeNomeENascimento(Connection conexao, String nome, LocalDate nascimento,
+                                         Integer idIgnorado) throws SQLException {
+        try (PreparedStatement comando = conexao.prepareStatement(SQL_EXISTE_NOME_NASCIMENTO)) {
+            comando.setString(1, nome);
+            comando.setDate(2, Date.valueOf(nascimento));
+            comando.setInt(3, idIgnorado == null ? -1 : idIgnorado);
             try (ResultSet resultado = comando.executeQuery()) {
                 resultado.next();
                 return resultado.getBoolean(1);
