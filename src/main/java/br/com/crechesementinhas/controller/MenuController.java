@@ -6,6 +6,9 @@ import br.com.crechesementinhas.util.Sessao;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import br.com.crechesementinhas.model.Permissao;
+import br.com.crechesementinhas.service.ControleAcesso;
+import javafx.scene.control.Button;
 
 /**
  * Controller do menu principal (menu.fxml).
@@ -16,6 +19,9 @@ public class MenuController {
 
     @FXML
     private Label labelUsuario;
+    
+    @FXML
+    private Button botaoUsuarios;
 
     /**
      * Chamado automaticamente pelo JavaFX depois de carregar o FXML,
@@ -25,6 +31,11 @@ public class MenuController {
     private void initialize() {
         Usuario usuario = Sessao.getUsuarioLogado();
         labelUsuario.setText(usuario.getNome() + " (" + usuario.getCargo() + ")");
+        
+        // RNF-03: só quem pode gerenciar usuários (perfil Suporte) vê o botão.
+        boolean podeGerenciarUsuarios = ControleAcesso.temPermissao(Permissao.GERENCIAR_USUARIOS);
+        botaoUsuarios.setVisible(podeGerenciarUsuarios);
+        botaoUsuarios.setManaged(podeGerenciarUsuarios);
     }
 
     @FXML
@@ -55,6 +66,11 @@ public class MenuController {
     @FXML
     private void turmas() {
         Navegacao.abrir("turmas.fxml", "Turmas");
+    }
+
+    @FXML
+    private void usuarios() {
+        Navegacao.abrir("usuarios.fxml", "Usuários");
     }
 
     @FXML
