@@ -10,6 +10,7 @@ import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.Cpf;
+import br.com.crechesementinhas.util.Dialogos;
 import br.com.crechesementinhas.util.Navegacao;
 import br.com.crechesementinhas.util.Telefone;
 import java.sql.SQLException;
@@ -32,6 +33,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -53,6 +55,10 @@ public class ResponsavelController {
     private static final Color CINZA = Color.web("#607d8b");
 
     @FXML private TextField campoBusca;
+
+    /** Conteúdo do formulário no último carregamento/gravação: serve para saber se há algo não salvo. */
+    private String estadoSalvo; // null até a tela abrir pela primeira vez
+    private boolean restaurandoSelecao;
     @FXML private TableView<Responsavel> tabelaResponsaveis;
     @FXML private TableColumn<Responsavel, String> colunaNome;
     @FXML private TableColumn<Responsavel, String> colunaCpf;
@@ -124,6 +130,16 @@ public class ResponsavelController {
             }
         });
 
+        // Esc nos campos de texto do formulário = começar um cadastro novo (pergunta antes se houver algo não salvo).
+        for (TextField campo : new TextField[] {campoNome, campoCpf, campoTelefone, campoEmail, campoCep,
+                campoEndereco, campoProfissao, campoJustificativa}) {
+            campo.addEventHandler(KeyEvent.KEY_PRESSED, evento -> {
+                if (evento.getCode() == KeyCode.ESCAPE && !botaoNovo.isDisable()) {
+                    novoResponsavel();
+                }
+            });
+        }
+
         carregarAlunos();
         carregarLista();
         novoResponsavel();
@@ -135,9 +151,17 @@ public class ResponsavelController {
         colunaTelefone.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getTelefoneFormatado()));
         tabelaResponsaveis.setPlaceholder(new Label("Nenhum responsável encontrado."));
         tabelaResponsaveis.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> {
-            if (escolhido != null) {
-                editar(escolhido);
+            if (escolhido == null || restaurandoSelecao) {
+                return;
             }
+            if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+                // Desistiu de trocar: volta a marcar o responsável que estava aberto.
+                restaurandoSelecao = true;
+                tabelaResponsaveis.getSelectionModel().select(antigo);
+                restaurandoSelecao = false;
+                return;
+            }
+            editar(escolhido);
         });
 
         colunaVinculoAluno.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNomeAluno()));
@@ -239,6 +263,9 @@ public class ResponsavelController {
 
     @FXML
     private void novoResponsavel() {
+        if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+            return;
+        }
         responsavelEmEdicao = null;
         tabelaResponsaveis.getSelectionModel().clearSelection();
         labelTituloForm.setText("Novo responsável");
@@ -246,7 +273,23 @@ public class ResponsavelController {
         mostrarJustificativa(false);
         esconderMensagem();
         atualizarPainelVinculos();
+        guardarEstado();
         campoNome.requestFocus();
+    }
+
+    /** Foto do que está digitado, para comparar depois. */
+    private String fotoDoFormulario() {
+        return String.join("\u0001", campoNome.getText(), campoCpf.getText(), campoTelefone.getText(),
+                campoEmail.getText(), campoCep.getText(), campoEndereco.getText(), campoProfissao.getText(),
+                campoJustificativa.getText());
+    }
+
+    private void guardarEstado() {
+        estadoSalvo = fotoDoFormulario();
+    }
+
+    private boolean temAlteracoes() {
+        return estadoSalvo != null && !fotoDoFormulario().equals(estadoSalvo);
     }
 
     private void editar(Responsavel responsavel) {
@@ -256,6 +299,7 @@ public class ResponsavelController {
         mostrarJustificativa(true);
         esconderMensagem();
         atualizarPainelVinculos();
+        guardarEstado();
     }
 
     private void preencherCampos(Responsavel r) {
@@ -294,6 +338,7 @@ public class ResponsavelController {
                     ? responsavelService.cadastrar(dados)
                     : responsavelService.atualizar(dados, campoJustificativa.getText());
 
+            guardarEstado(); // gravou: o que está na tela deixa de ser "não salvo"
             campoBusca.clear();
             carregarLista();
             selecionarNaLista(salvo.getIdResponsavel());
@@ -474,6 +519,9 @@ public class ResponsavelController {
 
     @FXML
     private void voltar() {
+        if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+            return;
+        }
         Navegacao.abrir("menu.fxml", "Menu");
     }
 

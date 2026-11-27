@@ -15,6 +15,7 @@ import br.com.crechesementinhas.service.PossivelAlunoDuplicadoException;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.CalculadoraIdade;
+import br.com.crechesementinhas.util.Dialogos;
 import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Navegacao;
 import br.com.crechesementinhas.util.Telefone;
@@ -40,6 +41,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -58,6 +60,10 @@ public class AlunoController {
             DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
     @FXML private TextField campoBusca;
+
+    /** Conteúdo do formulário no último carregamento/gravação: serve para saber se há algo não salvo. */
+    private String estadoSalvo; // null até a tela abrir pela primeira vez
+    private boolean restaurandoSelecao;
     @FXML private TableView<Aluno> tabelaAlunos;
     @FXML private TableColumn<Aluno, String> colunaNome;
     @FXML private TableColumn<Aluno, String> colunaNascimento;
@@ -148,6 +154,16 @@ public class AlunoController {
             }
         });
 
+        // Esc nos campos de texto do formulário = começar um cadastro novo (pergunta antes se houver algo não salvo).
+        for (TextField campo : new TextField[] {campoNome, campoCpf, campoNaturalidade, campoNacionalidade,
+                campoJustificativa}) {
+            campo.addEventHandler(KeyEvent.KEY_PRESSED, evento -> {
+                if (evento.getCode() == KeyCode.ESCAPE && !botaoNovo.isDisable()) {
+                    novoAluno();
+                }
+            });
+        }
+
         carregarLista();
         novoAluno();
     }
@@ -161,9 +177,17 @@ public class AlunoController {
 
         tabelaAlunos.setPlaceholder(new Label("Nenhum aluno encontrado."));
         tabelaAlunos.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> {
-            if (escolhido != null) {
-                editar(escolhido);
+            if (escolhido == null || restaurandoSelecao) {
+                return;
             }
+            if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+                // Desistiu de trocar: volta a marcar a criança que estava aberta.
+                restaurandoSelecao = true;
+                tabelaAlunos.getSelectionModel().select(antigo);
+                restaurandoSelecao = false;
+                return;
+            }
+            editar(escolhido);
         });
     }
 
@@ -218,6 +242,9 @@ public class AlunoController {
     /** Limpa o formulário para cadastrar uma criança nova. */
     @FXML
     private void novoAluno() {
+        if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+            return;
+        }
         alunoEmEdicao = null;
         tabelaAlunos.getSelectionModel().clearSelection();
         labelTituloForm.setText("Novo aluno");
@@ -225,7 +252,23 @@ public class AlunoController {
         mostrarJustificativa(false);
         esconderMensagem();
         atualizarFicha();
+        guardarEstado();
         campoNome.requestFocus();
+    }
+
+    /** Foto do que está digitado, para comparar depois. */
+    private String fotoDoFormulario() {
+        return String.join("\u0001", campoNome.getText(), campoNascimento.getEditor().getText(),
+                String.valueOf(comboSexo.getValue()), campoCpf.getText(), campoNaturalidade.getText(),
+                campoNacionalidade.getText(), campoObservacao.getText(), campoJustificativa.getText());
+    }
+
+    private void guardarEstado() {
+        estadoSalvo = fotoDoFormulario();
+    }
+
+    private boolean temAlteracoes() {
+        return estadoSalvo != null && !fotoDoFormulario().equals(estadoSalvo);
     }
 
     private void editar(Aluno aluno) {
@@ -235,6 +278,7 @@ public class AlunoController {
         mostrarJustificativa(true);
         esconderMensagem();
         atualizarFicha();
+        guardarEstado();
     }
 
     private void preencherCampos(Aluno aluno) {
@@ -296,6 +340,7 @@ public class AlunoController {
                 return;
             }
 
+            guardarEstado(); // gravou: o que está na tela deixa de ser "não salvo"
             campoBusca.clear();
             carregarLista();
             selecionarNaLista(salvo.getIdAluno());
@@ -525,6 +570,9 @@ public class AlunoController {
 
     @FXML
     private void voltar() {
+        if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+            return;
+        }
         Navegacao.abrir("menu.fxml", "Menu");
     }
 
