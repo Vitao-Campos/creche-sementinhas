@@ -16,7 +16,7 @@ class AutorizadoValidadorTest {
         a.setIdAluno(1);
         a.setNome("  João Pereira ");
         a.setRg("12.345.678-9");
-        a.setTelefone("(51) 3234-5678");
+        a.setTelefone("(11) 3234-5678");
         a.setTipoAutorizacao(TipoAutorizacao.AMBOS);
         return a;
     }
@@ -37,7 +37,7 @@ class AutorizadoValidadorTest {
         a.setParentesco("   ");
         AutorizadoValidador.normalizar(a);
         assertEquals("João Pereira", a.getNome());
-        assertEquals("5132345678", a.getTelefone());
+        assertEquals("1132345678", a.getTelefone());
         assertNull(a.getParentesco());
     }
 

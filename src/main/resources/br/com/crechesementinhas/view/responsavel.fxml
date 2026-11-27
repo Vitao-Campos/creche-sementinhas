@@ -135,6 +135,8 @@
                     </TableView>
 
                     <HBox spacing="10">
+                        <Button fx:id="botaoSalvarPapeis" text="Salvar alterações do vínculo" onAction="#salvarPapeis"
+                                style="-fx-background-color: #1565c0; -fx-text-fill: white;"/>
                         <Button fx:id="botaoEncerrar" text="Encerrar vínculo selecionado" onAction="#encerrarVinculo"
                                 style="-fx-background-color: white; -fx-text-fill: #c62828; -fx-border-color: #c62828;"/>
                     </HBox>
@@ -170,7 +172,7 @@
                     </GridPane>
 
                     <HBox spacing="10">
-                        <Button fx:id="botaoVincular" text="Vincular" onAction="#vincular"
+                        <Button fx:id="botaoVincular" text="Vincular nova criança" onAction="#vincular"
                                 style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
                     </HBox>
                 </VBox>

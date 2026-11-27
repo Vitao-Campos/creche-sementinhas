@@ -33,7 +33,7 @@ class HistoricoFormatadorTest {
         assertEquals("Não", HistoricoFormatador.valor("ativo", "false"));
         assertEquals("01/03/2026", HistoricoFormatador.valor("data_fim", "2026-03-01"));
         assertEquals("529.982.247-25", HistoricoFormatador.valor("cpf", "52998224725"));
-        assertEquals("(51) 91234-5678", HistoricoFormatador.valor("telefone", "51912345678"));
+        assertEquals("(11) 91234-5678", HistoricoFormatador.valor("telefone", "11912345678"));
         assertEquals("90010-000", HistoricoFormatador.valor("cep", "90010000"));
         assertEquals("Rua A, 10", HistoricoFormatador.valor("endereco", "Rua A, 10"));
     }

@@ -83,6 +83,7 @@ public class ResponsavelController {
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoInicio;
     @FXML private TableColumn<AlunoResponsavel, String> colunaVinculoFim;
     @FXML private Button botaoEncerrar;
+    @FXML private Button botaoSalvarPapeis;
     @FXML private ComboBox<Aluno> comboAluno;
     @FXML private ComboBox<String> comboParentesco;
     @FXML private DatePicker campoVinculoInicio;
@@ -141,9 +142,13 @@ public class ResponsavelController {
                 c.getValue().getDataFim() == null ? "Vigente" : FORMATO_DATA.format(c.getValue().getDataFim())));
         tabelaVinculos.setPlaceholder(new Label("Nenhuma criança vinculada."));
 
-        // Só dá para encerrar um vínculo ainda aberto.
-        tabelaVinculos.getSelectionModel().selectedItemProperty().addListener(
-                (obs, antigo, escolhido) -> atualizarBotaoEncerrar());
+        // Só dá para encerrar ou alterar um vínculo ainda aberto; ao selecionar, as caixas mostram os papéis dele.
+        tabelaVinculos.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> {
+            boolean aberto = escolhido != null && escolhido.getDataFim() == null;
+            checkLegal.setSelected(aberto && escolhido.isResponsavelLegal());
+            checkFinanceiro.setSelected(aberto && escolhido.isResponsavelFinanceiro());
+            atualizarBotaoEncerrar();
+        });
     }
 
     private void configurarFormulario() {
@@ -336,7 +341,27 @@ public class ResponsavelController {
     private void atualizarBotaoEncerrar() {
         AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
         boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
-        botaoEncerrar.setDisable(!podeGravar || escolhido == null || escolhido.getDataFim() != null);
+        boolean aberto = escolhido != null && escolhido.getDataFim() == null;
+        botaoEncerrar.setDisable(!podeGravar || !aberto);
+        botaoSalvarPapeis.setDisable(!podeGravar || !aberto);
+    }
+
+    @FXML
+    private void salvarPapeis() {
+        AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
+        if (escolhido == null) {
+            return;
+        }
+        try {
+            responsavelService.alterarPapeis(escolhido.getIdAlunoResponsavel(), checkLegal.isSelected(),
+                    checkFinanceiro.isSelected(), campoJustificativa.getText());
+            carregarVinculos();
+            avisarPendencias(escolhido.getIdAluno(), "Vínculo atualizado.");
+        } catch (CadastroResponsavelException | SecurityException e) {
+            mostrarAvisoVinculo(e.getMessage(), VERMELHO);
+        } catch (SQLException e) {
+            erroDeBanco(e);
+        }
     }
 
     @FXML
@@ -362,6 +387,7 @@ public class ResponsavelController {
         try {
             responsavelService.vincular(vinculo);
             carregarVinculos();
+            tabelaVinculos.getSelectionModel().clearSelection();
             comboAluno.setValue(null);
             checkLegal.setSelected(false);
             checkFinanceiro.setSelected(false);
