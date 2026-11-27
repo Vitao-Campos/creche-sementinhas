@@ -39,6 +39,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -137,6 +138,15 @@ public class AlunoController {
 
         esperaBusca.setOnFinished(e -> carregarLista());
         campoBusca.textProperty().addListener((obs, antigo, novo) -> esperaBusca.playFromStart());
+        // Enter busca na hora (sem esperar a pausa da digitação); Esc limpa a busca.
+        campoBusca.setOnKeyPressed(evento -> {
+            if (evento.getCode() == KeyCode.ENTER) {
+                esperaBusca.stop();
+                carregarLista();
+            } else if (evento.getCode() == KeyCode.ESCAPE) {
+                campoBusca.clear();
+            }
+        });
 
         carregarLista();
         novoAluno();
