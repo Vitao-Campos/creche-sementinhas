@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.crechesementinhas.controller.UsuariosController"
+            prefWidth="1000" prefHeight="620"
+            stylesheets="@estilo.css"
+            style="-fx-background-color: #f4f6f9;">
+
+    <!-- Barra superior -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Label text="Gerenciar Usuários"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Voltar ao menu" onAction="#voltar"
+                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Centro: tabela de usuários -->
+    <center>
+        <TableView fx:id="tabelaUsuarios">
+            <BorderPane.margin>
+                <Insets top="15" right="10" bottom="15" left="15"/>
+            </BorderPane.margin>
+            <columns>
+                <TableColumn fx:id="colunaNome" text="Nome" prefWidth="200"/>
+                <TableColumn fx:id="colunaLogin" text="Login" prefWidth="120"/>
+                <TableColumn fx:id="colunaPerfil" text="Perfil" prefWidth="100"/>
+                <TableColumn fx:id="colunaSetor" text="Setor" prefWidth="110"/>
+                <TableColumn fx:id="colunaSituacao" text="Situação" prefWidth="80"/>
+            </columns>
+            <placeholder>
+                <Label text="Nenhum usuário cadastrado."/>
+            </placeholder>
+        </TableView>
+    </center>
+
+    <!-- Direita: formulário de cadastro/edição -->
+    <right>
+        <VBox spacing="8" prefWidth="320"
+              style="-fx-background-color: white; -fx-background-radius: 10;">
+            <BorderPane.margin>
+                <Insets top="15" right="15" bottom="15" left="5"/>
+            </BorderPane.margin>
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <Label fx:id="labelTituloFormulario" text="Novo usuário"
+                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+
+            <Label text="Nome"/>
+            <TextField fx:id="campoNome"/>
+
+            <Label text="Login"/>
+            <TextField fx:id="campoLogin" promptText="ex.: maria.silva"/>
+
+            <Label fx:id="labelSenha" text="Senha"/>
+            <PasswordField fx:id="campoSenha" promptText="Mín. 8 caracteres, com letras e números"/>
+
+            <Label text="Perfil"/>
+            <ComboBox fx:id="comboPerfil" maxWidth="Infinity" promptText="Selecione"/>
+
+            <Label text="Setor"/>
+            <TextField fx:id="campoSetor"/>
+
+            <CheckBox fx:id="checkAtivo" text="Usuário ativo" selected="true"/>
+
+            <Label fx:id="labelMensagem" wrapText="true" visible="false" managed="false"/>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <Button text="Salvar" onAction="#salvar" maxWidth="Infinity"
+                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            <Button fx:id="botaoRedefinirSenha" text="Redefinir senha" onAction="#redefinirSenha"
+                    maxWidth="Infinity" disable="true"/>
+            <Button text="Novo usuário" onAction="#novo" maxWidth="Infinity"/>
+        </VBox>
+    </right>
+</BorderPane>

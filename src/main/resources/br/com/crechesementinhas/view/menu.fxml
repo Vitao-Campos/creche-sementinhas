@@ -49,6 +49,9 @@
                         styleClass="botao-menu" prefWidth="220" prefHeight="90"/>
                 <Button text="Turmas" onAction="#turmas"
                         styleClass="botao-menu" prefWidth="220" prefHeight="90"/>
+                <!-- Visível apenas para o perfil Suporte (RNF-03) -->
+                <Button fx:id="botaoUsuarios" text="Usuários" onAction="#usuarios"
+                        styleClass="botao-menu" prefWidth="220" prefHeight="90"/>
             </TilePane>
         </VBox>
     </center>
