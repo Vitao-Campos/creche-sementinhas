@@ -6,6 +6,7 @@ import br.com.crechesementinhas.dao.ResponsavelDAO;
 import br.com.crechesementinhas.model.AlunoResponsavel;
 import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.Responsavel;
+import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Transacao;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -236,6 +237,15 @@ public class ResponsavelService {
         if (!erros.isEmpty()) {
             throw new CadastroResponsavelException(String.join("\n", erros));
         }
+    }
+
+    /** Consulta rápida para a tela avisar de CPF repetido antes de salvar (a trava de verdade continua no cadastro). */
+    public boolean cpfJaCadastrado(String cpf, Integer idIgnorado) throws SQLException {
+        String digitos = Cpf.normalizar(cpf);
+        if (digitos == null || !Cpf.valido(digitos)) {
+            return false;
+        }
+        return Transacao.executar(conexao -> responsavelDAO.existeCpf(conexao, digitos, idIgnorado));
     }
 
     /** CPF único (seção 6.2): o CPF do responsável não se repete. */

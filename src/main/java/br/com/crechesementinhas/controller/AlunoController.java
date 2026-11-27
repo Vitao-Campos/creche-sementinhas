@@ -220,9 +220,22 @@ public class AlunoController {
                 String digitos = Cpf.normalizar(campoCpf.getText());
                 if (digitos != null && digitos.length() == 11) {
                     campoCpf.setText(Cpf.formatar(digitos));
+                    avisarSeCpfRepetido();
                 }
             }
         });
+    }
+
+    /** Aviso na hora: o CPF digitado já é de outra criança? (não impede nada; o salvar também confere) */
+    private void avisarSeCpfRepetido() {
+        try {
+            Integer idAtual = alunoEmEdicao == null ? null : alunoEmEdicao.getIdAluno();
+            if (alunoService.cpfJaCadastrado(campoCpf.getText(), idAtual)) {
+                mostrarMensagem("Já existe um aluno cadastrado com este CPF.", true);
+            }
+        } catch (SQLException e) {
+            // sem aviso antecipado; ao salvar o erro aparece normalmente
+        }
     }
 
     // ---------------------------------------------------------------- lista

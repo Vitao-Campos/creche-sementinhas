@@ -3,6 +3,7 @@ package br.com.crechesementinhas.service;
 import br.com.crechesementinhas.dao.AlunoDAO;
 import br.com.crechesementinhas.model.Aluno;
 import br.com.crechesementinhas.model.Permissao;
+import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Transacao;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -119,6 +120,15 @@ public class AlunoService {
         if (!erros.isEmpty()) {
             throw new CadastroAlunoException(String.join("\n", erros));
         }
+    }
+
+    /** Consulta rápida para a tela avisar de CPF repetido antes de salvar (a trava de verdade continua no cadastro). */
+    public boolean cpfJaCadastrado(String cpf, Integer idIgnorado) throws SQLException {
+        String digitos = Cpf.normalizar(cpf);
+        if (digitos == null || !Cpf.valido(digitos)) {
+            return false;
+        }
+        return Transacao.executar(conexao -> alunoDAO.existeCpf(conexao, digitos, idIgnorado));
     }
 
     /** CPF único (seção 6.2): o CPF da criança (quando houver) não se repete. */

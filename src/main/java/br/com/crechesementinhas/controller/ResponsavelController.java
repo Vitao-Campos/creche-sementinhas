@@ -223,6 +223,7 @@ public class ResponsavelController {
                 String digitos = Cpf.normalizar(campoCpf.getText());
                 if (digitos != null && digitos.length() == 11) {
                     campoCpf.setText(Cpf.formatar(digitos));
+                    avisarSeCpfRepetido();
                 }
             }
         });
@@ -236,6 +237,18 @@ public class ResponsavelController {
                 campoCep.setText(formatarCep(campoCep.getText()));
             }
         });
+    }
+
+    /** Aviso na hora: o CPF digitado já é de outro responsável? (não impede nada; o salvar também confere) */
+    private void avisarSeCpfRepetido() {
+        try {
+            Integer idAtual = responsavelEmEdicao == null ? null : responsavelEmEdicao.getIdResponsavel();
+            if (responsavelService.cpfJaCadastrado(campoCpf.getText(), idAtual)) {
+                mostrarMensagem("Já existe um responsável cadastrado com este CPF.", VERMELHO);
+            }
+        } catch (SQLException e) {
+            // sem aviso antecipado; ao salvar o erro aparece normalmente
+        }
     }
 
     // ---------------------------------------------------------------- lista
