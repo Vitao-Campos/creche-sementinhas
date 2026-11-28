@@ -1,23 +1,28 @@
 package br.com.crechesementinhas.controller;
 
 import br.com.crechesementinhas.model.Aluno;
+import br.com.crechesementinhas.model.AlunoResponsavel;
 import br.com.crechesementinhas.model.Desligamento;
 import br.com.crechesementinhas.model.FaixaMensalidade;
 import br.com.crechesementinhas.model.Matricula;
 import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.Turma;
 import br.com.crechesementinhas.service.CalculadoraMensalidade;
+import br.com.crechesementinhas.service.CadastroResponsavelException;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.MatriculaException;
 import br.com.crechesementinhas.service.MatriculaService;
 import br.com.crechesementinhas.service.MensalidadeService;
+import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.Formatador;
 import br.com.crechesementinhas.util.Navegacao;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -25,6 +30,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -46,6 +52,8 @@ public class MatriculaController {
     @FXML private TableColumn<Aluno, String> colunaNascimento;
     @FXML private TableColumn<Aluno, String> colunaIdade;
     @FXML private Label labelAluno;
+    @FXML private Label labelResponsavelLegal;
+    @FXML private Label labelResponsavelFinanceiro;
     @FXML private Label labelIdade;
     @FXML private Label labelMatriculaAtual;
 
@@ -90,6 +98,8 @@ public class MatriculaController {
     private Aluno alunoSelecionado;
     private Matricula matriculaAtiva;
     private boolean temResponsavelLegal;
+    private List<AlunoResponsavel> responsaveisVigentes = List.of();
+    private final ResponsavelService responsavelService = new ResponsavelService();
 
     @FXML
     private void initialize() {
@@ -156,6 +166,7 @@ public class MatriculaController {
         alunoSelecionado = aluno;
         matriculaAtiva = null;
         temResponsavelLegal = false;
+        responsaveisVigentes = List.of();
         tabelaHistorico.getItems().clear();
 
         if (aluno == null) {
@@ -168,6 +179,7 @@ public class MatriculaController {
             try {
                 matriculaAtiva = matriculaService.buscarAtiva(aluno).orElse(null);
                 temResponsavelLegal = matriculaService.temResponsavelLegal(aluno);
+                responsaveisVigentes = matriculaService.responsaveisVigentes(aluno);
                 tabelaHistorico.setItems(FXCollections.observableArrayList(matriculaService.historico(aluno)));
             } catch (SQLException e) {
                 erro("Não foi possível consultar as matrículas: " + e.getMessage());
@@ -179,6 +191,7 @@ public class MatriculaController {
                     : matriculaAtiva.getNumeroMatricula() + " - " + matriculaAtiva.getNomeTurma()
                       + " (desde " + Formatador.data(matriculaAtiva.getDataMatricula()) + ")");
         }
+        mostrarResponsaveis();
         // RNF-03 + situação da criança: só habilita o que faz sentido agora
         botaoMatricular.setDisable(!ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA)
                 || aluno == null || matriculaAtiva != null || !temResponsavelLegal);
@@ -186,6 +199,86 @@ public class MatriculaController {
                 || matriculaAtiva == null);
         atualizarMatricula();
         simularDesligamento();
+    }
+
+    // =================================================================
+    //  RESPONSÁVEIS DA CRIANÇA (legal e financeiro)
+    // =================================================================
+
+    private static final String COR_PENDENTE = "-fx-text-fill: #e65100; -fx-font-weight: bold;";
+    private static final String COR_NORMAL = "-fx-font-weight: bold;";
+
+    /** Mostra, no resumo da criança, quem é o responsável legal e o financeiro (ou o que falta vincular). */
+    private void mostrarResponsaveis() {
+        if (alunoSelecionado == null) {
+            labelResponsavelLegal.setText("-");
+            labelResponsavelFinanceiro.setText("-");
+            labelResponsavelLegal.setStyle(COR_NORMAL);
+            labelResponsavelFinanceiro.setStyle(COR_NORMAL);
+            return;
+        }
+        String legais = responsaveisVigentes.stream().filter(AlunoResponsavel::isResponsavelLegal)
+                .map(AlunoResponsavel::getNomeResponsavel).collect(Collectors.joining(", "));
+        String financeiro = responsaveisVigentes.stream().filter(AlunoResponsavel::isResponsavelFinanceiro)
+                .map(AlunoResponsavel::getNomeResponsavel).collect(Collectors.joining(", "));
+        labelResponsavelLegal.setText(legais.isEmpty() ? "(vincular responsável legal)" : legais);
+        labelResponsavelLegal.setStyle(legais.isEmpty() ? COR_PENDENTE : COR_NORMAL);
+        labelResponsavelFinanceiro.setText(financeiro.isEmpty() ? "(vincular responsável financeiro)" : financeiro);
+        labelResponsavelFinanceiro.setStyle(financeiro.isEmpty() ? COR_PENDENTE : COR_NORMAL);
+    }
+
+    /**
+     * Antes de matricular: se a criança tem responsável legal mas ninguém foi indicado como financeiro,
+     * oferece indicar o responsável legal também como financeiro (o financeiro é obrigatório para matricular).
+     *
+     * @return false se a pessoa desistiu de matricular agora
+     */
+    private boolean resolverResponsavelFinanceiro() {
+        boolean temFinanceiro = responsaveisVigentes.stream().anyMatch(AlunoResponsavel::isResponsavelFinanceiro);
+        List<AlunoResponsavel> legais = responsaveisVigentes.stream()
+                .filter(AlunoResponsavel::isResponsavelLegal).toList();
+        if (temFinanceiro || legais.isEmpty()) {
+            return true;
+        }
+
+        ButtonType sim = new ButtonType("Sim, vincular", javafx.scene.control.ButtonBar.ButtonData.YES);
+        ButtonType cancelar = new ButtonType("Cancelar", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Responsável financeiro não vinculado, deseja vincular o responsável legal como responsável financeiro?\n\n"
+                + "Para indicar outra pessoa (avô, tio...), cancele e vincule-a na tela Responsáveis.",
+                sim, cancelar);
+        alerta.setTitle("Responsável financeiro");
+        alerta.setHeaderText("Responsável financeiro não vinculado");
+        if (alerta.showAndWait().orElse(cancelar) != sim) {
+            return false;
+        }
+
+        AlunoResponsavel escolhido = legais.get(0);
+        if (legais.size() > 1) {
+            List<String> nomes = legais.stream().map(AlunoResponsavel::getNomeResponsavel).toList();
+            ChoiceDialog<String> dialogo = new ChoiceDialog<>(nomes.get(0), nomes);
+            dialogo.setTitle("Responsável financeiro");
+            dialogo.setHeaderText("Qual responsável legal será o financeiro?");
+            dialogo.setContentText("Responsável:");
+            Optional<String> opcao = dialogo.showAndWait();
+            if (opcao.isEmpty()) {
+                return false;
+            }
+            escolhido = legais.get(nomes.indexOf(opcao.get()));
+        }
+        try {
+            responsavelService.alterarPapeis(escolhido.getIdAlunoResponsavel(), true, true,
+                    "Definido ao efetivar a matrícula");
+            responsaveisVigentes = matriculaService.responsaveisVigentes(alunoSelecionado);
+            mostrarResponsaveis();
+            return true;
+        } catch (CadastroResponsavelException | SecurityException e) {
+            erro(e.getMessage());
+            return false;
+        } catch (SQLException e) {
+            erro("Erro ao gravar no banco: " + e.getMessage());
+            return false;
+        }
     }
 
     // =================================================================
@@ -228,6 +321,9 @@ public class MatriculaController {
         esconder(labelMensagem);
         Turma turma = comboTurma.getValue();
         LocalDate data = campoDataMatricula.getValue();
+        if (!resolverResponsavelFinanceiro()) {
+            return;
+        }
         try {
             boolean confirmou = false;
             Optional<String> aviso = matriculaService.avisoFaixaEtaria(alunoSelecionado, turma, data);

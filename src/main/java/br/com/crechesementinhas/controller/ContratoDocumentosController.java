@@ -172,8 +172,11 @@ public class ContratoDocumentosController {
                     ? contratoService.vigenciaRematricula(vigente)
                     : vigente.getVigenciaAte());
         } else {
-            // Primeiro contrato: sugere o 1º responsável legal como financeiro (RN-02)
-            if (!dadosAtuais.getResponsaveisLegais().isEmpty()) {
+            // Primeiro contrato: sugere quem foi indicado como financeiro no vínculo (cadastro de
+            // responsáveis); sem indicação, o 1º responsável legal (RN-02)
+            if (dadosAtuais.getResponsavelFinanceiroIndicado() != null) {
+                cbFinanceiro.setValue(dadosAtuais.getResponsavelFinanceiroIndicado());
+            } else if (!dadosAtuais.getResponsaveisLegais().isEmpty()) {
                 cbFinanceiro.setValue(dadosAtuais.getResponsaveisLegais().get(0));
             }
             cbPlano.setValue(contratoService.planoPadrao(dadosAtuais.getPeriodoTurma()));

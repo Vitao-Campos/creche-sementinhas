@@ -1,10 +1,12 @@
 package br.com.crechesementinhas.service;
 
 import br.com.crechesementinhas.dao.AlunoResponsavelDAO;
+import br.com.crechesementinhas.dao.MatriculaDAO;
 import br.com.crechesementinhas.dao.ResponsavelDAO;
 import br.com.crechesementinhas.model.AlunoResponsavel;
 import br.com.crechesementinhas.model.Permissao;
 import br.com.crechesementinhas.model.Responsavel;
+import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Transacao;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -26,6 +28,7 @@ public class ResponsavelService {
     private final ResponsavelDAO responsavelDAO;
     private final AlunoResponsavelDAO vinculoDAO;
     private final AuditoriaService auditoria;
+    private final MatriculaDAO matriculaDAO = new MatriculaDAO();
 
     public ResponsavelService() {
         this(new ResponsavelDAO(), new AlunoResponsavelDAO(), new AuditoriaService());
@@ -121,8 +124,8 @@ public class ResponsavelService {
 
         Transacao.executar(conexao -> {
             // Mesma pessoa duas vezes na mesma criança só atrapalha a consulta de quem pode retirar.
-            if (vinculoDAO.existeVinculoVigente(conexao, vinculo.getIdAluno(),
-                    vinculo.getIdResponsavel(), LocalDate.now())) {
+            if (vinculoDAO.existeVinculoAberto(conexao, vinculo.getIdAluno(),
+                    vinculo.getIdResponsavel())) {
                 throw new CadastroResponsavelException(
                         "Este responsável já está vinculado a esta criança. "
                         + "Encerre o vínculo atual antes de criar outro.");
@@ -172,6 +175,46 @@ public class ResponsavelService {
     }
 
     /**
+     * Corrige os papéis de um vínculo aberto (responsável legal / financeiro), com auditoria.
+     * RN-01: não tira "legal" do único responsável legal de criança com matrícula ativa.
+     * Um só responsável financeiro vigente por criança.
+     */
+    public void alterarPapeis(int idVinculo, boolean legal, boolean financeiro, String justificativa)
+            throws SQLException {
+        ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA);
+        String motivo = textoOuNulo(justificativa);
+
+        Transacao.executar(conexao -> {
+            AlunoResponsavel vinculo = vinculoDAO.buscarPorId(conexao, idVinculo)
+                    .orElseThrow(() -> new CadastroResponsavelException("Vínculo não encontrado."));
+            if (vinculo.getDataFim() != null) {
+                throw new CadastroResponsavelException(
+                        "Este vínculo já foi encerrado e não pode ser alterado. Crie um novo vínculo.");
+            }
+            LocalDate hoje = LocalDate.now();
+            if (financeiro && !vinculo.isResponsavelFinanceiro()
+                    && vinculoDAO.contarFinanceirosVigentes(conexao, vinculo.getIdAluno(), hoje) > 0) {
+                throw new CadastroResponsavelException(
+                        "Esta criança já tem um responsável financeiro vigente. "
+                        + "Tire a marcação dele antes de indicar outro.");
+            }
+            if (!legal && vinculo.isResponsavelLegal()
+                    && vinculoDAO.contarLegaisVigentes(conexao, vinculo.getIdAluno(), hoje) <= 1
+                    && matriculaDAO.buscarAtivaPorAluno(conexao, vinculo.getIdAluno()).isPresent()) {
+                throw new CadastroResponsavelException(
+                        "Este é o único responsável legal de uma criança matriculada (RN-01). "
+                        + "Vincule outro responsável legal antes.");
+            }
+            vinculoDAO.atualizarPapeis(conexao, idVinculo, legal, financeiro);
+            auditoria.registrarAlteracao(conexao, ENTIDADE_VINCULO, idVinculo, "responsavel_legal",
+                    vinculo.isResponsavelLegal(), legal, motivo);
+            auditoria.registrarAlteracao(conexao, ENTIDADE_VINCULO, idVinculo, "responsavel_financeiro",
+                    vinculo.isResponsavelFinanceiro(), financeiro, motivo);
+            return null;
+        });
+    }
+
+    /**
      * RN-01: a criança tem pelo menos um responsável legal vigente hoje?
      * A tela usa para avisar; a matrícula (frente B) deve usar para bloquear a conclusão.
      */
@@ -194,6 +237,15 @@ public class ResponsavelService {
         if (!erros.isEmpty()) {
             throw new CadastroResponsavelException(String.join("\n", erros));
         }
+    }
+
+    /** Consulta rápida para a tela avisar de CPF repetido antes de salvar (a trava de verdade continua no cadastro). */
+    public boolean cpfJaCadastrado(String cpf, Integer idIgnorado) throws SQLException {
+        String digitos = Cpf.normalizar(cpf);
+        if (digitos == null || !Cpf.valido(digitos)) {
+            return false;
+        }
+        return Transacao.executar(conexao -> responsavelDAO.existeCpf(conexao, digitos, idIgnorado));
     }
 
     /** CPF único (seção 6.2): o CPF do responsável não se repete. */

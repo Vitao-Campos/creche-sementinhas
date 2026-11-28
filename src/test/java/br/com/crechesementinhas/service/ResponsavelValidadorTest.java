@@ -19,7 +19,7 @@ class ResponsavelValidadorTest {
         Responsavel r = new Responsavel();
         r.setNome("  Maria Souza ");
         r.setCpf(CPF_VALIDO);
-        r.setTelefone("(51) 91234-5678");
+        r.setTelefone("(11) 91234-5678");
         return r;
     }
 
@@ -41,7 +41,7 @@ class ResponsavelValidadorTest {
         ResponsavelValidador.normalizar(r);
         assertEquals("Maria Souza", r.getNome());
         assertEquals("52998224725", r.getCpf());
-        assertEquals("51912345678", r.getTelefone());
+        assertEquals("11912345678", r.getTelefone());
         assertEquals("90010000", r.getCep());
         assertNull(r.getEmail());
     }

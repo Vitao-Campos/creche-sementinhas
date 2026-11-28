@@ -48,6 +48,16 @@ public class DadosContrato {
     public void setResponsaveis(List<ResponsavelContrato> responsaveis) { this.responsaveis = responsaveis; }
 
 
+    /** O responsável indicado no vínculo como financeiro (quem paga), ou null se ninguém foi indicado. */
+    public ResponsavelContrato getResponsavelFinanceiroIndicado() {
+        for (ResponsavelContrato r : responsaveis) {
+            if (r.isResponsavelFinanceiro()) {
+                return r;
+            }
+        }
+        return null;
+    }
+
     /** Só os responsáveis LEGAIS (os únicos que podem assinar - RN-05). */
     public List<ResponsavelContrato> getResponsaveisLegais() {
         List<ResponsavelContrato> legais = new ArrayList<>();

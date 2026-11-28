@@ -24,7 +24,7 @@ public final class Telefone {
         return digitos != null && (digitos.length() == 10 || digitos.length() == 11);
     }
 
-    /** (51) 91234-5678 ou (51) 1234-5678; outro tamanho volta como veio. */
+    /** (11) 91234-5678 ou (11) 1234-5678; outro tamanho volta como veio. */
     public static String formatar(String digitos) {
         if (digitos == null) {
             return "";

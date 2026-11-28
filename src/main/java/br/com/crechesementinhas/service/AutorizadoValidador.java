@@ -46,7 +46,7 @@ public final class AutorizadoValidador {
         if (a.getTelefone() == null) {
             erros.add("Informe o telefone da pessoa autorizada.");
         } else if (!Telefone.valido(a.getTelefone())) {
-            erros.add("Telefone inválido. Use DDD + número, por exemplo (51) 91234-5678.");
+            erros.add("Telefone inválido. Use DDD + número, por exemplo (11) 91234-5678.");
         }
         if (a.getParentesco() != null && a.getParentesco().length() > MAX_PARENTESCO) {
             erros.add("O parentesco pode ter no máximo " + MAX_PARENTESCO + " caracteres.");

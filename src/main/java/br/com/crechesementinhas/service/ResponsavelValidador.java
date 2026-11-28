@@ -58,7 +58,7 @@ public final class ResponsavelValidador {
         if (r.getTelefone() == null) {
             erros.add("Informe o telefone do responsável.");
         } else if (!Telefone.valido(r.getTelefone())) {
-            erros.add("Telefone inválido. Use DDD + número, por exemplo (51) 91234-5678.");
+            erros.add("Telefone inválido. Use DDD + número, por exemplo (11) 91234-5678.");
         }
 
         if (r.getEmail() != null) {

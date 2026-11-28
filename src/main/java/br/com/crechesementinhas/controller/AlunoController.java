@@ -11,10 +11,13 @@ import br.com.crechesementinhas.service.AutorizadoService;
 import br.com.crechesementinhas.service.CadastroAutorizadoException;
 import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.CadastroAlunoException;
+import br.com.crechesementinhas.service.PossivelAlunoDuplicadoException;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.CalculadoraIdade;
+import br.com.crechesementinhas.util.Dialogos;
 import br.com.crechesementinhas.util.Cpf;
+import br.com.crechesementinhas.util.Mascara;
 import br.com.crechesementinhas.util.Navegacao;
 import br.com.crechesementinhas.util.Telefone;
 import java.sql.SQLException;
@@ -28,7 +31,9 @@ import java.util.stream.Collectors;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -36,6 +41,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -54,6 +61,10 @@ public class AlunoController {
             DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
 
     @FXML private TextField campoBusca;
+
+    /** Conteúdo do formulário no último carregamento/gravação: serve para saber se há algo não salvo. */
+    private String estadoSalvo; // null até a tela abrir pela primeira vez
+    private boolean restaurandoSelecao;
     @FXML private TableView<Aluno> tabelaAlunos;
     @FXML private TableColumn<Aluno, String> colunaNome;
     @FXML private TableColumn<Aluno, String> colunaNascimento;
@@ -134,6 +145,25 @@ public class AlunoController {
 
         esperaBusca.setOnFinished(e -> carregarLista());
         campoBusca.textProperty().addListener((obs, antigo, novo) -> esperaBusca.playFromStart());
+        // Enter busca na hora (sem esperar a pausa da digitação); Esc limpa a busca.
+        campoBusca.setOnKeyPressed(evento -> {
+            if (evento.getCode() == KeyCode.ENTER) {
+                esperaBusca.stop();
+                carregarLista();
+            } else if (evento.getCode() == KeyCode.ESCAPE) {
+                campoBusca.clear();
+            }
+        });
+
+        // Esc nos campos de texto do formulário = começar um cadastro novo (pergunta antes se houver algo não salvo).
+        for (TextField campo : new TextField[] {campoNome, campoCpf, campoNaturalidade, campoNacionalidade,
+                campoJustificativa}) {
+            campo.addEventHandler(KeyEvent.KEY_PRESSED, evento -> {
+                if (evento.getCode() == KeyCode.ESCAPE && !botaoNovo.isDisable()) {
+                    novoAluno();
+                }
+            });
+        }
 
         carregarLista();
         novoAluno();
@@ -148,9 +178,17 @@ public class AlunoController {
 
         tabelaAlunos.setPlaceholder(new Label("Nenhum aluno encontrado."));
         tabelaAlunos.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> {
-            if (escolhido != null) {
-                editar(escolhido);
+            if (escolhido == null || restaurandoSelecao) {
+                return;
             }
+            if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+                // Desistiu de trocar: volta a marcar a criança que estava aberta.
+                restaurandoSelecao = true;
+                tabelaAlunos.getSelectionModel().select(antigo);
+                restaurandoSelecao = false;
+                return;
+            }
+            editar(escolhido);
         });
     }
 
@@ -177,15 +215,30 @@ public class AlunoController {
         // A idade aparece enquanto a data é digitada ou escolhida (RF-03).
         campoNascimento.getEditor().textProperty().addListener((obs, antigo, novo) -> atualizarIdade());
 
+        Mascara.cpf(campoCpf);
+        Mascara.data(campoNascimento.getEditor());
         // Ao sair do campo CPF, mostra com pontos e traço (se tiver 11 dígitos).
         campoCpf.focusedProperty().addListener((obs, tinha, tem) -> {
             if (!tem) {
                 String digitos = Cpf.normalizar(campoCpf.getText());
                 if (digitos != null && digitos.length() == 11) {
                     campoCpf.setText(Cpf.formatar(digitos));
+                    avisarSeCpfRepetido();
                 }
             }
         });
+    }
+
+    /** Aviso na hora: o CPF digitado já é de outra criança? (não impede nada; o salvar também confere) */
+    private void avisarSeCpfRepetido() {
+        try {
+            Integer idAtual = alunoEmEdicao == null ? null : alunoEmEdicao.getIdAluno();
+            if (alunoService.cpfJaCadastrado(campoCpf.getText(), idAtual)) {
+                mostrarMensagem("Já existe um aluno cadastrado com este CPF.", true);
+            }
+        } catch (SQLException e) {
+            // sem aviso antecipado; ao salvar o erro aparece normalmente
+        }
     }
 
     // ---------------------------------------------------------------- lista
@@ -205,6 +258,9 @@ public class AlunoController {
     /** Limpa o formulário para cadastrar uma criança nova. */
     @FXML
     private void novoAluno() {
+        if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+            return;
+        }
         alunoEmEdicao = null;
         tabelaAlunos.getSelectionModel().clearSelection();
         labelTituloForm.setText("Novo aluno");
@@ -212,7 +268,23 @@ public class AlunoController {
         mostrarJustificativa(false);
         esconderMensagem();
         atualizarFicha();
+        guardarEstado();
         campoNome.requestFocus();
+    }
+
+    /** Foto do que está digitado, para comparar depois. */
+    private String fotoDoFormulario() {
+        return String.join("\u0001", campoNome.getText(), campoNascimento.getEditor().getText(),
+                String.valueOf(comboSexo.getValue()), campoCpf.getText(), campoNaturalidade.getText(),
+                campoNacionalidade.getText(), campoObservacao.getText(), campoJustificativa.getText());
+    }
+
+    private void guardarEstado() {
+        estadoSalvo = fotoDoFormulario();
+    }
+
+    private boolean temAlteracoes() {
+        return estadoSalvo != null && !fotoDoFormulario().equals(estadoSalvo);
     }
 
     private void editar(Aluno aluno) {
@@ -222,6 +294,7 @@ public class AlunoController {
         mostrarJustificativa(true);
         esconderMensagem();
         atualizarFicha();
+        guardarEstado();
     }
 
     private void preencherCampos(Aluno aluno) {
@@ -276,9 +349,14 @@ public class AlunoController {
         boolean novo = alunoEmEdicao == null;
         try {
             Aluno salvo = novo
-                    ? alunoService.cadastrar(dados)
+                    ? cadastrarComConfirmacao(dados)
                     : alunoService.atualizar(dados, campoJustificativa.getText());
+            if (salvo == null) {
+                mostrarMensagem("Cadastro cancelado.", false);
+                return;
+            }
 
+            guardarEstado(); // gravou: o que está na tela deixa de ser "não salvo"
             campoBusca.clear();
             carregarLista();
             selecionarNaLista(salvo.getIdAluno());
@@ -291,6 +369,23 @@ public class AlunoController {
             mostrarMensagem(e.getMessage(), true);
         } catch (SQLException e) {
             erroDeBanco(e);
+        }
+    }
+
+    /** Se já há criança com o mesmo nome e nascimento, pergunta antes de cadastrar; null = desistiu. */
+    private Aluno cadastrarComConfirmacao(Aluno dados) throws SQLException {
+        try {
+            return alunoService.cadastrar(dados, false);
+        } catch (PossivelAlunoDuplicadoException e) {
+            Alert aviso = new Alert(Alert.AlertType.CONFIRMATION,
+                    e.getMessage() + "\nPode ser a mesma criança. Cadastrar mesmo assim?",
+                    ButtonType.YES, ButtonType.NO);
+            aviso.setTitle("Possível cadastro duplicado");
+            aviso.setHeaderText(null);
+            if (aviso.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) {
+                return null;
+            }
+            return alunoService.cadastrar(dados, true);
         }
     }
 
@@ -339,6 +434,7 @@ public class AlunoController {
                 "Madrinha", "Padrinho", "Vizinho(a)", "Amigo(a) da família");
         comboAutTipo.getItems().setAll(TipoAutorizacao.values());
 
+        Mascara.telefone(campoAutTelefone);
         campoAutTelefone.focusedProperty().addListener((obs, tinha, tem) -> {
             if (!tem) {
                 campoAutTelefone.setText(Telefone.formatar(Telefone.normalizar(campoAutTelefone.getText())));
@@ -491,6 +587,9 @@ public class AlunoController {
 
     @FXML
     private void voltar() {
+        if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
+            return;
+        }
         Navegacao.abrir("menu.fxml", "Menu");
     }
 

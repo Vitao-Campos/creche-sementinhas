@@ -3,6 +3,7 @@ package br.com.crechesementinhas.service;
 import br.com.crechesementinhas.dao.AlunoDAO;
 import br.com.crechesementinhas.model.Aluno;
 import br.com.crechesementinhas.model.Permissao;
+import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Transacao;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -48,12 +49,28 @@ public class AlunoService {
      * @throws SecurityException      se o perfil do usuário não puder cadastrar
      */
     public Aluno cadastrar(Aluno aluno) throws SQLException {
+        return cadastrar(aluno, false);
+    }
+
+    /**
+     * Cadastra um aluno novo, avisando quando já existe criança com o mesmo nome e data de nascimento.
+     * O CPF repetido continua bloqueando; nome + nascimento repetidos só avisam: gêmeos e homônimos existem.
+     *
+     * @param confirmouDuplicidade true quando o usuário já viu o aviso e quer cadastrar mesmo assim
+     * @throws PossivelAlunoDuplicadoException nome e nascimento já cadastrados e ainda sem confirmação
+     */
+    public Aluno cadastrar(Aluno aluno, boolean confirmouDuplicidade) throws SQLException {
         ControleAcesso.exigir(Permissao.CADASTRAR_MATRICULA);
         prepararEValidar(aluno);
 
         try {
             Transacao.executar(conexao -> {
                 conferirCpfUnico(conexao, aluno);
+                if (!confirmouDuplicidade
+                        && alunoDAO.existeNomeENascimento(conexao, aluno.getNome(), aluno.getDataNascimento(), null)) {
+                    throw new PossivelAlunoDuplicadoException(
+                            "Já existe uma criança cadastrada com este nome e esta data de nascimento.");
+                }
                 int id = alunoDAO.inserir(conexao, aluno);
                 aluno.setIdAluno(id);
                 auditoria.registrarInsercao(conexao, ENTIDADE, id);
@@ -103,6 +120,15 @@ public class AlunoService {
         if (!erros.isEmpty()) {
             throw new CadastroAlunoException(String.join("\n", erros));
         }
+    }
+
+    /** Consulta rápida para a tela avisar de CPF repetido antes de salvar (a trava de verdade continua no cadastro). */
+    public boolean cpfJaCadastrado(String cpf, Integer idIgnorado) throws SQLException {
+        String digitos = Cpf.normalizar(cpf);
+        if (digitos == null || !Cpf.valido(digitos)) {
+            return false;
+        }
+        return Transacao.executar(conexao -> alunoDAO.existeCpf(conexao, digitos, idIgnorado));
     }
 
     /** CPF único (seção 6.2): o CPF da criança (quando houver) não se repete. */

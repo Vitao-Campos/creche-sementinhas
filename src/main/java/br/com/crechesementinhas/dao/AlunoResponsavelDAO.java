@@ -52,14 +52,17 @@ public class AlunoResponsavelDAO {
     private static final String SQL_ATUALIZAR_DATA_FIM =
             "UPDATE aluno_responsavel SET data_fim = ? WHERE id_aluno_responsavel = ?";
 
-    // Vigente: já começou e não terminou antes de "hoje" (mesma regra de AlunoResponsavel.estaVigente).
-    private static final String SQL_EXISTE_VINCULO_VIGENTE = """
+    // Aberto = ainda sem data de fim. Vínculo encerrado (mesmo hoje) não impede um novo.
+    private static final String SQL_EXISTE_VINCULO_ABERTO = """
             SELECT EXISTS (
                 SELECT 1 FROM aluno_responsavel
-                 WHERE id_aluno = ? AND id_responsavel = ?
-                   AND data_inicio <= ? AND (data_fim IS NULL OR data_fim >= ?)
+                 WHERE id_aluno = ? AND id_responsavel = ? AND data_fim IS NULL
             )
             """;
+
+    private static final String SQL_ATUALIZAR_PAPEIS =
+            "UPDATE aluno_responsavel SET responsavel_legal = ?, responsavel_financeiro = ? "
+            + "WHERE id_aluno_responsavel = ?";
 
     private static final String SQL_CONTAR_LEGAIS_VIGENTES = """
             SELECT COUNT(*) FROM aluno_responsavel
@@ -131,14 +134,23 @@ public class AlunoResponsavelDAO {
         }
     }
 
-    /** Este responsável já tem vínculo vigente com esta criança? */
-    public boolean existeVinculoVigente(Connection conexao, int idAluno, int idResponsavel, LocalDate hoje)
+    /** Altera os papéis (legal e financeiro) de um vínculo. */
+    public void atualizarPapeis(Connection conexao, int idVinculo, boolean legal, boolean financeiro)
             throws SQLException {
-        try (PreparedStatement comando = conexao.prepareStatement(SQL_EXISTE_VINCULO_VIGENTE)) {
+        try (PreparedStatement comando = conexao.prepareStatement(SQL_ATUALIZAR_PAPEIS)) {
+            comando.setBoolean(1, legal);
+            comando.setBoolean(2, financeiro);
+            comando.setInt(3, idVinculo);
+            comando.executeUpdate();
+        }
+    }
+
+    /** Este responsável já tem vínculo aberto (sem data de fim) com esta criança? */
+    public boolean existeVinculoAberto(Connection conexao, int idAluno, int idResponsavel)
+            throws SQLException {
+        try (PreparedStatement comando = conexao.prepareStatement(SQL_EXISTE_VINCULO_ABERTO)) {
             comando.setInt(1, idAluno);
             comando.setInt(2, idResponsavel);
-            comando.setDate(3, Date.valueOf(hoje));
-            comando.setDate(4, Date.valueOf(hoje));
             try (ResultSet resultado = comando.executeQuery()) {
                 resultado.next();
                 return resultado.getBoolean(1);

@@ -39,7 +39,7 @@
             <TilePane alignment="CENTER" hgap="20" vgap="20" prefColumns="3" maxWidth="740">
                 <Button text="Nova Matrícula" onAction="#novaMatricula"
                         styleClass="botao-menu" prefWidth="220" prefHeight="90"/>
-                <Button text="Consultar Alunos" onAction="#consultarAlunos"
+                <Button text="Alunos" onAction="#consultarAlunos"
                         styleClass="botao-menu" prefWidth="220" prefHeight="90"/>
                 <Button text="Responsáveis" onAction="#responsaveis"
                         styleClass="botao-menu" prefWidth="220" prefHeight="90"/>
