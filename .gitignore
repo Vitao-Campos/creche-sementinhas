@@ -34,3 +34,6 @@ build/
 
 ### Configuração local do banco (contém senha) ###
 src/main/resources/db.properties
+### Configuração do banco fora de resources e pasta do executável ###
+/db.properties
+/dist/
