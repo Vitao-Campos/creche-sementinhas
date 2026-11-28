@@ -65,6 +65,8 @@
     </dependencies>
 
     <build>
+            <!-- Nome do jar gerado: creche-sementinhas.jar (sem o número da versão) -->
+        <finalName>creche-sementinhas</finalName>
         <plugins>
             <!-- Plugin que executa a aplicação com: mvn javafx:run -->
             <plugin>
@@ -74,6 +76,45 @@
                 <configuration>
                     <mainClass>br.com.crechesementinhas.App</mainClass>
                 </configuration>
+            </plugin>
+                        <!-- Monta o executável: um único jar com o sistema e todas as bibliotecas -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <!-- Define a classe que inicia o sistema ao dar dois cliques -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>br.com.crechesementinhas.Launcher</mainClass>
+                                </transformer>
+                                <!-- Mantém o registro do driver JDBC do PostgreSQL -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <!-- Assinaturas das bibliotecas: invalidariam o jar reempacotado -->
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>module-info.class</exclude>
+                                        <!-- Segurança: a senha do banco NÃO vai dentro do jar -->
+                                        <exclude>db.properties</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
