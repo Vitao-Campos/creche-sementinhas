@@ -56,14 +56,17 @@ public class MatriculaService {
                 .toList();
     }
 
+    /** Lista as turmas disponíveis para matrícula. */
     public List<Turma> listarTurmas() throws SQLException {
         return turmaDAO.listar();
     }
 
+    /** Busca a matrícula ativa da criança, se houver. */
     public Optional<Matricula> buscarAtiva(Aluno aluno) throws SQLException {
         return matriculaDAO.buscarAtivaPorAluno(aluno.getIdAluno());
     }
 
+    /** Lista todas as matrículas da criança, da mais recente para a mais antiga. */
     public List<Matricula> historico(Aluno aluno) throws SQLException {
         return matriculaDAO.listarPorAluno(aluno.getIdAluno());
     }
@@ -190,8 +193,8 @@ public class MatriculaService {
         Desligamento calculo = simularDesligamento(matricula, aluno, desligamento);
         boolean curto = CalculadoraMensalidade.avisoCurto(calculo.diasDeAviso());
         if (curto && !confirmouAvisoCurto) { // RN-12
-            throw new MatriculaException("O aviso foi de " + calculo.diasDeAviso() + " dias (a RN-12 pede "
-                    + CalculadoraMensalidade.AVISO_PREVIO_DIAS + "). Confirme para desligar mesmo assim.");
+            throw new MatriculaException("O aviso foi de " + calculo.diasDeAviso() + " dias (o mínimo é de "
+                    + CalculadoraMensalidade.AVISO_PREVIO_DIAS + " dias). Confirme para desligar mesmo assim.");
         }
 
         // RN-12 / RNF-02: a exceção de aviso curto fica registrada no histórico.
@@ -225,6 +228,7 @@ public class MatriculaService {
         return calculo;
     }
 
+    /** Lança erro com todas as mensagens quando a lista de erros não está vazia. */
     private static void exigirSemErros(List<String> erros) {
         if (!erros.isEmpty()) {
             throw new MatriculaException(String.join("\n", erros));

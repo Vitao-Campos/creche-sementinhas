@@ -19,6 +19,7 @@ public final class MatriculaValidador {
     static final int MAX_JUSTIFICATIVA = 150;
     static final int MESES_MAX_ANTECEDENCIA = 12;  // matrícula pode começar até 1 ano à frente
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private MatriculaValidador() {
     }
 
@@ -122,6 +123,7 @@ public final class MatriculaValidador {
         return erros;
     }
 
+    /** Remove os espaços das pontas; devolve nulo se o texto ficar vazio. */
     static String aparar(String texto) {
         if (texto == null) {
             return null;

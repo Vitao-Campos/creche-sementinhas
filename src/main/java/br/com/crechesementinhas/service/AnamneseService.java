@@ -29,11 +29,13 @@ public class AnamneseService {
     private final AlunoPessoaAutorizadaDAO autorizadoDAO;
     private final AuditoriaService auditoria;
 
+    /** Cria o serviço com os acessos ao banco padrão. */
     public AnamneseService() {
         this(new FichaAnamneseDAO(), new AlunoResponsavelDAO(), new AlunoPessoaAutorizadaDAO(),
                 new AuditoriaService());
     }
 
+    /** Cria o serviço com os acessos informados (usado em testes). */
     public AnamneseService(FichaAnamneseDAO fichaDAO, AlunoResponsavelDAO vinculoDAO,
                            AlunoPessoaAutorizadaDAO autorizadoDAO, AuditoriaService auditoria) {
         this.fichaDAO = fichaDAO;
@@ -101,6 +103,7 @@ public class AnamneseService {
         return ficha;
     }
 
+    /** Registra no histórico cada campo da ficha que mudou (campo igual não grava nada). */
     private void registrarMudancas(java.sql.Connection c, FichaAnamnese a, FichaAnamnese d, String m)
             throws SQLException {
         int id = d.getIdFichaAnamnese();

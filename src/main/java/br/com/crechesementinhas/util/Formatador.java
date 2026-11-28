@@ -14,6 +14,7 @@ public final class Formatador {
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final Locale BRASIL = Locale.of("pt", "BR");
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Formatador() {
     }
 

@@ -131,6 +131,7 @@ public class AlunoController {
     // Espera o usuário parar de digitar para buscar (evita uma consulta por tecla).
     private final PauseTransition esperaBusca = new PauseTransition(Duration.millis(250));
 
+    /** Prepara a tela de alunos: tabela, formulário, ficha da criança, permissões e busca. */
     @FXML
     private void initialize() {
         configurarTabela();
@@ -169,6 +170,10 @@ public class AlunoController {
         novoAluno();
     }
 
+    /**
+     * Define o que cada coluna da lista de alunos mostra e abre o aluno ao selecioná-lo
+     * (perguntando antes se há alterações não salvas).
+     */
     private void configurarTabela() {
         colunaNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNome()));
         colunaNascimento.setCellValueFactory(c -> new ReadOnlyStringWrapper(
@@ -192,6 +197,10 @@ public class AlunoController {
         });
     }
 
+    /**
+     * Configura os campos do formulário: sexo, data de nascimento, máscaras de digitação e atalhos
+     * de teclado.
+     */
     private void configurarFormulario() {
         comboSexo.getItems().setAll(Sexo.values());
 
@@ -243,6 +252,7 @@ public class AlunoController {
 
     // ---------------------------------------------------------------- lista
 
+    /** Recarrega a lista de alunos conforme o texto da busca e atualiza o total. */
     private void carregarLista() {
         try {
             List<Aluno> alunos = alunoService.listar(campoBusca.getText());
@@ -279,14 +289,17 @@ public class AlunoController {
                 campoNacionalidade.getText(), campoObservacao.getText(), campoJustificativa.getText());
     }
 
+    /** Guarda uma foto do formulário, para saber depois se algo foi alterado. */
     private void guardarEstado() {
         estadoSalvo = fotoDoFormulario();
     }
 
+    /** Diz se o formulário tem dados digitados que ainda não foram salvos. */
     private boolean temAlteracoes() {
         return estadoSalvo != null && !fotoDoFormulario().equals(estadoSalvo);
     }
 
+    /** Abre o aluno escolhido no formulário para edição. */
     private void editar(Aluno aluno) {
         alunoEmEdicao = aluno;
         labelTituloForm.setText("Editando: " + aluno.getNome());
@@ -297,6 +310,7 @@ public class AlunoController {
         guardarEstado();
     }
 
+    /** Preenche o formulário com os dados do aluno (ou o esvazia quando o aluno é nulo). */
     private void preencherCampos(Aluno aluno) {
         campoNome.setText(aluno == null ? "" : aluno.getNome());
         campoNascimento.setValue(aluno == null ? null : aluno.getDataNascimento());
@@ -311,6 +325,7 @@ public class AlunoController {
         atualizarIdade();
     }
 
+    /** Mostra ou esconde o campo de motivo da alteração (só aparece ao editar). */
     private void mostrarJustificativa(boolean visivel) {
         rotuloJustificativa.setVisible(visivel);
         rotuloJustificativa.setManaged(visivel);
@@ -318,6 +333,7 @@ public class AlunoController {
         campoJustificativa.setManaged(visivel);
     }
 
+    /** Recalcula e mostra a idade da criança a partir da data de nascimento digitada. */
     private void atualizarIdade() {
         LocalDate nascimento = lerDataOuNulo();
         labelIdade.setText(nascimento == null ? "—"
@@ -326,6 +342,10 @@ public class AlunoController {
 
     // ---------------------------------------------------------------- salvar
 
+    /**
+     * Cadastra o aluno novo ou grava a alteração, avisando se já existe criança com o mesmo nome e
+     * nascimento.
+     */
     @FXML
     private void salvar() {
         LocalDate nascimento;
@@ -402,6 +422,10 @@ public class AlunoController {
 
     // ------------------------------------------------- ficha: responsáveis e autorizados
 
+    /**
+     * Configura a ficha da criança: tabelas de responsáveis e de pessoas autorizadas e o formulário
+     * de autorização.
+     */
     private void configurarFicha() {
         colunaRespNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNomeResponsavel()));
         colunaRespParentesco.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getGrauParentesco()));
@@ -460,6 +484,10 @@ public class AlunoController {
         atualizarBotaoRetirar();
     }
 
+    /**
+     * Carrega os responsáveis vinculados à criança e mostra o resumo de responsável legal e
+     * financeiro.
+     */
     private void carregarResponsaveisDoAluno() {
         try {
             List<AlunoResponsavel> vinculos =
@@ -468,7 +496,7 @@ public class AlunoController {
 
             LocalDate hoje = LocalDate.now();
             List<AlunoResponsavel> vigentes = vinculos.stream().filter(v -> v.estaVigente(hoje)).toList();
-            resumir(labelResumoLegal, "Responsável legal", "Nenhum responsável legal vigente (RN-01)",
+            resumir(labelResumoLegal, "Responsável legal", "Nenhum responsável legal vigente",
                     vigentes.stream().filter(AlunoResponsavel::isResponsavelLegal).toList());
             resumir(labelResumoFinanceiro, "Responsável financeiro (paga a mensalidade)",
                     "Nenhum responsável financeiro indicado",
@@ -491,6 +519,7 @@ public class AlunoController {
         }
     }
 
+    /** Carrega a lista de pessoas autorizadas a buscar a criança. */
     private void carregarAutorizados() {
         try {
             tabelaAutorizados.getItems().setAll(
@@ -500,12 +529,17 @@ public class AlunoController {
         }
     }
 
+    /**
+     * Habilita o botão de retirar autorização só quando há uma autorização ativa selecionada e o
+     * usuário pode gravar.
+     */
     private void atualizarBotaoRetirar() {
         AlunoPessoaAutorizada escolhida = tabelaAutorizados.getSelectionModel().getSelectedItem();
         boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
         botaoRetirar.setDisable(!podeGravar || escolhida == null || !escolhida.isAtivo());
     }
 
+    /** Autoriza uma pessoa a buscar a criança, com os dados digitados no formulário da ficha. */
     @FXML
     private void autorizar() {
         AlunoPessoaAutorizada dados = new AlunoPessoaAutorizada();
@@ -528,6 +562,7 @@ public class AlunoController {
         }
     }
 
+    /** Retira a autorização selecionada, mantendo o registro no histórico. */
     @FXML
     private void retirarAutorizacao() {
         AlunoPessoaAutorizada escolhida = tabelaAutorizados.getSelectionModel().getSelectedItem();
@@ -570,6 +605,7 @@ public class AlunoController {
         }
     }
 
+    /** Limpa os campos do formulário de pessoa autorizada. */
     private void limparFormularioAutorizado() {
         campoAutNome.clear();
         campoAutRg.clear();
@@ -585,6 +621,7 @@ public class AlunoController {
         labelAvisoFicha.setTextFill(cor);
     }
 
+    /** Volta ao menu principal, perguntando antes se há alterações não salvas. */
     @FXML
     private void voltar() {
         if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
@@ -601,6 +638,7 @@ public class AlunoController {
         return texto == null || texto.isBlank() ? null : LocalDate.parse(texto.trim(), FORMATO_DATA);
     }
 
+    /** Lê a data de nascimento digitada; devolve nulo se estiver vazia ou inválida. */
     private LocalDate lerDataOuNulo() {
         try {
             return lerData();
@@ -609,15 +647,18 @@ public class AlunoController {
         }
     }
 
+    /** Devolve o texto, ou vazio quando for nulo (para preencher campos). */
     private String valor(String texto) {
         return texto == null ? "" : texto;
     }
 
+    /** Mostra na tela a mensagem de erro de acesso ao banco de dados. */
     private void erroDeBanco(SQLException e) {
         e.printStackTrace();
         mostrarMensagem("Não foi possível acessar o banco de dados. Tente novamente.", true);
     }
 
+    /** Mostra uma mensagem abaixo do formulário, em vermelho (erro) ou verde (sucesso). */
     private void mostrarMensagem(String texto, boolean erro) {
         labelMensagem.setText(texto);
         labelMensagem.setTextFill(erro ? Color.web("#c62828") : Color.web("#2e7d32"));
@@ -625,6 +666,7 @@ public class AlunoController {
         labelMensagem.setManaged(true);
     }
 
+    /** Esconde a mensagem exibida abaixo do formulário. */
     private void esconderMensagem() {
         labelMensagem.setVisible(false);
         labelMensagem.setManaged(false);

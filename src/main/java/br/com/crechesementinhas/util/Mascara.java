@@ -10,13 +10,16 @@ import javafx.scene.control.TextFormatter;
  */
 public final class Mascara {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Mascara() {
     }
 
+    /** Aplica a máscara de CPF (000.000.000-00) ao campo. */
     public static void cpf(TextField campo) {
         aplicar(campo, 11, Mascara::formatarCpf);
     }
 
+    /** Aplica a máscara de telefone ((00) 00000-0000) ao campo. */
     public static void telefone(TextField campo) {
         aplicar(campo, 11, Mascara::formatarTelefone);
     }
@@ -39,12 +42,14 @@ public final class Mascara {
         });
     }
 
+    /** Aplica a máscara de CEP (00000-000) ao campo. */
     public static void cep(TextField campo) {
         aplicar(campo, 8, Mascara::formatarCep);
     }
 
     // ------------------------------------------------------------------ formatos (parciais)
 
+    /** Coloca pontos e traço nos números do CPF, conforme vão sendo digitados. */
     static String formatarCpf(String d) {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < d.length(); i++) {
@@ -58,6 +63,7 @@ public final class Mascara {
         return s.toString();
     }
 
+    /** Coloca as barras nos números da data, conforme vão sendo digitados. */
     static String formatarData(String d) {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < d.length(); i++) {
@@ -69,6 +75,7 @@ public final class Mascara {
         return s.toString();
     }
 
+    /** Coloca parênteses, espaço e traço nos números do telefone, conforme vão sendo digitados. */
     static String formatarTelefone(String d) {
         if (d.isEmpty()) {
             return "";
@@ -86,12 +93,14 @@ public final class Mascara {
         return "(" + ddd + ") " + resto.substring(0, corte) + "-" + resto.substring(corte);
     }
 
+    /** Coloca o traço nos números do CEP, conforme vão sendo digitados. */
     static String formatarCep(String d) {
         return d.length() <= 5 ? d : d.substring(0, 5) + "-" + d.substring(5);
     }
 
     // ------------------------------------------------------------------ mecânica
 
+    /** Instala no campo um filtro que aceita só números, limita o tamanho e aplica o formato. */
     private static void aplicar(TextField campo, int maxDigitos, java.util.function.UnaryOperator<String> formato) {
         campo.setTextFormatter(new TextFormatter<String>(mudanca -> {
             if (!mudanca.isContentChange()) {

@@ -25,10 +25,12 @@ public class AutorizadoService {
     private final AlunoPessoaAutorizadaDAO autorizacaoDAO;
     private final AuditoriaService auditoria;
 
+    /** Cria o serviço com os acessos ao banco padrão. */
     public AutorizadoService() {
         this(new PessoaAutorizadaDAO(), new AlunoPessoaAutorizadaDAO(), new AuditoriaService());
     }
 
+    /** Cria o serviço com os acessos informados (usado em testes). */
     public AutorizadoService(PessoaAutorizadaDAO pessoaDAO, AlunoPessoaAutorizadaDAO autorizacaoDAO,
                              AuditoriaService auditoria) {
         this.pessoaDAO = pessoaDAO;

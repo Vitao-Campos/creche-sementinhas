@@ -5,10 +5,12 @@ package br.com.crechesementinhas.service;
  */
 public class AutenticacaoException extends Exception {
 
+    /** Cria o erro de autenticação com a mensagem para a tela. */
     public AutenticacaoException(String mensagem) {
         super(mensagem);
     }
 
+    /** Cria o erro de autenticação com a mensagem e a causa original. */
     public AutenticacaoException(String mensagem, Throwable causa) {
         super(mensagem, causa);
     }

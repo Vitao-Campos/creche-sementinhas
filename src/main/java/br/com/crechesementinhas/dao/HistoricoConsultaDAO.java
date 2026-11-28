@@ -93,6 +93,9 @@ public class HistoricoConsultaDAO {
         return listar(SQL_POR_RESPONSAVEL, 2, idResponsavel);
     }
 
+    /**
+     * Executa a consulta de histórico para o identificador informado e monta a lista de registros.
+     */
     private List<RegistroHistorico> listar(String sql, int quantidadeParametros, int id) throws SQLException {
         List<RegistroHistorico> lista = new ArrayList<>();
         try (Connection conexao = ConnectionFactory.getConnection();

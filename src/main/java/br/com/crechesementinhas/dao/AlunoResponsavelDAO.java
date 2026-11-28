@@ -76,6 +76,7 @@ public class AlunoResponsavelDAO {
                AND data_inicio <= ? AND (data_fim IS NULL OR data_fim >= ?)
             """;
 
+    /** Grava o vínculo entre a criança e o responsável e devolve o identificador gerado. */
     public int inserir(Connection conexao, AlunoResponsavel v) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_INSERIR)) {
             comando.setInt(1, v.getIdAluno());
@@ -92,6 +93,7 @@ public class AlunoResponsavelDAO {
         }
     }
 
+    /** Busca um vínculo pelo identificador. */
     public Optional<AlunoResponsavel> buscarPorId(Connection conexao, int id) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_BUSCAR_POR_ID)) {
             comando.setInt(1, id);
@@ -111,6 +113,7 @@ public class AlunoResponsavelDAO {
         return listar(SQL_LISTAR_POR_ALUNO, idAluno);
     }
 
+    /** Executa a consulta de vínculos para o identificador informado. */
     private List<AlunoResponsavel> listar(String sql, int id) throws SQLException {
         List<AlunoResponsavel> lista = new ArrayList<>();
         try (Connection conexao = ConnectionFactory.getConnection();
@@ -168,6 +171,7 @@ public class AlunoResponsavelDAO {
         return contar(conexao, SQL_CONTAR_FINANCEIROS_VIGENTES, idAluno, hoje);
     }
 
+    /** Conta os vínculos vigentes hoje da criança, conforme a consulta informada. */
     private int contar(Connection conexao, String sql, int idAluno, LocalDate hoje) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(sql)) {
             comando.setInt(1, idAluno);
@@ -180,6 +184,7 @@ public class AlunoResponsavelDAO {
         }
     }
 
+    /** Converte a linha do resultado da consulta em um objeto AlunoResponsavel. */
     private AlunoResponsavel mapear(ResultSet rs) throws SQLException {
         AlunoResponsavel v = new AlunoResponsavel();
         v.setIdAlunoResponsavel(rs.getInt("id_aluno_responsavel"));

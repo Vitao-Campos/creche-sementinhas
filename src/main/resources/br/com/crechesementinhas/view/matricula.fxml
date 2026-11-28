@@ -25,19 +25,19 @@
             fx:controller="br.com.crechesementinhas.controller.MatriculaController"
             prefWidth="1180" prefHeight="720"
             stylesheets="@estilo.css"
-            style="-fx-background-color: #f4f6f9;">
+            styleClass="fundo-tela">
 
     <!-- Barra superior: mesmo padrão das outras telas -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="barra-topo">
             <padding>
                 <Insets top="15" right="20" bottom="15" left="20"/>
             </padding>
             <Label text="Matrícula e Desligamento"
-                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                   styleClass="titulo-topo"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Voltar ao menu" onAction="#voltar"
-                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+                    styleClass="botao-topo"/>
         </HBox>
     </top>
 
@@ -47,7 +47,7 @@
             <padding>
                 <Insets top="20" right="10" bottom="20" left="20"/>
             </padding>
-            <Label text="Buscar criança pelo nome" style="-fx-font-weight: bold;"/>
+            <Label text="Buscar criança pelo nome" styleClass="texto-forte"/>
             <TextField fx:id="campoBusca" promptText="Digite parte do nome"/>
             <TableView fx:id="tabelaAlunos" VBox.vgrow="ALWAYS">
                 <columns>
@@ -57,7 +57,7 @@
                 </columns>
             </TableView>
             <Label text="A criança precisa estar cadastrada na tela Alunos."
-                   wrapText="true" style="-fx-text-fill: #607d8b;"/>
+                   wrapText="true" styleClass="texto-suave"/>
         </VBox>
     </left>
 
@@ -69,24 +69,24 @@
 
             <!-- Resumo da criança selecionada -->
             <GridPane hgap="10" vgap="6"
-                      style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12;">
+                      styleClass="cartao">
                 <columnConstraints>
                     <ColumnConstraints minWidth="170"/>
                     <ColumnConstraints hgrow="ALWAYS"/>
                 </columnConstraints>
                 <Label text="Criança" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <Label fx:id="labelAluno" text="Nenhuma criança selecionada" style="-fx-font-weight: bold;"
+                <Label fx:id="labelAluno" text="Nenhuma criança selecionada" styleClass="texto-forte"
                        GridPane.rowIndex="0" GridPane.columnIndex="1"/>
                 <Label text="Responsável legal" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <Label fx:id="labelResponsavelLegal" text="-" style="-fx-font-weight: bold;"
+                <Label fx:id="labelResponsavelLegal" text="-" styleClass="texto-forte"
                        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                 <Label text="Responsável financeiro" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <Label fx:id="labelResponsavelFinanceiro" text="-" style="-fx-font-weight: bold;"
+                <Label fx:id="labelResponsavelFinanceiro" text="-" styleClass="texto-forte"
                        GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-                <Label text="Idade hoje (RF-03)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <Label text="Idade hoje" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                 <Label fx:id="labelIdade" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
                 <Label text="Matrícula atual" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                <Label fx:id="labelMatriculaAtual" text="-" style="-fx-font-weight: bold;"
+                <Label fx:id="labelMatriculaAtual" text="-" styleClass="texto-forte"
                        GridPane.rowIndex="4" GridPane.columnIndex="1"/>
             </GridPane>
 
@@ -113,12 +113,12 @@
                                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
                             <Label fx:id="labelAvisoTurma" wrapText="true" visible="false" managed="false"
-                                   style="-fx-text-fill: #e65100; -fx-font-weight: bold;"
+                                   styleClass="texto-aviso"
                                    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-                            <Label text="Mensalidade (RN-07)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                            <Label text="Mensalidade" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                             <Label fx:id="labelMensalidade" text="-"
-                                   style="-fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-font-size: 14px;"
+                                   styleClass="subtitulo-verde"
                                    GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
                             <CheckBox fx:id="checkAndarilha" text="Andarilha" onAction="#aoAlternarAndarilha"
@@ -127,7 +127,7 @@
                                        promptText="Motivo (obrigatório se for andarilha)"
                                        GridPane.rowIndex="4" GridPane.columnIndex="1"/>
 
-                            <Label text="Andarilha até (RF-11)" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                            <Label text="Andarilha até" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
                             <DatePicker fx:id="campoAndarilhaAte" editable="true" disable="true"
                                         promptText="Prazo previsto (dd/mm/aaaa)"
                                         GridPane.rowIndex="5" GridPane.columnIndex="1"/>
@@ -135,11 +135,11 @@
 
                         <HBox spacing="10">
                             <Button fx:id="botaoMatricular" text="Efetivar matrícula" onAction="#efetivarMatricula"
-                                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                    styleClass="botao-primario"/>
                         </HBox>
 
                         <Separator/>
-                        <Label text="Histórico de matrículas da criança" style="-fx-font-weight: bold;"/>
+                        <Label text="Histórico de matrículas da criança" styleClass="texto-forte"/>
                         <TableView fx:id="tabelaHistorico" prefHeight="150" VBox.vgrow="ALWAYS">
                             <columns>
                                 <TableColumn fx:id="colunaHistNumero" text="Número" prefWidth="120"/>
@@ -174,19 +174,19 @@
                         </GridPane>
 
                         <VBox spacing="6"
-                              style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12;">
-                            <Label text="Cálculo do último mês (proporcional)" style="-fx-font-weight: bold;"/>
+                              styleClass="cartao">
+                            <Label text="Cálculo do último mês (proporcional)" styleClass="texto-forte"/>
                             <Label fx:id="labelBaseCalculo" text="-" wrapText="true"/>
                             <Label fx:id="labelValorProporcional" text="-"
-                                   style="-fx-font-weight: bold; -fx-text-fill: #2e7d32; -fx-font-size: 16px;"/>
+                                   styleClass="subtitulo-verde destaque-16"/>
                             <Label fx:id="labelAviso" text="" wrapText="true"/>
                         </VBox>
 
                         <Label text="Ao desligar, a matrícula e o contrato vigente são encerrados e tudo fica no histórico."
-                               wrapText="true" style="-fx-text-fill: #607d8b;"/>
+                               wrapText="true" styleClass="texto-suave"/>
                         <HBox spacing="10">
                             <Button fx:id="botaoDesligar" text="Desligar criança" onAction="#desligarAluno"
-                                    style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                    styleClass="botao-perigo"/>
                         </HBox>
                     </VBox>
                 </Tab>
@@ -197,7 +197,7 @@
                         <padding>
                             <Insets top="15" right="10" bottom="10" left="10"/>
                         </padding>
-                        <Label text="Valor da mensalidade por faixa etária (RN-07). O reajuste vale no mês do aniversário."
+                        <Label text="Valor da mensalidade por faixa etária. O reajuste vale no mês do aniversário."
                                wrapText="true"/>
                         <TableView fx:id="tabelaFaixas" prefHeight="170">
                             <columns>
@@ -206,7 +206,7 @@
                                 <TableColumn fx:id="colunaFaixaValor" text="Valor" prefWidth="120"/>
                             </columns>
                         </TableView>
-                        <Label text="Reajustar a faixa selecionada (Direção e Suporte)" style="-fx-font-weight: bold;"/>
+                        <Label text="Reajustar a faixa selecionada (Direção e Suporte)" styleClass="texto-forte"/>
                         <GridPane hgap="10" vgap="10">
                             <columnConstraints>
                                 <ColumnConstraints minWidth="170"/>
@@ -221,7 +221,7 @@
                         </GridPane>
                         <HBox spacing="10">
                             <Button fx:id="botaoReajustar" text="Salvar reajuste" onAction="#reajustarFaixa"
-                                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                    styleClass="botao-primario"/>
                         </HBox>
                     </VBox>
                 </Tab>

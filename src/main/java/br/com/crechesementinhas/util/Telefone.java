@@ -6,6 +6,7 @@ package br.com.crechesementinhas.util;
  */
 public final class Telefone {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Telefone() {
     }
 

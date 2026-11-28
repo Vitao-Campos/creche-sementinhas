@@ -31,14 +31,17 @@ public class ContratoService {
     private final ContratoDAO dao = new ContratoDAO();
     private final AuditoriaService auditoria = new AuditoriaService();
 
+    /** Lista as matrículas ativas, para escolher de qual gerar o contrato. */
     public List<MatriculaResumo> listarMatriculasAtivas() throws SQLException {
         return dao.listarMatriculasAtivas();
     }
 
+    /** Reúne os dados da matrícula, da criança e dos responsáveis usados no contrato. */
     public DadosContrato buscarDados(int idMatricula) throws SQLException {
         return dao.buscarDadosContrato(idMatricula);
     }
 
+    /** Lista as versões do contrato da matrícula, da mais recente para a mais antiga. */
     public List<Contrato> listarContratos(int idMatricula) throws SQLException {
         return dao.listarPorMatricula(idMatricula);
     }
@@ -99,7 +102,7 @@ public class ContratoService {
         // RN-01: precisa de pelo menos um responsável legal vinculado
         if (dados.getResponsaveisLegais().isEmpty()) {
             throw new IllegalArgumentException(
-                    "RN-01: o aluno não tem responsável legal cadastrado. Cadastre-o antes de gerar o contrato.");
+                    "O aluno não tem responsável legal cadastrado. Cadastre-o antes de gerar o contrato.");
         }
         // RN-02 / RN-03: o financeiro precisa ser um responsável ligado ao aluno
         if (dados.buscarResponsavel(novo.getIdResponsavelFinanceiro()) == null) {
@@ -160,7 +163,7 @@ public class ContratoService {
         }
         if (!signatario.isResponsavelLegal()) {
             throw new IllegalArgumentException(
-                    "EX-02: " + signatario.getNome() + " não é responsável legal e não pode assinar o contrato.");
+                    signatario.getNome() + " não é responsável legal e não pode assinar o contrato.");
         }
         if (data == null || data.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Informe a data da assinatura (não pode ser no futuro).");
@@ -238,6 +241,7 @@ public class ContratoService {
         return sb.toString();
     }
 
+    /** Lê o texto-modelo do contrato guardado nos recursos do sistema. */
     private String lerModelo() throws IOException {
         try (InputStream entrada = getClass().getResourceAsStream(MODELO)) {
             if (entrada == null) {

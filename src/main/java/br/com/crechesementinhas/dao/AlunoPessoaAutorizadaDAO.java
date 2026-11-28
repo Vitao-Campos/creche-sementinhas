@@ -47,6 +47,7 @@ public class AlunoPessoaAutorizadaDAO {
             )
             """;
 
+    /** Grava a autorização de uma pessoa para a criança e devolve o identificador gerado. */
     public int inserir(Connection conexao, AlunoPessoaAutorizada a) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_INSERIR)) {
             comando.setInt(1, a.getIdAluno());
@@ -60,6 +61,7 @@ public class AlunoPessoaAutorizadaDAO {
         }
     }
 
+    /** Busca uma autorização pelo identificador. */
     public Optional<AlunoPessoaAutorizada> buscarPorId(Connection conexao, int id) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_BUSCAR_POR_ID)) {
             comando.setInt(1, id);
@@ -84,6 +86,7 @@ public class AlunoPessoaAutorizadaDAO {
         return lista;
     }
 
+    /** Ativa ou desativa a autorização (a retirada mantém o registro no histórico). */
     public void atualizarAtivo(Connection conexao, int id, boolean ativo) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_ATUALIZAR_ATIVO)) {
             comando.setBoolean(1, ativo);
@@ -104,6 +107,7 @@ public class AlunoPessoaAutorizadaDAO {
         }
     }
 
+    /** Converte a linha do resultado da consulta em um objeto AlunoPessoaAutorizada. */
     private AlunoPessoaAutorizada mapear(ResultSet rs) throws SQLException {
         AlunoPessoaAutorizada a = new AlunoPessoaAutorizada();
         a.setIdAlunoPessoaAutorizada(rs.getInt("id_aluno_pessoa_autorizada"));

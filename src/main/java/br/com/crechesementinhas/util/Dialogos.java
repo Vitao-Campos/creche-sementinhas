@@ -6,6 +6,7 @@ import javafx.scene.control.ButtonType;
 /** Caixas de diálogo comuns às telas. */
 public final class Dialogos {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Dialogos() {
     }
 

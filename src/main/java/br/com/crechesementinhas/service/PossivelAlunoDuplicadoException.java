@@ -6,6 +6,7 @@ package br.com.crechesementinhas.service;
  */
 public class PossivelAlunoDuplicadoException extends CadastroAlunoException {
 
+    /** Cria o aviso com a mensagem mostrada na caixa de confirmação. */
     public PossivelAlunoDuplicadoException(String mensagem) {
         super(mensagem);
     }

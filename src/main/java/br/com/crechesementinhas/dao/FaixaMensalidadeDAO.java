@@ -21,12 +21,14 @@ public class FaixaMensalidadeDAO {
              ORDER BY idade_minima_anos
             """;
 
+    /** Lista as faixas de mensalidade, da menor para a maior idade. */
     public List<FaixaMensalidade> listar() throws SQLException {
         try (Connection conexao = ConnectionFactory.getConnection()) {
             return listar(conexao);
         }
     }
 
+    /** Lista as faixas de mensalidade usando a conexão (transação) já aberta. */
     public List<FaixaMensalidade> listar(Connection conexao) throws SQLException {
         List<FaixaMensalidade> faixas = new ArrayList<>();
         try (PreparedStatement comando = conexao.prepareStatement(SQL_LISTAR);

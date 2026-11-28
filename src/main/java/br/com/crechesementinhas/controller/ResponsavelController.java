@@ -108,6 +108,7 @@ public class ResponsavelController {
 
     private final PauseTransition esperaBusca = new PauseTransition(Duration.millis(250));
 
+    /** Prepara a tela de responsáveis: tabelas, formulário, vínculos, permissões e busca. */
     @FXML
     private void initialize() {
         configurarTabelas();
@@ -146,6 +147,7 @@ public class ResponsavelController {
         novoResponsavel();
     }
 
+    /** Define o que cada coluna das tabelas de responsáveis e de vínculos mostra. */
     private void configurarTabelas() {
         colunaNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getNome()));
         colunaCpf.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getCpfFormatado()));
@@ -186,6 +188,10 @@ public class ResponsavelController {
         });
     }
 
+    /**
+     * Configura o formulário: parentescos, lista de crianças, máscaras de digitação e atalhos de
+     * teclado.
+     */
     private void configurarFormulario() {
         comboParentesco.getItems().setAll("Mãe", "Pai", "Avó", "Avô", "Tia", "Tio", "Madrasta", "Padrasto", "Tutor(a)");
 
@@ -258,6 +264,7 @@ public class ResponsavelController {
 
     // ---------------------------------------------------------------- lista
 
+    /** Recarrega a lista de responsáveis conforme o texto da busca e atualiza o total. */
     private void carregarLista() {
         try {
             List<Responsavel> lista = responsavelService.listar(campoBusca.getText());
@@ -279,6 +286,10 @@ public class ResponsavelController {
 
     // ----------------------------------------------------------- formulário
 
+    /**
+     * Limpa o formulário para cadastrar um responsável novo, perguntando antes se há alterações não
+     * salvas.
+     */
     @FXML
     private void novoResponsavel() {
         if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
@@ -302,14 +313,17 @@ public class ResponsavelController {
                 campoJustificativa.getText());
     }
 
+    /** Guarda uma foto do formulário, para saber depois se algo foi alterado. */
     private void guardarEstado() {
         estadoSalvo = fotoDoFormulario();
     }
 
+    /** Diz se o formulário tem dados digitados que ainda não foram salvos. */
     private boolean temAlteracoes() {
         return estadoSalvo != null && !fotoDoFormulario().equals(estadoSalvo);
     }
 
+    /** Abre o responsável escolhido no formulário para edição. */
     private void editar(Responsavel responsavel) {
         responsavelEmEdicao = responsavel;
         labelTituloForm.setText("Editando: " + responsavel.getNome());
@@ -320,6 +334,7 @@ public class ResponsavelController {
         guardarEstado();
     }
 
+    /** Preenche o formulário com os dados do responsável (ou o esvazia quando ele é nulo). */
     private void preencherCampos(Responsavel r) {
         campoNome.setText(r == null ? "" : r.getNome());
         campoCpf.setText(r == null ? "" : r.getCpfFormatado());
@@ -331,6 +346,7 @@ public class ResponsavelController {
         campoJustificativa.clear();
     }
 
+    /** Mostra ou esconde o campo de motivo da alteração (só aparece ao editar). */
     private void mostrarJustificativa(boolean visivel) {
         rotuloJustificativa.setVisible(visivel);
         rotuloJustificativa.setManaged(visivel);
@@ -338,6 +354,7 @@ public class ResponsavelController {
         campoJustificativa.setManaged(visivel);
     }
 
+    /** Cadastra o responsável novo ou grava a alteração. */
     @FXML
     private void salvar() {
         Responsavel dados = new Responsavel();
@@ -370,6 +387,7 @@ public class ResponsavelController {
         }
     }
 
+    /** Marca na tabela o responsável com o identificador informado. */
     private void selecionarNaLista(Integer id) {
         for (Responsavel r : tabelaResponsaveis.getItems()) {
             if (r.getIdResponsavel().equals(id)) {
@@ -402,6 +420,7 @@ public class ResponsavelController {
         atualizarBotaoEncerrar();
     }
 
+    /** Recarrega a tabela de crianças vinculadas ao responsável. */
     private void carregarVinculos() {
         try {
             tabelaVinculos.getItems().setAll(
@@ -411,6 +430,10 @@ public class ResponsavelController {
         }
     }
 
+    /**
+     * Habilita os botões de encerrar e de salvar o vínculo só quando há um vínculo aberto
+     * selecionado e o usuário pode gravar.
+     */
     private void atualizarBotaoEncerrar() {
         AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
         boolean podeGravar = ControleAcesso.temPermissao(Permissao.CADASTRAR_MATRICULA);
@@ -419,6 +442,7 @@ public class ResponsavelController {
         botaoSalvarPapeis.setDisable(!podeGravar || !aberto);
     }
 
+    /** Grava as alterações de responsável legal e financeiro do vínculo selecionado. */
     @FXML
     private void salvarPapeis() {
         AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
@@ -437,6 +461,7 @@ public class ResponsavelController {
         }
     }
 
+    /** Vincula o responsável a uma criança, com parentesco, papéis e data de início. */
     @FXML
     private void vincular() {
         LocalDate inicio;
@@ -472,6 +497,7 @@ public class ResponsavelController {
         }
     }
 
+    /** Encerra o vínculo selecionado na data de hoje, mantendo o histórico. */
     @FXML
     private void encerrarVinculo() {
         AlunoResponsavel escolhido = tabelaVinculos.getSelectionModel().getSelectedItem();
@@ -506,7 +532,7 @@ public class ResponsavelController {
     private void avisarPendencias(Integer idAluno, String mensagemOk) throws SQLException {
         StringBuilder pendencias = new StringBuilder();
         if (idAluno != null && !responsavelService.alunoTemResponsavelLegal(idAluno)) {
-            pendencias.append(" Atenção (RN-01): esta criança ainda não tem nenhum responsável legal vigente;")
+            pendencias.append(" Atenção: esta criança ainda não tem nenhum responsável legal vigente;")
                       .append(" a matrícula só pode ser concluída com pelo menos um.");
         }
         if (idAluno != null && !responsavelService.alunoTemResponsavelFinanceiro(idAluno)) {
@@ -535,6 +561,7 @@ public class ResponsavelController {
         }
     }
 
+    /** Volta ao menu principal, perguntando antes se há alterações não salvas. */
     @FXML
     private void voltar() {
         if (temAlteracoes() && !Dialogos.confirmarDescarte()) {
@@ -545,20 +572,26 @@ public class ResponsavelController {
 
     // ------------------------------------------------------------- utilitários
 
+    /**
+     * Formata o CEP com o traço (00000-000); devolve o texto sem alteração se não tiver 8 números.
+     */
     private String formatarCep(String texto) {
         String digitos = texto == null ? "" : texto.replaceAll("\\D", "");
         return digitos.length() == 8 ? digitos.substring(0, 5) + "-" + digitos.substring(5) : digitos;
     }
 
+    /** Devolve o texto, ou vazio quando for nulo (para preencher campos). */
     private String valor(String texto) {
         return texto == null ? "" : texto;
     }
 
+    /** Mostra na tela a mensagem de erro de acesso ao banco de dados. */
     private void erroDeBanco(SQLException e) {
         e.printStackTrace();
         mostrarMensagem("Não foi possível acessar o banco de dados. Tente novamente.", VERMELHO);
     }
 
+    /** Mostra uma mensagem abaixo do formulário, na cor informada. */
     private void mostrarMensagem(String texto, Color cor) {
         labelMensagem.setText(texto);
         labelMensagem.setTextFill(cor);
@@ -572,6 +605,7 @@ public class ResponsavelController {
         labelAvisoVinculos.setTextFill(cor);
     }
 
+    /** Esconde a mensagem exibida abaixo do formulário. */
     private void esconderMensagem() {
         labelMensagem.setVisible(false);
         labelMensagem.setManaged(false);

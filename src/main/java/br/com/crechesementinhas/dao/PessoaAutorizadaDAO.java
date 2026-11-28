@@ -26,6 +26,7 @@ public class PessoaAutorizadaDAO {
              LIMIT 1
             """;
 
+    /** Grava a pessoa autorizada e devolve o identificador gerado. */
     public int inserir(Connection conexao, PessoaAutorizada p) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_INSERIR)) {
             comando.setString(1, p.getNome());
@@ -38,6 +39,7 @@ public class PessoaAutorizadaDAO {
         }
     }
 
+    /** Busca uma pessoa autorizada já cadastrada pelo RG e pelo nome, para reaproveitá-la. */
     public Optional<PessoaAutorizada> buscarPorRgENome(Connection conexao, String rg, String nome)
             throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_BUSCAR_POR_RG_E_NOME)) {

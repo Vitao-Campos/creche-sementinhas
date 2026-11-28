@@ -21,6 +21,7 @@ public final class Navegacao {
 
     private static Stage janelaPrincipal;
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Navegacao() {
     }
 

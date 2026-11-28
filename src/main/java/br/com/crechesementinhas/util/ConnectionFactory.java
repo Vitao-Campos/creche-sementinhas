@@ -24,9 +24,11 @@ public final class ConnectionFactory {
 
     // Construtor privado: ninguém precisa criar objetos desta classe,
     // todos os métodos são estáticos (boa prática para classes utilitárias).
+    /** Classe só com métodos estáticos: não é instanciada. */
     private ConnectionFactory() {
     }
 
+    /** Lê as configurações de conexão do arquivo db.properties. */
     private static Properties carregarConfiguracao() {
         Properties propriedades = new Properties();
 

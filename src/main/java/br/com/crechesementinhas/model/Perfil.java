@@ -31,12 +31,14 @@ public enum Perfil {
     private final String descricao;
     private final Set<Permissao> permissoes;
 
+    /** Cria o perfil com a descrição mostrada na tela e as permissões que ele concede. */
     Perfil(String descricao, EnumSet<Permissao> permissoes) {
         this.descricao = descricao;
         // Imutável: ninguém consegue adicionar permissões em tempo de execução.
         this.permissoes = Collections.unmodifiableSet(permissoes);
     }
 
+    /** Devolve a descrição. */
     public String getDescricao() {
         return descricao;
     }

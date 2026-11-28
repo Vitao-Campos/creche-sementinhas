@@ -148,6 +148,7 @@ public class TurmaService {
         }
     }
 
+    /** Lança erro com todas as mensagens quando a lista de erros não está vazia. */
     private static void exigirSemErros(List<String> erros) {
         if (!erros.isEmpty()) {
             throw new MatriculaException(String.join("\n", erros));

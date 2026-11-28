@@ -10,6 +10,7 @@ import java.time.Period;
  */
 public final class CalculadoraIdade {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private CalculadoraIdade() {
     }
 

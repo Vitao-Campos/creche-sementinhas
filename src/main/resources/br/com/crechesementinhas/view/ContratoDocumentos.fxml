@@ -22,6 +22,7 @@
 <!-- Tela da Frente F: Contrato e documentos -->
 <BorderPane prefHeight="760.0" prefWidth="1100.0"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@estilo.css" styleClass="fundo-tela"
             fx:controller="br.com.crechesementinhas.controller.ContratoDocumentosController">
 
    <!-- ===================== TOPO: escolha da matrícula ===================== -->
@@ -29,11 +30,9 @@
       <VBox spacing="6.0">
          <padding><Insets bottom="8.0" left="12.0" right="12.0" top="12.0" /></padding>
                  <HBox alignment="CENTER_LEFT" spacing="8.0">
-            <Label text="Contrato e documentos">
-               <font><Font name="System Bold" size="18.0" /></font>
-            </Label>
+            <Label text="Contrato e documentos" styleClass="titulo-secao-grande" />
             <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#voltar" text="Voltar ao menu" />
+            <Button onAction="#voltar" text="Voltar ao menu" styleClass="botao-secundario" />
          </HBox>
          <HBox alignment="CENTER_LEFT" spacing="8.0">
             <Label text="Matrícula:" />
@@ -74,7 +73,7 @@
                </GridPane>
 
                <HBox spacing="8.0">
-                  <Button fx:id="btnGerarVersao" onAction="#onGerarNovaVersao" text="Gerar nova versão" defaultButton="true" />
+                  <Button fx:id="btnGerarVersao" styleClass="botao-primario" onAction="#onGerarNovaVersao" text="Gerar nova versão" defaultButton="true" />
                   <Button fx:id="btnRematricula" onAction="#onRematricula" text="Rematrícula (próximo ano)" />
                </HBox>
 
@@ -100,7 +99,7 @@
                   <ComboBox fx:id="cbSignatario" prefWidth="280.0" />
                   <Label text="em" />
                   <DatePicker fx:id="dpAssinatura" prefWidth="130.0" />
-                  <Button fx:id="btnAssinar" onAction="#onRegistrarAssinatura" text="Registrar assinatura" />
+                  <Button fx:id="btnAssinar" styleClass="botao-primario" onAction="#onRegistrarAssinatura" text="Registrar assinatura" />
                   <Separator orientation="VERTICAL" />
                   <Button onAction="#onSalvarPdf" text="Salvar PDF" />
                   <Button onAction="#onAbrirImprimir" text="Abrir para imprimir" />
@@ -118,7 +117,7 @@
                <HBox alignment="CENTER_LEFT" spacing="8.0">
                   <Label text="Tipo:" />
                   <ComboBox fx:id="cbTipoDocumento" prefWidth="240.0" promptText="Selecione o tipo" />
-                  <Button fx:id="btnAnexar" onAction="#onAnexarDocumento" text="Escolher arquivo e anexar..." />
+                  <Button fx:id="btnAnexar" styleClass="botao-primario" onAction="#onAnexarDocumento" text="Escolher arquivo e anexar..." />
                   <Label text="Aceita PDF, JPEG ou PNG de até 5 MB" />
                </HBox>
                <TableView fx:id="tabelaDocumentos" VBox.vgrow="ALWAYS">
@@ -131,7 +130,7 @@
                </TableView>
                <HBox spacing="8.0">
                   <Button onAction="#onAbrirDocumento" text="Abrir documento" />
-                  <Button fx:id="btnValidar" onAction="#onValidarDocumento" text="Marcar como validado" />
+                  <Button fx:id="btnValidar" styleClass="botao-primario" onAction="#onValidarDocumento" text="Marcar como validado" />
                </HBox>
             </VBox>
          </Tab>

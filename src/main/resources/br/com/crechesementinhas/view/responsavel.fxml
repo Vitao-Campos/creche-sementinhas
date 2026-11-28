@@ -22,19 +22,19 @@
             fx:controller="br.com.crechesementinhas.controller.ResponsavelController"
             prefWidth="1100" prefHeight="720"
             stylesheets="@estilo.css"
-            style="-fx-background-color: #f4f6f9;">
+            styleClass="fundo-tela">
 
     <!-- Barra superior: título e volta para o menu -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="barra-topo">
             <padding>
                 <Insets top="15" right="20" bottom="15" left="20"/>
             </padding>
             <Label text="Responsáveis"
-                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                   styleClass="titulo-topo"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Voltar ao menu" onAction="#voltar"
-                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+                    styleClass="botao-topo"/>
         </HBox>
     </top>
 
@@ -44,7 +44,7 @@
             <padding>
                 <Insets top="20" right="10" bottom="20" left="20"/>
             </padding>
-            <Label text="Buscar por nome ou CPF" style="-fx-font-weight: bold;"/>
+            <Label text="Buscar por nome ou CPF" styleClass="texto-forte"/>
             <TextField fx:id="campoBusca" promptText="Digite parte do nome ou do CPF"/>
             <TableView fx:id="tabelaResponsaveis" VBox.vgrow="ALWAYS">
                 <columns>
@@ -53,20 +53,20 @@
                     <TableColumn fx:id="colunaTelefone" text="Telefone" prefWidth="105"/>
                 </columns>
             </TableView>
-            <Label fx:id="labelTotal" style="-fx-text-fill: #607d8b;"/>
+            <Label fx:id="labelTotal" styleClass="texto-suave"/>
         </VBox>
     </left>
 
     <!-- Centro: formulário do responsável e vínculos com as crianças -->
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: #f4f6f9;">
+        <ScrollPane fitToWidth="true" styleClass="scroll-transparente">
             <VBox spacing="10">
                 <padding>
                     <Insets top="20" right="20" bottom="20" left="10"/>
                 </padding>
 
                 <Label fx:id="labelTituloForm" text="Novo responsável"
-                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+                       styleClass="titulo-secao-grande"/>
 
                 <GridPane hgap="10" vgap="8">
                     <columnConstraints>
@@ -108,11 +108,11 @@
 
                 <HBox spacing="10">
                     <Button fx:id="botaoSalvar" text="Salvar" defaultButton="true" onAction="#salvar"
-                            style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                            styleClass="botao-primario"/>
                     <Button fx:id="botaoNovo" text="Novo responsável" onAction="#novoResponsavel"
-                            style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+                            styleClass="botao-secundario"/>
                     <Button fx:id="botaoHistorico" text="Ver histórico de alterações" onAction="#verHistorico"
-                            style="-fx-background-color: white; -fx-text-fill: #37474f; -fx-border-color: #90a4ae;"/>
+                            styleClass="botao-neutro"/>
                 </HBox>
 
                 <Separator/>
@@ -120,7 +120,7 @@
                 <!-- Vínculos com as crianças (só depois que o responsável estiver salvo) -->
                 <VBox fx:id="painelVinculos" spacing="8">
                     <Label text="Crianças vinculadas"
-                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+                           styleClass="titulo-secao"/>
                     <Label fx:id="labelAvisoVinculos" wrapText="true"/>
 
                     <TableView fx:id="tabelaVinculos" prefHeight="150" minHeight="150">
@@ -136,12 +136,12 @@
 
                     <HBox spacing="10">
                         <Button fx:id="botaoSalvarPapeis" text="Salvar alterações do vínculo" onAction="#salvarPapeis"
-                                style="-fx-background-color: #1565c0; -fx-text-fill: white;"/>
+                                styleClass="botao-info"/>
                         <Button fx:id="botaoEncerrar" text="Encerrar vínculo selecionado" onAction="#encerrarVinculo"
-                                style="-fx-background-color: white; -fx-text-fill: #c62828; -fx-border-color: #c62828;"/>
+                                styleClass="botao-perigo-contorno"/>
                     </HBox>
 
-                    <Label text="Novo vínculo" style="-fx-font-weight: bold; -fx-padding: 8 0 0 0;"/>
+                    <Label text="Novo vínculo" styleClass="texto-forte texto-espaco-8"/>
                     <GridPane hgap="10" vgap="8">
                         <columnConstraints>
                             <ColumnConstraints minWidth="110" prefWidth="110"/>
@@ -166,14 +166,14 @@
                         <CheckBox fx:id="checkFinanceiro" text="É quem paga a mensalidade (responsável financeiro)"
                                   GridPane.rowIndex="4" GridPane.columnIndex="1"/>
 
-                        <Label wrapText="true" style="-fx-text-fill: #607d8b;"
+                        <Label wrapText="true" styleClass="texto-suave"
                                text="Quem paga pode ser outra pessoa (avô, padrinho, tio...): cadastre-a como responsável, vincule à criança sem marcar &quot;legal&quot; e marque &quot;responsável financeiro&quot;."
                                GridPane.rowIndex="5" GridPane.columnIndex="1"/>
                     </GridPane>
 
                     <HBox spacing="10">
                         <Button fx:id="botaoVincular" text="Vincular nova criança" onAction="#vincular"
-                                style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                styleClass="botao-primario"/>
                     </HBox>
                 </VBox>
             </VBox>

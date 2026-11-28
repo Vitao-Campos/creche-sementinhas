@@ -21,15 +21,21 @@ public class AutenticacaoService {
     private final UsuarioDAO usuarioDAO;
     private final LogAcessoDAO logAcessoDAO;
 
+    /** Cria o serviço com os acessos ao banco padrão. */
     public AutenticacaoService() {
         this(new UsuarioDAO(), new LogAcessoDAO());
     }
 
+    /** Cria o serviço com os acessos informados (usado em testes). */
     public AutenticacaoService(UsuarioDAO usuarioDAO, LogAcessoDAO logAcessoDAO) {
         this.usuarioDAO = usuarioDAO;
         this.logAcessoDAO = logAcessoDAO;
     }
 
+    /**
+     * Confere login e senha; devolve o usuário se estiverem corretos e registra a tentativa no log
+     * de acesso.
+     */
     public Usuario autenticar(String login, String senha) throws AutenticacaoException {
         if (login == null || login.isBlank() || senha == null || senha.isEmpty()) {
             throw new AutenticacaoException("Informe o usuário e a senha.");

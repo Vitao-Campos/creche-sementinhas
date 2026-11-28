@@ -43,6 +43,7 @@ public class LogAcessoDAO {
     }
 
     // Evita erro no banco se alguém digitar um login enorme no campo.
+    /** Corta o texto no tamanho máximo aceito pela coluna do banco. */
     private String limitarTamanho(String texto) {
         return texto.length() <= TAMANHO_MAXIMO_LOGIN
                 ? texto

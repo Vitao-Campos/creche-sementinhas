@@ -83,6 +83,7 @@ public class TurmasController {
 
     private AlunoTurma selecionado;
 
+    /** Prepara a tela de turmas: tabelas, filtros, buscas e permissões. */
     @FXML
     private void initialize() {
         configurarTabelas();
@@ -105,6 +106,7 @@ public class TurmasController {
     //  CARGA DOS DADOS
     // =================================================================
 
+    /** Carrega as turmas nas tabelas e caixas de seleção, mantendo o filtro atual. */
     private void carregarTurmas() {
         try {
             List<Turma> turmas = turmaService.listarTurmas();
@@ -121,6 +123,7 @@ public class TurmasController {
         }
     }
 
+    /** Carrega a lista de crianças conforme os filtros e mantém a criança selecionada. */
     private void carregarAlunos() {
         Integer idSelecionado = selecionado == null ? null : selecionado.getIdAluno();
         try {
@@ -155,6 +158,7 @@ public class TurmasController {
         }
     }
 
+    /** Mostra os dados da criança escolhida e o que pode ser feito com ela. */
     private void selecionar(AlunoTurma aluno) {
         selecionado = aluno;
         esconder(labelAvisoTroca);
@@ -197,12 +201,16 @@ public class TurmasController {
     //  TROCA DE TURMA (só com confirmação)
     // =================================================================
 
+    /**
+     * Mostra o aviso de faixa etária quando a turma escolhida não combina com a idade da criança.
+     */
     private void atualizarAvisoTroca() {
         esconder(labelAvisoTroca);
         turmaService.avisoFaixaNaNovaTurma(selecionado, comboNovaTurma.getValue())
                 .ifPresent(aviso -> mostrar(labelAvisoTroca, "Atenção: " + aviso));
     }
 
+    /** Troca a criança de turma, com motivo, registrando no histórico. */
     @FXML
     private void trocarTurma() {
         esconder(labelMensagem);
@@ -238,6 +246,7 @@ public class TurmasController {
     //  ANDARILHA
     // =================================================================
 
+    /** Libera ou trava os campos do regime andarilha conforme a caixa marcada. */
     @FXML
     private void aoAlternarAndarilha() {
         campoMotivoAndarilha.setDisable(!checkAndarilha.isSelected());
@@ -248,6 +257,7 @@ public class TurmasController {
         }
     }
 
+    /** Grava o regime andarilha da matrícula (motivo e prazo). */
     @FXML
     private void salvarAndarilha() {
         esconder(labelMensagem);
@@ -293,6 +303,7 @@ public class TurmasController {
         }
     }
 
+    /** Limpa a busca e os filtros da lista de crianças. */
     @FXML
     private void limparFiltros() {
         campoBusca.clear();
@@ -301,17 +312,20 @@ public class TurmasController {
         checkSomenteAlerta.setSelected(false);
     }
 
+    /** Volta ao menu principal. */
     @FXML
     private void voltar() {
         Navegacao.abrir("menu.fxml", "Menu");
     }
 
+    /** Recarrega as turmas e a lista de crianças, mantendo a seleção. */
     private void recarregarTudo() {
         carregarTurmas();
         carregarAlunos();
         selecionar(tabelaAlunos.getSelectionModel().getSelectedItem());
     }
 
+    /** Define o que cada coluna das tabelas da tela mostra. */
     private void configurarTabelas() {
         LocalDate hoje = LocalDate.now();
         colunaNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
@@ -397,6 +411,7 @@ public class TurmasController {
         });
     }
 
+    /** Traduz o código do período da turma (MANHA, TARDE, INTEGRAL) para o texto da tela. */
     private static String periodo(String codigo) {
         if (codigo == null) {
             return "";
@@ -409,6 +424,7 @@ public class TurmasController {
         };
     }
 
+    /** Abre uma caixa de confirmação (Sim/Não); devolve verdadeiro se a pessoa confirmar. */
     private boolean confirmar(String titulo, String texto) {
         Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, texto, ButtonType.YES, ButtonType.NO);
         alerta.setTitle(titulo);
@@ -416,22 +432,26 @@ public class TurmasController {
         return alerta.showAndWait().orElse(ButtonType.NO) == ButtonType.YES;
     }
 
+    /** Mostra uma mensagem de sucesso, em verde. */
     private void sucesso(String texto) {
         labelMensagem.setStyle("-fx-text-fill: #2e7d32; -fx-font-weight: bold;");
         mostrar(labelMensagem, texto);
     }
 
+    /** Mostra uma mensagem de erro, em vermelho. */
     private void erro(String texto) {
         labelMensagem.setStyle("-fx-text-fill: #c62828; -fx-font-weight: bold;");
         mostrar(labelMensagem, texto);
     }
 
+    /** Torna visível o rótulo, com o texto informado. */
     private static void mostrar(Label label, String texto) {
         label.setText(texto);
         label.setVisible(true);
         label.setManaged(true);
     }
 
+    /** Esconde o rótulo e libera o espaço que ele ocupava. */
     private static void esconder(Label label) {
         label.setVisible(false);
         label.setManaged(false);

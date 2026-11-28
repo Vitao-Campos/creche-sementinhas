@@ -17,6 +17,7 @@ public final class CalculadoraMensalidade {
     /** RN-12: o desligamento exige comunicação com 30 dias corridos de antecedência. */
     public static final int AVISO_PREVIO_DIAS = 30;
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private CalculadoraMensalidade() {
     }
 

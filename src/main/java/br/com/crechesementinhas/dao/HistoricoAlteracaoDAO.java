@@ -74,6 +74,7 @@ public class HistoricoAlteracaoDAO {
         return historico;
     }
 
+    /** Converte a linha do resultado da consulta em um objeto HistoricoAlteracao. */
     private HistoricoAlteracao mapear(ResultSet resultado) throws SQLException {
         return new HistoricoAlteracao(
                 resultado.getInt("id_historico"),

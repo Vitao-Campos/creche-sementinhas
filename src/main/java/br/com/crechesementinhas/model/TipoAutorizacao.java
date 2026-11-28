@@ -11,14 +11,17 @@ public enum TipoAutorizacao {
 
     private final String descricao;
 
+    /** Cria o tipo com o texto mostrado na tela. */
     TipoAutorizacao(String descricao) {
         this.descricao = descricao;
     }
 
+    /** Devolve a descrição. */
     public String getDescricao() {
         return descricao;
     }
 
+    /** Texto do tipo nas listas: a descrição. */
     @Override
     public String toString() {
         return descricao;

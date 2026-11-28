@@ -20,11 +20,13 @@ public enum SituacaoFaixaEtaria {
     private final String descricao;
     private final boolean alerta;
 
+    /** Cria a situação com a descrição e a indicação de que exige alerta. */
     SituacaoFaixaEtaria(String descricao, boolean alerta) {
         this.descricao = descricao;
         this.alerta = alerta;
     }
 
+    /** Devolve a descrição. */
     public String getDescricao() {
         return descricao;
     }
@@ -61,6 +63,7 @@ public enum SituacaoFaixaEtaria {
         return andarilhaAte != null && !hoje.isAfter(andarilhaAte) ? ANDARILHA : ANDARILHA_VENCIDA;
     }
 
+    /** Texto da situação nas listas: a descrição. */
     @Override
     public String toString() {
         return descricao;

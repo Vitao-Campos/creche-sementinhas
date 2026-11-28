@@ -24,10 +24,12 @@ public class AuditoriaService {
 
     private final HistoricoAlteracaoDAO historicoDAO;
 
+    /** Cria o serviço de auditoria com o acesso ao banco padrão. */
     public AuditoriaService() {
         this(new HistoricoAlteracaoDAO());
     }
 
+    /** Cria o serviço de auditoria com o acesso ao histórico informado (usado em testes). */
     public AuditoriaService(HistoricoAlteracaoDAO historicoDAO) {
         this.historicoDAO = historicoDAO;
     }
@@ -65,6 +67,7 @@ public class AuditoriaService {
         return historicoDAO.listarPorEntidade(entidade, idEntidade);
     }
 
+    /** Monta o registro de histórico com o usuário logado e o grava na mesma transação. */
     private void gravar(Connection conexao, String entidade, int idEntidade, TipoAlteracao tipo,
                         String campo, String anterior, String novo, String justificativa)
             throws SQLException {
@@ -80,6 +83,7 @@ public class AuditoriaService {
     }
 
     // Object → String: funciona com textos, números, datas e booleanos.
+    /** Converte o valor para texto (nulo continua nulo). */
     private String emTexto(Object valor) {
         return valor == null ? null : valor.toString();
     }
