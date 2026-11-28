@@ -24,7 +24,8 @@ public final class HistoricoFormatador {
             "aluno_responsavel", "Vínculo com responsável",
             "pessoa_autorizada", "Pessoa autorizada",
             "aluno_pessoa_autorizada", "Autorização para buscar",
-            "matricula", "Matrícula");
+            "matricula", "Matrícula",
+            "ficha_anamnese", "Ficha de anamnese");
 
     private static final Map<String, String> CAMPOS = Map.ofEntries(
             Map.entry("nome", "Nome"),
@@ -46,7 +47,26 @@ public final class HistoricoFormatador {
             Map.entry("motivo_andarilha", "Motivo da andarilha"),
             Map.entry("andarilha_ate", "Andarilha até"),
             Map.entry("status", "Situação"),
-            Map.entry("data_encerramento", "Data de encerramento"));
+            Map.entry("data_encerramento", "Data de encerramento"),
+            Map.entry("autorizacao_imagem", "Autoriza uso de imagem"),
+            Map.entry("possui_alergia", "Possui alergia"),
+            Map.entry("descricao_alergia", "Descrição da alergia"),
+            Map.entry("restricoes_alimentares", "Restrição alimentar"),
+            Map.entry("descricao_restricao", "Descrição da restrição alimentar"),
+            Map.entry("receita_antitermico", "Antitérmico autorizado"),
+            Map.entry("possui_cirurgia", "Já fez cirurgia"),
+            Map.entry("descricao_cirurgia", "Descrição da cirurgia"),
+            Map.entry("possui_problemas_saude", "Problemas de saúde"),
+            Map.entry("descricao_problemas_saude", "Descrição dos problemas de saúde"),
+            Map.entry("usa_medicacao_continua", "Medicação contínua"),
+            Map.entry("descricao_medicacao", "Descrição da medicação"),
+            Map.entry("possui_fraturas", "Já teve fraturas"),
+            Map.entry("descricao_fratura", "Descrição da fratura"),
+            Map.entry("usa_mamadeira", "Usa mamadeira"),
+            Map.entry("usa_formula", "Usa fórmula"),
+            Map.entry("descricao_formula", "Descrição da fórmula"),
+            Map.entry("usa_chupeta", "Usa chupeta"),
+            Map.entry("usa_fralda", "Usa fralda"));
 
     private HistoricoFormatador() {
     }

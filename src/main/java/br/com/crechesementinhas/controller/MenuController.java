@@ -44,7 +44,7 @@ public class MenuController {
 
     @FXML
     private void anamnese() {
-        emDesenvolvimento("Ficha de Anamnese", "D");
+        Navegacao.abrir("anamnese.fxml", "Ficha de Anamnese");
     }
 
     @FXML
