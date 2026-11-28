@@ -77,11 +77,17 @@
                 <Label text="Criança" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                 <Label fx:id="labelAluno" text="Nenhuma criança selecionada" style="-fx-font-weight: bold;"
                        GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                <Label text="Idade hoje (RF-03)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <Label fx:id="labelIdade" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                <Label text="Matrícula atual" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <Label fx:id="labelMatriculaAtual" text="-" style="-fx-font-weight: bold;"
+                <Label text="Responsável legal" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="labelResponsavelLegal" text="-" style="-fx-font-weight: bold;"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                <Label text="Responsável financeiro" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <Label fx:id="labelResponsavelFinanceiro" text="-" style="-fx-font-weight: bold;"
                        GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                <Label text="Idade hoje (RF-03)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <Label fx:id="labelIdade" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                <Label text="Matrícula atual" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <Label fx:id="labelMatriculaAtual" text="-" style="-fx-font-weight: bold;"
+                       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
             </GridPane>
 
             <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">

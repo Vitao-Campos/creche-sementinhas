@@ -60,7 +60,7 @@ public class ContratoDAO {
         // Só vínculos que ainda valem (data_fim vazia ou no futuro).
         String sqlResponsaveis = """
                 SELECT r.id_responsavel, r.nome, r.cpf, r.telefone, r.endereco,
-                       ar.grau_parentesco, ar.responsavel_legal
+                       ar.grau_parentesco, ar.responsavel_legal, ar.responsavel_financeiro
                 FROM aluno_responsavel ar
                 JOIN responsavel r ON r.id_responsavel = ar.id_responsavel
                 WHERE ar.id_aluno = ?
@@ -103,7 +103,8 @@ public class ContratoDAO {
                                 rs.getString("telefone"),
                                 rs.getString("endereco"),
                                 rs.getString("grau_parentesco"),
-                                rs.getBoolean("responsavel_legal")));
+                                rs.getBoolean("responsavel_legal"),
+                                rs.getBoolean("responsavel_financeiro")));
                     }
                 }
             }

@@ -6,6 +6,7 @@ import br.com.crechesementinhas.dao.ContratoDAO;
 import br.com.crechesementinhas.dao.MatriculaDAO;
 import br.com.crechesementinhas.dao.TurmaDAO;
 import br.com.crechesementinhas.model.Aluno;
+import br.com.crechesementinhas.model.AlunoResponsavel;
 import br.com.crechesementinhas.model.Contrato;
 import br.com.crechesementinhas.model.Desligamento;
 import br.com.crechesementinhas.model.FaixaMensalidade;
@@ -45,6 +46,14 @@ public class MatriculaService {
     public boolean temResponsavelLegal(Aluno aluno) throws SQLException {
         return Transacao.executar(conexao ->
                 alunoResponsavelDAO.contarLegaisVigentes(conexao, aluno.getIdAluno(), LocalDate.now()) > 0);
+    }
+
+    /** Responsáveis (legais e financeiro) com vínculo vigente hoje, para a tela mostrar quem são. */
+    public List<AlunoResponsavel> responsaveisVigentes(Aluno aluno) throws SQLException {
+        LocalDate hoje = LocalDate.now();
+        return alunoResponsavelDAO.listarPorAluno(aluno.getIdAluno()).stream()
+                .filter(v -> v.estaVigente(hoje))
+                .toList();
     }
 
     public List<Turma> listarTurmas() throws SQLException {
@@ -99,6 +108,12 @@ public class MatriculaService {
             if (alunoResponsavelDAO.contarLegaisVigentes(conexao, aluno.getIdAluno(), LocalDate.now()) == 0) {
                 throw new MatriculaException("A criança precisa ter pelo menos um responsável legal "
                         + "antes da matrícula. Cadastre na tela Responsáveis.");
+            }
+
+            // UC-01 / RN-02 / RN-03: a matrícula qualifica o responsável financeiro (o contrato exige um)
+            if (alunoResponsavelDAO.contarFinanceirosVigentes(conexao, aluno.getIdAluno(), LocalDate.now()) == 0) {
+                throw new MatriculaException("A criança precisa ter um responsável financeiro antes da matrícula. "
+                        + "Indique na tela Responsáveis (ou marque o responsável legal como financeiro).");
             }
 
             Optional<String> aviso = MatriculaValidador.avisoFaixaEtaria(aluno, atual, dataMatricula);

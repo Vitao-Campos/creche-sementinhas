@@ -17,6 +17,7 @@ import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.CalculadoraIdade;
 import br.com.crechesementinhas.util.Dialogos;
 import br.com.crechesementinhas.util.Cpf;
+import br.com.crechesementinhas.util.Mascara;
 import br.com.crechesementinhas.util.Navegacao;
 import br.com.crechesementinhas.util.Telefone;
 import java.sql.SQLException;
@@ -214,6 +215,8 @@ public class AlunoController {
         // A idade aparece enquanto a data é digitada ou escolhida (RF-03).
         campoNascimento.getEditor().textProperty().addListener((obs, antigo, novo) -> atualizarIdade());
 
+        Mascara.cpf(campoCpf);
+        Mascara.data(campoNascimento.getEditor());
         // Ao sair do campo CPF, mostra com pontos e traço (se tiver 11 dígitos).
         campoCpf.focusedProperty().addListener((obs, tinha, tem) -> {
             if (!tem) {
@@ -431,6 +434,7 @@ public class AlunoController {
                 "Madrinha", "Padrinho", "Vizinho(a)", "Amigo(a) da família");
         comboAutTipo.getItems().setAll(TipoAutorizacao.values());
 
+        Mascara.telefone(campoAutTelefone);
         campoAutTelefone.focusedProperty().addListener((obs, tinha, tem) -> {
             if (!tem) {
                 campoAutTelefone.setText(Telefone.formatar(Telefone.normalizar(campoAutTelefone.getText())));

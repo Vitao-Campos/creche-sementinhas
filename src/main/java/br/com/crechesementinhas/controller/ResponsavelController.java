@@ -11,6 +11,7 @@ import br.com.crechesementinhas.service.HistoricoService;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.Cpf;
 import br.com.crechesementinhas.util.Dialogos;
+import br.com.crechesementinhas.util.Mascara;
 import br.com.crechesementinhas.util.Navegacao;
 import br.com.crechesementinhas.util.Telefone;
 import java.sql.SQLException;
@@ -217,6 +218,10 @@ public class ResponsavelController {
             }
         });
 
+        Mascara.cpf(campoCpf);
+        Mascara.data(campoVinculoInicio.getEditor());
+        Mascara.telefone(campoTelefone);
+        Mascara.cep(campoCep);
         // Ao sair do campo, mostra CPF, telefone e CEP com a máscara.
         campoCpf.focusedProperty().addListener((obs, tinha, tem) -> {
             if (!tem) {
