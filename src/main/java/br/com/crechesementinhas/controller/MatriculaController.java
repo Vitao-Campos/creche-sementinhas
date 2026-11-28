@@ -12,6 +12,7 @@ import br.com.crechesementinhas.service.CadastroResponsavelException;
 import br.com.crechesementinhas.service.ControleAcesso;
 import br.com.crechesementinhas.service.MatriculaException;
 import br.com.crechesementinhas.service.MatriculaService;
+import br.com.crechesementinhas.service.MatriculaValidador;
 import br.com.crechesementinhas.service.MensalidadeService;
 import br.com.crechesementinhas.service.ResponsavelService;
 import br.com.crechesementinhas.util.Formatador;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
@@ -255,7 +257,12 @@ public class MatriculaController {
 
         AlunoResponsavel escolhido = legais.get(0);
         if (legais.size() > 1) {
-            List<String> nomes = legais.stream().map(AlunoResponsavel::getNomeResponsavel).toList();
+            // Nomes repetidos (homônimos) ganham o número do vínculo, para a escolha não cair na pessoa errada
+            List<String> nomes = legais.stream()
+                    .map(v -> legais.stream().filter(o -> Objects.equals(o.getNomeResponsavel(), v.getNomeResponsavel()))
+                            .count() > 1 ? v.getNomeResponsavel() + " (vínculo " + v.getIdAlunoResponsavel() + ")"
+                            : v.getNomeResponsavel())
+                    .toList();
             ChoiceDialog<String> dialogo = new ChoiceDialog<>(nomes.get(0), nomes);
             dialogo.setTitle("Responsável financeiro");
             dialogo.setHeaderText("Qual responsável legal será o financeiro?");
@@ -321,17 +328,23 @@ public class MatriculaController {
         esconder(labelMensagem);
         Turma turma = comboTurma.getValue();
         LocalDate data = campoDataMatricula.getValue();
-        if (!resolverResponsavelFinanceiro()) {
-            return;
-        }
+        // Dados da tela com erro (turma, data, andarilha): o service mostra a mensagem, e nada é
+        // alterado nos responsáveis antes disso.
+        boolean dadosDaTelaOk = MatriculaValidador.validarEfetivacao(alunoSelecionado, turma, data,
+                checkAndarilha.isSelected(), campoMotivoAndarilha.getText(), campoAndarilhaAte.getValue(),
+                false, LocalDate.now()).isEmpty();
         try {
             boolean confirmou = false;
             Optional<String> aviso = matriculaService.avisoFaixaEtaria(alunoSelecionado, turma, data);
-            if (aviso.isPresent()) {
+            if (aviso.isPresent() && dadosDaTelaOk) {
                 if (!confirmar("Faixa etária da turma", aviso.get() + "\n\nMatricular mesmo assim?")) {
                     return;
                 }
                 confirmou = true;
+            }
+            // Só depois das confirmações: assim, desistir não deixa o vínculo alterado à toa
+            if (dadosDaTelaOk && !resolverResponsavelFinanceiro()) {
+                return;
             }
             Matricula nova = matriculaService.efetivar(alunoSelecionado, turma, data,
                     checkAndarilha.isSelected(), campoMotivoAndarilha.getText(),
