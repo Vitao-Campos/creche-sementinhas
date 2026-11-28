@@ -15,6 +15,7 @@ public final class AutorizadoValidador {
     static final int MAX_RG = 14;
     static final int MAX_PARENTESCO = 30;
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private AutorizadoValidador() {
     }
 
@@ -57,6 +58,7 @@ public final class AutorizadoValidador {
         return erros;
     }
 
+    /** Remove os espaços das pontas; devolve nulo se o texto ficar vazio. */
     private static String aparar(String texto) {
         if (texto == null) {
             return null;

@@ -22,10 +22,12 @@ public class AlunoService {
     private final AlunoDAO alunoDAO;
     private final AuditoriaService auditoria;
 
+    /** Cria o serviço com os acessos ao banco padrão. */
     public AlunoService() {
         this(new AlunoDAO(), new AuditoriaService());
     }
 
+    /** Cria o serviço com os acessos informados (usado em testes). */
     public AlunoService(AlunoDAO alunoDAO, AuditoriaService auditoria) {
         this.alunoDAO = alunoDAO;
         this.auditoria = auditoria;
@@ -114,6 +116,7 @@ public class AlunoService {
         }
     }
 
+    /** Limpa os dados do aluno e lança erro com todas as mensagens se algo estiver inválido. */
     private void prepararEValidar(Aluno aluno) {
         AlunoValidador.normalizar(aluno);
         List<String> erros = AlunoValidador.validar(aluno, LocalDate.now());

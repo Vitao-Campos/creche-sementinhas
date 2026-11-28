@@ -18,19 +18,19 @@
             fx:controller="br.com.crechesementinhas.controller.UsuariosController"
             prefWidth="1000" prefHeight="620"
             stylesheets="@estilo.css"
-            style="-fx-background-color: #f4f6f9;">
+            styleClass="fundo-tela">
 
     <!-- Barra superior -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="barra-topo">
             <padding>
                 <Insets top="15" right="20" bottom="15" left="20"/>
             </padding>
             <Label text="Gerenciar Usuários"
-                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                   styleClass="titulo-topo"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Voltar ao menu" onAction="#voltar"
-                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+                    styleClass="botao-topo"/>
         </HBox>
     </top>
 
@@ -56,7 +56,7 @@
     <!-- Direita: formulário de cadastro/edição -->
     <right>
         <VBox spacing="8" prefWidth="320"
-              style="-fx-background-color: white; -fx-background-radius: 10;">
+              styleClass="cartao">
             <BorderPane.margin>
                 <Insets top="15" right="15" bottom="15" left="5"/>
             </BorderPane.margin>
@@ -65,7 +65,7 @@
             </padding>
 
             <Label fx:id="labelTituloFormulario" text="Novo usuário"
-                   style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+                   styleClass="titulo-secao"/>
 
             <Label text="Nome"/>
             <TextField fx:id="campoNome"/>
@@ -89,7 +89,7 @@
             <Region VBox.vgrow="ALWAYS"/>
 
             <Button text="Salvar" onAction="#salvar" maxWidth="Infinity"
-                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                    styleClass="botao-primario"/>
             <Button fx:id="botaoRedefinirSenha" text="Redefinir senha" onAction="#redefinirSenha"
                     maxWidth="Infinity" disable="true"/>
             <Button text="Novo usuário" onAction="#novo" maxWidth="Infinity"/>

@@ -83,6 +83,7 @@ public class FichaAnamneseDAO {
         return lista;
     }
 
+    /** Busca os dados da criança e da matrícula que aparecem no topo da ficha. */
     public Optional<CabecalhoFicha> buscarCabecalho(Connection conexao, int idMatricula) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_CABECALHO)) {
             comando.setInt(1, idMatricula);
@@ -97,6 +98,7 @@ public class FichaAnamneseDAO {
         }
     }
 
+    /** Busca a ficha de anamnese da matrícula, se já foi preenchida. */
     public Optional<FichaAnamnese> buscarPorMatricula(Connection conexao, int idMatricula) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_BUSCAR)) {
             comando.setInt(1, idMatricula);
@@ -106,6 +108,7 @@ public class FichaAnamneseDAO {
         }
     }
 
+    /** Grava a ficha de anamnese nova e devolve o identificador gerado. */
     public int inserir(Connection conexao, FichaAnamnese f) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_INSERIR)) {
             comando.setInt(1, f.getIdMatricula());
@@ -117,6 +120,7 @@ public class FichaAnamneseDAO {
         }
     }
 
+    /** Atualiza todos os campos da ficha de anamnese existente. */
     public void atualizar(Connection conexao, FichaAnamnese f) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_ATUALIZAR)) {
             int proximo = preencher(comando, f, 1);
@@ -149,6 +153,7 @@ public class FichaAnamneseDAO {
         return i;
     }
 
+    /** Grava o texto no comando, ou nulo quando o valor é nulo. */
     private void texto(PreparedStatement c, int posicao, String valor) throws SQLException {
         if (valor == null) {
             c.setNull(posicao, Types.VARCHAR);
@@ -157,6 +162,7 @@ public class FichaAnamneseDAO {
         }
     }
 
+    /** Converte a linha do resultado da consulta em um objeto FichaAnamnese. */
     private FichaAnamnese mapear(ResultSet rs) throws SQLException {
         FichaAnamnese f = new FichaAnamnese();
         f.setIdFichaAnamnese(rs.getInt("id_ficha_anamnese"));

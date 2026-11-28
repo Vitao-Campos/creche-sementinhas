@@ -60,6 +60,7 @@ public class TurmaDAO {
         }
     }
 
+    /** Converte a linha do resultado da consulta em um objeto Turma. */
     private Turma mapear(ResultSet rs) throws SQLException {
         Turma t = new Turma();
         t.setIdTurma(rs.getInt("id_turma"));

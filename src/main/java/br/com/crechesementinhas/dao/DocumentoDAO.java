@@ -40,6 +40,7 @@ public class DocumentoDAO {
         }
     }
     
+    /** Lista os documentos anexados à matrícula. */
     public List<Documento> listarPorMatricula(int idMatricula) throws SQLException {
         String sql = """
                 SELECT * FROM documento

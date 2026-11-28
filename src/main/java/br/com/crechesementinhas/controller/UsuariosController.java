@@ -49,6 +49,7 @@ public class UsuariosController {
     // null = modo cadastro; preenchido = modo edição
     private Usuario usuarioSelecionado;
 
+    /** Prepara a tela de usuários: tabela, perfis, formulário e lista inicial. */
     @FXML
     private void initialize() {
         configurarTabela();
@@ -67,6 +68,7 @@ public class UsuariosController {
 
     // ===================== CONFIGURAÇÃO =====================
 
+    /** Define o que cada coluna da tabela de usuários mostra. */
     private void configurarTabela() {
         // Cada coluna "sabe" qual informação do Usuario deve exibir.
         colunaNome.setCellValueFactory(celula -> new SimpleStringProperty(celula.getValue().getNome()));
@@ -77,6 +79,7 @@ public class UsuariosController {
                 new SimpleStringProperty(celula.getValue().isAtivo() ? "Ativo" : "Inativo"));
     }
 
+    /** Preenche a caixa de perfis e define o texto mostrado de cada um. */
     private void configurarComboPerfil() {
         // Perfil.values(): se um perfil novo (ex.: Professor) for criado, ele aparece aqui sozinho.
         comboPerfil.getItems().setAll(Perfil.values());
@@ -95,6 +98,7 @@ public class UsuariosController {
         });
     }
 
+    /** Recarrega a lista de usuários. */
     private void carregarUsuarios() {
         try {
             tabelaUsuarios.getItems().setAll(usuarioService.listar());
@@ -105,6 +109,7 @@ public class UsuariosController {
 
     // ===================== MODOS DO FORMULÁRIO =====================
 
+    /** Limpa o formulário para cadastrar um usuário novo. */
     private void prepararCadastro() {
         usuarioSelecionado = null;
         tabelaUsuarios.getSelectionModel().clearSelection();
@@ -123,6 +128,7 @@ public class UsuariosController {
         esconderMensagem();
     }
 
+    /** Preenche o formulário com o usuário escolhido, para edição (o login não muda). */
     private void prepararEdicao(Usuario usuario) {
         usuarioSelecionado = usuario;
 
@@ -142,11 +148,13 @@ public class UsuariosController {
 
     // ===================== AÇÕES DOS BOTÕES =====================
 
+    /** Começa o cadastro de um usuário novo. */
     @FXML
     private void novo() {
         prepararCadastro();
     }
 
+    /** Cadastra o usuário novo ou grava a alteração do usuário escolhido. */
     @FXML
     private void salvar() {
         try {
@@ -170,6 +178,7 @@ public class UsuariosController {
         }
     }
 
+    /** Define uma nova senha para o usuário escolhido. */
     @FXML
     private void redefinirSenha() {
         if (usuarioSelecionado == null) {
@@ -195,6 +204,7 @@ public class UsuariosController {
         }
     }
 
+    /** Volta ao menu principal. */
     @FXML
     private void voltar() {
         Navegacao.abrir("menu.fxml", "Menu");
@@ -202,6 +212,7 @@ public class UsuariosController {
 
     // ===================== MENSAGENS =====================
 
+    /** Mostra uma mensagem abaixo do formulário, em vermelho (erro) ou verde (sucesso). */
     private void mostrarMensagem(String texto, boolean erro) {
         labelMensagem.setText(texto);
         labelMensagem.setTextFill(erro ? Color.web("#c62828") : Color.web("#2e7d32"));
@@ -209,6 +220,7 @@ public class UsuariosController {
         labelMensagem.setManaged(true);
     }
 
+    /** Esconde a mensagem exibida abaixo do formulário. */
     private void esconderMensagem() {
         labelMensagem.setVisible(false);
         labelMensagem.setManaged(false);

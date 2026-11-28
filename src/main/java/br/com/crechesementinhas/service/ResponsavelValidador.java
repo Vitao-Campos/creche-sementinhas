@@ -23,6 +23,7 @@ public final class ResponsavelValidador {
     // Conferência simples (algo@dominio.ext): o objetivo é pegar erro de digitação, não validar o servidor.
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private ResponsavelValidador() {
     }
 
@@ -106,6 +107,7 @@ public final class ResponsavelValidador {
         return erros;
     }
 
+    /** Remove os espaços das pontas; devolve nulo se o texto ficar vazio. */
     private static String aparar(String texto) {
         if (texto == null) {
             return null;
@@ -114,6 +116,7 @@ public final class ResponsavelValidador {
         return limpo.isEmpty() ? null : limpo;
     }
 
+    /** Tamanho do texto (zero quando é nulo). */
     private static int tamanho(String texto) {
         return texto == null ? 0 : texto.length();
     }

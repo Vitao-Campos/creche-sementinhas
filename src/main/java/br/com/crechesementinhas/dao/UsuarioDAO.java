@@ -117,6 +117,7 @@ public class UsuarioDAO {
         }
     }
 
+    /** Atualiza nome, perfil, setor e situação do usuário. */
     public void atualizar(Connection conexao, Usuario usuario) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_ATUALIZAR)) {
             comando.setString(1, usuario.getNome());
@@ -128,6 +129,7 @@ public class UsuarioDAO {
         }
     }
 
+    /** Grava o novo hash da senha do usuário. */
     public void atualizarSenha(Connection conexao, int idUsuario, String novoHash)
             throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_ATUALIZAR_SENHA)) {
@@ -156,6 +158,7 @@ public class UsuarioDAO {
         }
     }
 
+    /** Converte a linha do resultado da consulta em um objeto Usuario. */
     private Usuario mapear(ResultSet resultado) throws SQLException {
         Usuario usuario = new Usuario();
         usuario.setIdUsuario(resultado.getInt("id_usuario"));

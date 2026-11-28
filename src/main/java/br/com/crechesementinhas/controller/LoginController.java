@@ -46,6 +46,7 @@ public class LoginController {
         }
     }
 
+    /** Mostra a mensagem abaixo do formulário de login, em vermelho (erro) ou verde. */
     private void mostrarMensagem(String texto, boolean erro) {
         labelErro.setText(texto);
         labelErro.setTextFill(erro ? Color.web("#c62828") : Color.web("#2e7d32"));

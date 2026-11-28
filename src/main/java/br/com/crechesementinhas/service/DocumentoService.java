@@ -45,6 +45,7 @@ public class DocumentoService {
     private final DocumentoDAO dao = new DocumentoDAO();
         private final AuditoriaService auditoria = new AuditoriaService();
 
+    /** Lista os documentos anexados à matrícula. */
     public List<Documento> listar(int idMatricula) throws SQLException {
         return dao.listarPorMatricula(idMatricula);
     }
@@ -65,7 +66,7 @@ public class DocumentoService {
         String extensao = extensaoDe(arquivo.getName());
         if (!EXTENSOES_ACEITAS.contains(extensao)) {
             throw new IllegalArgumentException(
-                    "EX-05: formato não aceito (." + extensao + "). Envie PDF, JPEG ou PNG de até 5 MB.");
+                    "Formato não aceito (." + extensao + "). Envie PDF, JPEG ou PNG de até 5 MB.");
         }
         // EX-05: tamanho
         long tamanho = arquivo.length();
@@ -74,7 +75,7 @@ public class DocumentoService {
         }
         if (tamanho > TAMANHO_MAXIMO) {
             throw new IllegalArgumentException(String.format(
-                    "EX-05: o arquivo tem %.1f MB. O limite é 5 MB.", tamanho / (1024.0 * 1024.0)));
+                    "O arquivo tem %.1f MB. O limite é 5 MB.", tamanho / (1024.0 * 1024.0)));
         }
 
         // Pasta da matrícula, ex.: .../documentos/matricula_7/
@@ -110,11 +111,13 @@ public class DocumentoService {
         }
     }
 
+    /** Devolve a extensão do arquivo em minúsculas, sem o ponto. */
     private String extensaoDe(String nome) {
         int ponto = nome.lastIndexOf('.');
         return ponto < 0 ? "" : nome.substring(ponto + 1).toLowerCase();
     }
 
+    /** Corta o texto no tamanho máximo informado. */
     private String cortar(String texto, int maximo) {
         return texto.length() <= maximo ? texto : texto.substring(0, maximo);
     }

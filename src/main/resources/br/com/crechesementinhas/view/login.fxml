@@ -5,22 +5,30 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="br.com.crechesementinhas.controller.LoginController"
-      alignment="CENTER" spacing="10" prefWidth="420" prefHeight="460"
-      style="-fx-background-color: #f4f6f9;">
+      alignment="CENTER" spacing="10" prefWidth="420" prefHeight="520"
+      stylesheets="@estilo.css"
+      styleClass="fundo-tela">
 
     <padding>
         <Insets top="40" right="50" bottom="40" left="50"/>
     </padding>
 
+    <ImageView fitWidth="150" fitHeight="150" preserveRatio="true" smooth="true" styleClass="emblema">
+        <image>
+            <Image url="@../imagens/emblema.png"/>
+        </image>
+    </ImageView>
     <Label text="Creche Sementinhas"
-           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2e7d32;"/>
+           styleClass="login-titulo"/>
     <Label text="Sistema de Matrículas"
-           style="-fx-font-size: 14px; -fx-text-fill: #607d8b;"/>
+           styleClass="login-subtitulo"/>
 
     <Region prefHeight="15"/>
 
@@ -35,5 +43,5 @@
 
     <Button fx:id="botaoEntrar" text="Entrar" defaultButton="true"
             onAction="#entrar" maxWidth="Infinity"
-            style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            styleClass="botao-primario"/>
 </VBox>

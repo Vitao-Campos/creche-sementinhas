@@ -14,15 +14,15 @@
             fx:controller="br.com.crechesementinhas.controller.HistoricoController"
             prefWidth="1150" prefHeight="560"
             stylesheets="@estilo.css"
-            style="-fx-background-color: #f4f6f9;">
+            styleClass="fundo-tela">
 
     <top>
-        <HBox alignment="CENTER_LEFT" style="-fx-background-color: #2e7d32;">
+        <HBox alignment="CENTER_LEFT" styleClass="barra-topo">
             <padding>
                 <Insets top="15" right="20" bottom="15" left="20"/>
             </padding>
             <Label fx:id="labelTitulo" text="Histórico de alterações"
-                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                   styleClass="titulo-topo"/>
         </HBox>
     </top>
 
@@ -49,10 +49,10 @@
             <padding>
                 <Insets top="0" right="20" bottom="15" left="20"/>
             </padding>
-            <Label fx:id="labelTotal" style="-fx-text-fill: #607d8b;"/>
+            <Label fx:id="labelTotal" styleClass="texto-suave"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Fechar" onAction="#fechar" cancelButton="true"
-                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-border-color: #2e7d32; -fx-font-weight: bold;"/>
+                    styleClass="botao-secundario"/>
         </HBox>
     </bottom>
 </BorderPane>

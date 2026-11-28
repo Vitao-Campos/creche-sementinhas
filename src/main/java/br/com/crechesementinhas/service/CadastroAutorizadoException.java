@@ -6,10 +6,12 @@ package br.com.crechesementinhas.service;
  */
 public class CadastroAutorizadoException extends RuntimeException {
 
+    /** Cria o erro com a mensagem pronta para a tela. */
     public CadastroAutorizadoException(String mensagem) {
         super(mensagem);
     }
 
+    /** Cria o erro com a mensagem e a causa original. */
     public CadastroAutorizadoException(String mensagem, Throwable causa) {
         super(mensagem, causa);
     }

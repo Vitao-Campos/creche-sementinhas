@@ -68,6 +68,7 @@ public final class HistoricoFormatador {
             Map.entry("usa_chupeta", "Usa chupeta"),
             Map.entry("usa_fralda", "Usa fralda"));
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private HistoricoFormatador() {
     }
 
@@ -76,10 +77,12 @@ public final class HistoricoFormatador {
         return dataHora == null ? "" : DATA_HORA.format(dataHora);
     }
 
+    /** Nome da tabela do histórico em português, para a tela. */
     public static String entidade(String entidade) {
         return ENTIDADES.getOrDefault(entidade, entidade);
     }
 
+    /** Nome da ação (cadastro, alteração ou exclusão), para a tela. */
     public static String acao(TipoAlteracao tipo) {
         return switch (tipo) {
             case INSERCAO -> "Cadastro";

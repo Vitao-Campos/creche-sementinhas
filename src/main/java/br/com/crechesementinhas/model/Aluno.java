@@ -36,70 +36,87 @@ public class Aluno {
         return cpf == null ? "" : Cpf.formatar(cpf);
     }
 
+    /** Devolve o identificador do aluno. */
     public Integer getIdAluno() {
         return idAluno;
     }
 
+    /** Define o identificador do aluno. */
     public void setIdAluno(Integer idAluno) {
         this.idAluno = idAluno;
     }
 
+    /** Devolve o nome. */
     public String getNome() {
         return nome;
     }
 
+    /** Define o nome. */
     public void setNome(String nome) {
         this.nome = nome;
     }
 
+    /** Devolve a data de nascimento. */
     public LocalDate getDataNascimento() {
         return dataNascimento;
     }
 
+    /** Define a data de nascimento. */
     public void setDataNascimento(LocalDate dataNascimento) {
         this.dataNascimento = dataNascimento;
     }
 
+    /** Devolve o CPF. */
     public String getCpf() {
         return cpf;
     }
 
+    /** Define o CPF. */
     public void setCpf(String cpf) {
         this.cpf = cpf;
     }
 
+    /** Devolve o sexo. */
     public Sexo getSexo() {
         return sexo;
     }
 
+    /** Define o sexo. */
     public void setSexo(Sexo sexo) {
         this.sexo = sexo;
     }
 
+    /** Devolve a naturalidade. */
     public String getNaturalidade() {
         return naturalidade;
     }
 
+    /** Define a naturalidade. */
     public void setNaturalidade(String naturalidade) {
         this.naturalidade = naturalidade;
     }
 
+    /** Devolve a nacionalidade. */
     public String getNacionalidade() {
         return nacionalidade;
     }
 
+    /** Define a nacionalidade. */
     public void setNacionalidade(String nacionalidade) {
         this.nacionalidade = nacionalidade;
     }
 
+    /** Devolve as observações. */
     public String getObservacao() {
         return observacao;
     }
 
+    /** Define as observações. */
     public void setObservacao(String observacao) {
         this.observacao = observacao;
     }
 
+    /** Texto da criança nas caixas de seleção: o nome. */
     @Override
     public String toString() {
         return "Aluno{id=" + idAluno + ", nome='" + nome + "'}";

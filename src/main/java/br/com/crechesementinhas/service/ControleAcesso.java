@@ -13,6 +13,7 @@ import br.com.crechesementinhas.util.Sessao;
  */
 public final class ControleAcesso {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private ControleAcesso() {
     }
 

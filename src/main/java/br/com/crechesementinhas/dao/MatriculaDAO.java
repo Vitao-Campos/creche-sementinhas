@@ -101,6 +101,7 @@ public class MatriculaDAO {
         }
     }
 
+    /** Busca a matrícula ativa da criança usando a conexão (transação) já aberta. */
     public Optional<Matricula> buscarAtivaPorAluno(Connection conexao, int idAluno) throws SQLException {
         try (PreparedStatement stmt = conexao.prepareStatement(
                 SQL_SELECT + " WHERE m.id_aluno = ? AND m.status = 'ATIVA'")) {
@@ -127,6 +128,7 @@ public class MatriculaDAO {
         return lista;
     }
 
+    /** Converte a linha do resultado da consulta em um objeto Matricula. */
     private Matricula mapear(ResultSet rs) throws SQLException {
         Matricula m = new Matricula();
         m.setIdMatricula(rs.getInt("id_matricula"));

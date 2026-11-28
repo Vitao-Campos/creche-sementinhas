@@ -30,10 +30,12 @@ public class ResponsavelService {
     private final AuditoriaService auditoria;
     private final MatriculaDAO matriculaDAO = new MatriculaDAO();
 
+    /** Cria o serviço com os acessos ao banco padrão. */
     public ResponsavelService() {
         this(new ResponsavelDAO(), new AlunoResponsavelDAO(), new AuditoriaService());
     }
 
+    /** Cria o serviço com os acessos informados (usado em testes). */
     public ResponsavelService(ResponsavelDAO responsavelDAO, AlunoResponsavelDAO vinculoDAO,
                               AuditoriaService auditoria) {
         this.responsavelDAO = responsavelDAO;
@@ -202,7 +204,7 @@ public class ResponsavelService {
                     && vinculoDAO.contarLegaisVigentes(conexao, vinculo.getIdAluno(), hoje) <= 1
                     && matriculaDAO.buscarAtivaPorAluno(conexao, vinculo.getIdAluno()).isPresent()) {
                 throw new CadastroResponsavelException(
-                        "Este é o único responsável legal de uma criança matriculada (RN-01). "
+                        "Este é o único responsável legal de uma criança matriculada. "
                         + "Vincule outro responsável legal antes.");
             }
             vinculoDAO.atualizarPapeis(conexao, idVinculo, legal, financeiro);
@@ -231,6 +233,9 @@ public class ResponsavelService {
 
     // ------------------------------------------------------------ internos
 
+    /**
+     * Limpa os dados do responsável e lança erro com todas as mensagens se algo estiver inválido.
+     */
     private void prepararEValidar(Responsavel responsavel) {
         ResponsavelValidador.normalizar(responsavel);
         List<String> erros = ResponsavelValidador.validar(responsavel);
@@ -255,6 +260,7 @@ public class ResponsavelService {
         }
     }
 
+    /** Registra no histórico cada campo do responsável que mudou (campo igual não grava nada). */
     private void registrarMudancas(Connection conexao, Responsavel antes, Responsavel depois, String motivo)
             throws SQLException {
         int id = depois.getIdResponsavel();
@@ -275,6 +281,7 @@ public class ResponsavelService {
         return e;
     }
 
+    /** Remove os espaços das pontas; devolve nulo se o texto ficar vazio. */
     private String textoOuNulo(String texto) {
         return texto == null || texto.isBlank() ? null : texto.trim();
     }

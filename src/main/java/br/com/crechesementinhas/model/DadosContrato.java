@@ -20,31 +20,49 @@ public class DadosContrato {
     private String periodoTurma; // MANHA, TARDE ou INTEGRAL
     private List<ResponsavelContrato> responsaveis = new ArrayList<>();
 
+    /** Devolve o identificador da matrícula. */
     public int getIdMatricula() { return idMatricula; }
+    /** Define o identificador da matrícula. */
     public void setIdMatricula(int idMatricula) { this.idMatricula = idMatricula; }
 
+    /** Devolve o número da matrícula. */
     public String getNumeroMatricula() { return numeroMatricula; }
+    /** Define o número da matrícula. */
     public void setNumeroMatricula(String numero) { this.numeroMatricula = numero; }
 
+    /** Devolve a situação da matrícula. */
     public String getStatusMatricula() { return statusMatricula; }
+    /** Define a situação da matrícula. */
     public void setStatusMatricula(String status) { this.statusMatricula = status; }
 
+    /** Devolve o identificador do aluno. */
     public int getIdAluno() { return idAluno; }
+    /** Define o identificador do aluno. */
     public void setIdAluno(int idAluno) { this.idAluno = idAluno; }
 
+    /** Devolve o nome do aluno. */
     public String getNomeAluno() { return nomeAluno; }
+    /** Define o nome do aluno. */
     public void setNomeAluno(String nomeAluno) { this.nomeAluno = nomeAluno; }
 
+    /** Devolve a data de nascimento do aluno. */
     public LocalDate getDataNascimentoAluno() { return dataNascimentoAluno; }
+    /** Define a data de nascimento do aluno. */
     public void setDataNascimentoAluno(LocalDate data) { this.dataNascimentoAluno = data; }
 
+    /** Devolve o nome da turma. */
     public String getNomeTurma() { return nomeTurma; }
+    /** Define o nome da turma. */
     public void setNomeTurma(String nomeTurma) { this.nomeTurma = nomeTurma; }
 
+    /** Devolve o período da turma. */
     public String getPeriodoTurma() { return periodoTurma; }
+    /** Define o período da turma. */
     public void setPeriodoTurma(String periodoTurma) { this.periodoTurma = periodoTurma; }
 
+    /** Devolve os responsáveis. */
     public List<ResponsavelContrato> getResponsaveis() { return responsaveis; }
+    /** Define os responsáveis. */
     public void setResponsaveis(List<ResponsavelContrato> responsaveis) { this.responsaveis = responsaveis; }
 
 

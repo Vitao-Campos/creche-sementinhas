@@ -24,6 +24,7 @@ public class MensalidadeService {
     private final FaixaMensalidadeDAO faixaDAO = new FaixaMensalidadeDAO();
     private final AuditoriaService auditoria = new AuditoriaService();
 
+    /** Lista as faixas de mensalidade por idade. */
     public List<FaixaMensalidade> listarFaixas() throws SQLException {
         return faixaDAO.listar();
     }

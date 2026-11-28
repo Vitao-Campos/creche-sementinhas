@@ -12,6 +12,7 @@ public final class AnamneseValidador {
 
     static final int MAX = 255;
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private AnamneseValidador() {
     }
 
@@ -27,6 +28,7 @@ public final class AnamneseValidador {
         f.setReceitaAntitermico(descricao(true, f.getReceitaAntitermico()));
     }
 
+    /** Confere a ficha e devolve as mensagens de erro (lista vazia se estiver válida). */
     public static List<String> validar(FichaAnamnese f) {
         List<String> erros = new ArrayList<>();
         exigir(erros, f.isPossuiAlergia(), f.getDescricaoAlergia(), "a alergia");
@@ -40,6 +42,7 @@ public final class AnamneseValidador {
         return erros;
     }
 
+    /** Exige a descrição quando o item foi marcado e confere o tamanho dela. */
     private static void exigir(List<String> erros, boolean marcado, String descricao, String assunto) {
         if (marcado && (descricao == null || descricao.isEmpty())) {
             erros.add("Descreva " + assunto + " (ou desmarque o item).");
@@ -47,12 +50,16 @@ public final class AnamneseValidador {
         limite(erros, descricao, "A descrição sobre " + assunto);
     }
 
+    /** Acusa erro quando o texto passa do tamanho máximo. */
     private static void limite(List<String> erros, String texto, String nome) {
         if (texto != null && texto.length() > MAX) {
             erros.add(nome + " pode ter no máximo " + MAX + " caracteres.");
         }
     }
 
+    /**
+     * Devolve a descrição aparada, ou nulo quando o item não vale (resposta não) ou está vazia.
+     */
     private static String descricao(boolean vale, String texto) {
         if (!vale || texto == null) {
             return null;

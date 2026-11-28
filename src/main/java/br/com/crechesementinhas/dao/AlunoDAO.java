@@ -177,6 +177,7 @@ public class AlunoDAO {
         return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
+    /** Converte a linha do resultado da consulta em um objeto Aluno. */
     private Aluno mapear(ResultSet resultado) throws SQLException {
         Aluno aluno = new Aluno();
         aluno.setIdAluno(resultado.getInt("id_aluno"));

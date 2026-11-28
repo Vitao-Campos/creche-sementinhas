@@ -17,9 +17,11 @@ import java.util.Properties;
  */
 public final class PastaDocumentos {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private PastaDocumentos() {
     }
 
+    /** Devolve a pasta onde ficam guardados os arquivos anexados. */
     public static Path raiz() {
         Properties config = new Properties();
         try (InputStream entrada = PastaDocumentos.class.getResourceAsStream("/db.properties")) {

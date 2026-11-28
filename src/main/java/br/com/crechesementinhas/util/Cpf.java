@@ -6,6 +6,7 @@ package br.com.crechesementinhas.util;
  */
 public final class Cpf {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Cpf() {
     }
 
@@ -56,6 +57,7 @@ public final class Cpf {
                 + cpf.substring(6, 9) + "-" + cpf.substring(9);
     }
 
+    /** Calcula um dígito verificador do CPF a partir dos primeiros números. */
     private static int calcularDigito(String cpf, int quantidade) {
         int soma = 0;
         for (int i = 0; i < quantidade; i++) {

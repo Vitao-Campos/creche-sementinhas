@@ -17,6 +17,7 @@ public final class AlunoValidador {
     static final int MAX_NACIONALIDADE = 40;
     static final int MAX_OBSERVACAO = 2000;
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private AlunoValidador() {
     }
 
@@ -75,6 +76,7 @@ public final class AlunoValidador {
         return erros;
     }
 
+    /** Remove os espaços das pontas; devolve nulo se o texto ficar vazio. */
     private static String aparar(String texto) {
         if (texto == null) {
             return null;
@@ -83,6 +85,7 @@ public final class AlunoValidador {
         return limpo.isEmpty() ? null : limpo;
     }
 
+    /** Tamanho do texto (zero quando é nulo). */
     private static int tamanho(String texto) {
         return texto == null ? 0 : texto.length();
     }

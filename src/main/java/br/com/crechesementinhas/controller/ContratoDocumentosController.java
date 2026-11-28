@@ -102,20 +102,24 @@ public class ContratoDocumentosController {
     //  MENSAGENS PARA O USUÁRIO
     // =================================================================
 
+    /** Devolve a janela da tela, usada como dona das caixas de escolha de arquivo. */
     private Window janela() {
         return cbMatricula.getScene().getWindow();
     }
 
+    /** Mostra uma mensagem informativa na barra de status da tela. */
     private void mensagem(String texto) {
         lblMensagem.setText(texto);
     }
 
+    /** Abre uma caixa de aviso com o texto informado. */
     private void aviso(String texto) {
         Alert alerta = new Alert(Alert.AlertType.WARNING, texto, ButtonType.OK);
         alerta.setHeaderText(null);
         alerta.showAndWait();
     }
 
+    /** Abre uma caixa de confirmação (Sim/Não); devolve verdadeiro se a pessoa confirmar. */
     private boolean confirmar(String pergunta) {
         Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, pergunta, ButtonType.YES, ButtonType.NO);
         alerta.setHeaderText(null);
@@ -123,6 +127,7 @@ public class ContratoDocumentosController {
         return resposta.isPresent() && resposta.get() == ButtonType.YES;
     }
 
+    /** Abre uma caixa de erro com o título e a mensagem da exceção. */
     private void erro(String titulo, Exception e) {
         Alert alerta = new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK);
         alerta.setHeaderText(titulo);
@@ -133,17 +138,20 @@ public class ContratoDocumentosController {
     //  RECARGA DA TELA
     // =================================================================
 
+    /** Recarrega a tabela de versões do contrato da matrícula escolhida. */
     private void recarregarContratos() throws SQLException {
         tabelaContratos.setItems(FXCollections.observableArrayList(
                 contratoService.listarContratos(dadosAtuais.getIdMatricula())));
         txtPreview.clear();
     }
 
+    /** Recarrega a tabela de documentos anexados da matrícula escolhida. */
     private void recarregarDocumentos() throws SQLException {
         tabelaDocumentos.setItems(FXCollections.observableArrayList(
                 documentoService.listar(dadosAtuais.getIdMatricula())));
     }
 
+    /** Esvazia a tela quando nenhuma matrícula está selecionada. */
     private void limparTela() {
         dadosAtuais = null;
         lblAluno.setText("");
@@ -200,11 +208,13 @@ public class ContratoDocumentosController {
     //  MATRÍCULA
     // =================================================================
 
+    /** Recarrega a lista de matrículas ativas. */
     @FXML
     private void onAtualizarLista() {
         carregarMatriculas();
     }
 
+    /** Carrega as matrículas ativas na caixa de seleção. */
     private void carregarMatriculas() {
         try {
             List<MatriculaResumo> lista = contratoService.listarMatriculasAtivas();
@@ -215,6 +225,9 @@ public class ContratoDocumentosController {
         }
     }
 
+    /**
+     * Carrega os dados da matrícula escolhida: contratos, documentos, responsáveis e formulário.
+     */
     private void carregarMatricula(MatriculaResumo selecionada) {
         limparTela();
         if (selecionada == null) {
@@ -242,7 +255,7 @@ public class ContratoDocumentosController {
             preencherFormulario(false);
 
             if (dadosAtuais.getResponsaveisLegais().isEmpty()) {
-                aviso("RN-01: este aluno ainda não tem responsável legal cadastrado.\n"
+                aviso("Este aluno ainda não tem responsável legal cadastrado.\n"
                         + "Cadastre o responsável (tela de Responsáveis) antes de gerar o contrato.");
             }
         } catch (SQLException e) {
@@ -307,6 +320,7 @@ public class ContratoDocumentosController {
         carregarMatriculas();
     }
 
+    /** Mostra, na área de pré-visualização, o texto do contrato selecionado. */
     private void mostrarPreview(Contrato c) {
         if (c == null || dadosAtuais == null) {
             txtPreview.clear();
@@ -344,6 +358,10 @@ public class ContratoDocumentosController {
         return c;
     }
 
+    /**
+     * Gera uma nova versão do contrato com os dados do formulário; a anterior deixa de ser a
+     * vigente.
+     */
     @FXML
     private void onGerarNovaVersao() {
         try {
@@ -375,6 +393,7 @@ public class ContratoDocumentosController {
         }
     }
     
+    /** Prepara o formulário para a rematrícula, com a vigência do próximo ano. */
     @FXML
     private void onRematricula() {
         if (dadosAtuais == null) {
@@ -382,11 +401,12 @@ public class ContratoDocumentosController {
             return;
         }
         preencherFormulario(true);
-        aviso("FA-03 - Rematrícula: o formulário foi preenchido com o contrato atual e a vigência do próximo ano.\n"
-                + "Confira o valor da mensalidade (ele muda com a idade da criança - RN-07) "
+        aviso("Rematrícula: o formulário foi preenchido com o contrato atual e a vigência do próximo ano.\n"
+                + "Confira o valor da mensalidade (ele muda com a idade da criança) "
                 + "e clique em \"Gerar nova versão\".");
     }    
 
+    /** Devolve o contrato escolhido na tabela, ou avisa que é preciso selecionar um. */
     private Contrato contratoSelecionado() {
         Contrato c = tabelaContratos.getSelectionModel().getSelectedItem();
         if (c == null) {
@@ -411,6 +431,7 @@ public class ContratoDocumentosController {
         }).start();
     }
 
+    /** Salva o contrato selecionado em PDF, no local escolhido pela pessoa. */
     @FXML
     private void onSalvarPdf() {
         Contrato c = contratoSelecionado();
@@ -454,6 +475,7 @@ public class ContratoDocumentosController {
     //  DOCUMENTOS (anexos)
     // =================================================================
 
+    /** Anexa um arquivo (PDF, JPEG ou PNG) à matrícula. */
     @FXML
     private void onAnexarDocumento() {
         if (dadosAtuais == null) {
@@ -484,6 +506,7 @@ public class ContratoDocumentosController {
         }
     }
 
+    /** Abre o documento selecionado no programa padrão do computador. */
     @FXML
     private void onAbrirDocumento() {
         Documento d = tabelaDocumentos.getSelectionModel().getSelectedItem();
@@ -498,6 +521,7 @@ public class ContratoDocumentosController {
         }
     }
 
+    /** Marca o documento selecionado como validado. */
     @FXML
     private void onValidarDocumento() {
         try {
@@ -511,13 +535,14 @@ public class ContratoDocumentosController {
         }
     }
     
+    /** Registra a assinatura do contrato pelo responsável legal escolhido. */
     @FXML
     private void onRegistrarAssinatura() {
         try {
             Contrato selecionado = tabelaContratos.getSelectionModel().getSelectedItem();
             contratoService.registrarAssinatura(selecionado, cbSignatario.getValue(), dpAssinatura.getValue());
             recarregarContratos();
-            mensagem("Assinatura registrada. O contrato agora é válido (RN-05).");
+            mensagem("Assinatura registrada. O contrato agora é válido.");
         } catch (IllegalArgumentException | SecurityException e) {
             aviso(e.getMessage());
         } catch (SQLException e) {
@@ -529,6 +554,7 @@ public class ContratoDocumentosController {
     //  NAVEGAÇÃO
     // =================================================================
 
+    /** Volta ao menu principal. */
     @FXML
     private void voltar() {
         Navegacao.abrir("menu.fxml", "Menu");

@@ -38,9 +38,11 @@ public final class GeradorPdfAnamnese {
     private static final Font TEXTO = new Font(Font.HELVETICA, 9, Font.NORMAL);
     private static final Color VERDE = new Color(222, 234, 224); // verde bem claro, sóbrio
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private GeradorPdfAnamnese() {
     }
 
+    /** Gera o PDF da ficha de anamnese no arquivo de destino (uma página A4). */
     public static void gerar(DadosFicha dados, File destino) throws IOException {
         Document pdf = new Document(PageSize.A4, 36, 36, 30, 40);
         try (FileOutputStream saida = new FileOutputStream(destino)) {
@@ -93,6 +95,7 @@ public final class GeradorPdfAnamnese {
 
     // ------------------------------------------------------------------ blocos
 
+    /** Monta a faixa de título de uma seção da ficha. */
     private static PdfPTable secao(String texto) {
         PdfPTable t = new PdfPTable(1);
         t.setWidthPercentage(100);
@@ -105,6 +108,7 @@ public final class GeradorPdfAnamnese {
         return t;
     }
 
+    /** Monta a tabela com os dados da criança e da matrícula. */
     private static PdfPTable tabelaCrianca(CabecalhoFicha c) {
         PdfPTable t = tabela(2, 1, 3);
         linha(t, "Nome", c.nomeAluno());
@@ -115,6 +119,7 @@ public final class GeradorPdfAnamnese {
         return t;
     }
 
+    /** Monta a tabela dos responsáveis vinculados. */
     private static PdfPTable tabelaResponsaveis(List<AlunoResponsavel> lista) {
         PdfPTable t = tabela(3, 3, 2, 2);
         cabecalho(t, "Nome", "Parentesco / papel", "Telefone");
@@ -132,6 +137,7 @@ public final class GeradorPdfAnamnese {
         return t;
     }
 
+    /** Monta a tabela das pessoas autorizadas a buscar a criança. */
     private static PdfPTable tabelaAutorizados(List<AlunoPessoaAutorizada> lista) {
         PdfPTable t = tabela(3, 3, 2, 2);
         cabecalho(t, "Nome", "Parentesco / autorização", "Telefone");
@@ -147,6 +153,7 @@ public final class GeradorPdfAnamnese {
         return t;
     }
 
+    /** Monta a tabela com as respostas sobre saúde (em branco se a ficha não foi preenchida). */
     private static PdfPTable tabelaSaude(FichaAnamnese f) {
         PdfPTable t = tabela(3, 3, 2, 5);
         cabecalho(t, "Item", "Resposta", "Descrição");
@@ -163,6 +170,7 @@ public final class GeradorPdfAnamnese {
         return t;
     }
 
+    /** Monta a tabela com as respostas sobre rotina e autorizações. */
     private static PdfPTable tabelaRotina(FichaAnamnese f) {
         PdfPTable t = tabela(3, 3, 2, 5);
         cabecalho(t, "Item", "Resposta", "Descrição");
@@ -177,6 +185,7 @@ public final class GeradorPdfAnamnese {
 
     // ------------------------------------------------------------------ células
 
+    /** Cria uma tabela com o número de colunas e as larguras relativas informadas. */
     private static PdfPTable tabela(int colunas, float... larguras) {
         PdfPTable t = new PdfPTable(colunas);
         t.setWidthPercentage(100);
@@ -188,11 +197,13 @@ public final class GeradorPdfAnamnese {
         return t;
     }
 
+    /** Acrescenta uma linha de rótulo e valor. */
     private static void linha(PdfPTable t, String rotulo, String valor) {
         celula(t, rotulo, ROTULO);
         celula(t, valor, TEXTO);
     }
 
+    /** Acrescenta uma linha de pergunta, resposta (Sim/Não) e descrição. */
     private static void item(PdfPTable t, String pergunta, boolean emBranco, boolean sim, String descricao) {
         celula(t, pergunta, ROTULO);
         String resposta = emBranco ? "[   ] Sim   [   ] Não" : sim ? "[ X ] Sim   [   ] Não" : "[   ] Sim   [ X ] Não";
@@ -200,6 +211,7 @@ public final class GeradorPdfAnamnese {
         celula(t, emBranco ? "" : valor(descricao), TEXTO);
     }
 
+    /** Acrescenta a linha de cabeçalho da tabela. */
     private static void cabecalho(PdfPTable t, String... titulos) {
         for (String titulo : titulos) {
             PdfPCell c = new PdfPCell(new Phrase(titulo, ROTULO));
@@ -209,6 +221,7 @@ public final class GeradorPdfAnamnese {
         }
     }
 
+    /** Acrescenta uma linha de aviso que ocupa todas as colunas. */
     private static void vazio(PdfPTable t, int colunas, String texto) {
         PdfPCell c = new PdfPCell(new Phrase(texto, TEXTO));
         c.setColspan(colunas);
@@ -216,6 +229,7 @@ public final class GeradorPdfAnamnese {
         t.addCell(c);
     }
 
+    /** Acrescenta uma célula com o texto e a fonte informados. */
     private static void celula(PdfPTable t, String texto, Font fonte) {
         PdfPCell c = new PdfPCell(new Phrase(texto == null ? "" : texto, fonte));
         c.setPadding(3);
@@ -223,6 +237,7 @@ public final class GeradorPdfAnamnese {
         t.addCell(c);
     }
 
+    /** Devolve o texto, ou um traço quando está vazio. */
     private static String valor(String texto) {
         return texto == null || texto.isBlank() ? "—" : texto;
     }

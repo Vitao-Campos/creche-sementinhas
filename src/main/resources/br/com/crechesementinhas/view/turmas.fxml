@@ -25,19 +25,19 @@
             fx:controller="br.com.crechesementinhas.controller.TurmasController"
             prefWidth="1220" prefHeight="740"
             stylesheets="@estilo.css"
-            style="-fx-background-color: #f4f6f9;">
+            styleClass="fundo-tela">
 
     <!-- Barra superior: mesmo padrão das outras telas -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2e7d32;">
+        <HBox alignment="CENTER_LEFT" spacing="15" styleClass="barra-topo">
             <padding>
                 <Insets top="15" right="20" bottom="15" left="20"/>
             </padding>
             <Label text="Consulta e Turmas"
-                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                   styleClass="titulo-topo"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Voltar ao menu" onAction="#voltar"
-                    style="-fx-background-color: white; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+                    styleClass="botao-topo"/>
         </HBox>
     </top>
 
@@ -60,7 +60,7 @@
                                 <Button text="Limpar filtros" onAction="#limparFiltros"/>
                             </HBox>
                             <Label fx:id="labelAlerta" wrapText="true" visible="false" managed="false"
-                                   style="-fx-background-color: #fff3e0; -fx-text-fill: #e65100; -fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 6;"/>
+                                   styleClass="caixa-aviso"/>
                         </VBox>
                     </top>
 
@@ -82,7 +82,7 @@
                                     <TableColumn fx:id="colunaAndarilha" text="Andarilha até" prefWidth="90"/>
                                 </columns>
                             </TableView>
-                            <Label fx:id="labelTotal" text="" style="-fx-text-fill: #607d8b;"/>
+                            <Label fx:id="labelTotal" text="" styleClass="texto-suave"/>
                         </VBox>
                     </center>
 
@@ -94,15 +94,15 @@
                             </padding>
 
                             <VBox spacing="4"
-                                  style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 12;">
+                                  styleClass="cartao">
                                 <Label fx:id="labelAluno" text="Selecione uma criança na tabela"
-                                       style="-fx-font-weight: bold; -fx-font-size: 14px;" wrapText="true"/>
+                                       styleClass="subtitulo" wrapText="true"/>
                                 <Label fx:id="labelDetalhe" text="" wrapText="true"/>
                                 <Button fx:id="botaoHistorico" text="Ver histórico de alterações"
                                         onAction="#verHistorico" disable="true"/>
                             </VBox>
 
-                            <Label text="Trocar de turma" style="-fx-font-weight: bold;"/>
+                            <Label text="Trocar de turma" styleClass="texto-forte"/>
                             <GridPane hgap="8" vgap="8">
                                 <columnConstraints>
                                     <ColumnConstraints minWidth="90"/>
@@ -116,13 +116,13 @@
                                            GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                             </GridPane>
                             <Label fx:id="labelAvisoTroca" wrapText="true" visible="false" managed="false"
-                                   style="-fx-text-fill: #e65100; -fx-font-weight: bold;"/>
+                                   styleClass="texto-aviso"/>
                             <Button fx:id="botaoTrocar" text="Trocar de turma" onAction="#trocarTurma" disable="true"
-                                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                    styleClass="botao-primario"/>
 
                             <Separator/>
 
-                            <Label text="Andarilha" style="-fx-font-weight: bold;"/>
+                            <Label text="Andarilha" styleClass="texto-forte"/>
                             <CheckBox fx:id="checkAndarilha" text="Criança andarilha" onAction="#aoAlternarAndarilha"/>
                             <TextField fx:id="campoMotivoAndarilha" promptText="Motivo (obrigatório se for andarilha)"/>
                             <HBox spacing="8" alignment="CENTER_LEFT">
@@ -132,7 +132,7 @@
                             </HBox>
                             <Button fx:id="botaoAndarilha" text="Salvar andarilha" onAction="#salvarAndarilha"
                                     disable="true"
-                                    style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                                    styleClass="botao-primario"/>
 
                             <Label fx:id="labelMensagem" wrapText="true" visible="false" managed="false"/>
                         </VBox>

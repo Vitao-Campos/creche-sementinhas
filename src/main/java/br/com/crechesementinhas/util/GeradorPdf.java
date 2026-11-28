@@ -24,9 +24,11 @@ import java.io.IOException;
  */
 public final class GeradorPdf {
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private GeradorPdf() {
     }
 
+    /** Gera o PDF do texto no arquivo de destino (primeiro parágrafo como título). */
     public static void gerar(String texto, File destino) throws IOException {
         // Folha A4 com margens de 2 cm (56 pontos) de cada lado.
         Document pdf = new Document(PageSize.A4, 56, 56, 56, 56);

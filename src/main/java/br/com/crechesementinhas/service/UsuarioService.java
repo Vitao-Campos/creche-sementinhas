@@ -31,10 +31,12 @@ public class UsuarioService {
     private final UsuarioDAO usuarioDAO;
     private final AuditoriaService auditoria;
 
+    /** Cria o serviço com os acessos ao banco padrão. */
     public UsuarioService() {
         this(new UsuarioDAO(), new AuditoriaService());
     }
 
+    /** Cria o serviço com os acessos informados (usado em testes). */
     public UsuarioService(UsuarioDAO usuarioDAO, AuditoriaService auditoria) {
         this.usuarioDAO = usuarioDAO;
         this.auditoria = auditoria;
@@ -42,6 +44,7 @@ public class UsuarioService {
 
     // ===================== OPERAÇÕES =====================
 
+    /** Lista todos os usuários (exige permissão para gerenciar usuários). */
     public List<Usuario> listar() throws UsuarioException {
         ControleAcesso.exigir(Permissao.GERENCIAR_USUARIOS);
         try {
@@ -87,6 +90,7 @@ public class UsuarioService {
         }
     }
 
+    /** Altera nome, perfil, setor e situação do usuário, registrando no histórico. */
     public void atualizar(int idUsuario, String nome, Perfil perfil, String setor, boolean ativo)
             throws UsuarioException {
 
@@ -128,6 +132,7 @@ public class UsuarioService {
         }
     }
 
+    /** Define uma nova senha para o usuário, guardada em hash. */
     public void redefinirSenha(int idUsuario, String novaSenha) throws UsuarioException {
         ControleAcesso.exigir(Permissao.GERENCIAR_USUARIOS);
         validarSenha(novaSenha);
@@ -154,6 +159,7 @@ public class UsuarioService {
     // ===================== VALIDAÇÕES =====================
     // "static" e sem acesso ao banco: podem ser testadas com JUnit sem banco de dados.
 
+    /** Confere o nome e devolve o texto sem os espaços das pontas. */
     static String validarNome(String nome) throws UsuarioException {
         if (nome == null || nome.isBlank()) {
             throw new UsuarioException("Informe o nome.");
@@ -165,6 +171,7 @@ public class UsuarioService {
         return limpo;
     }
 
+    /** Confere o formato do login e o devolve em minúsculas. */
     static String validarLogin(String login) throws UsuarioException {
         if (login == null || login.isBlank()) {
             throw new UsuarioException("Informe o login.");
@@ -177,6 +184,7 @@ public class UsuarioService {
         return limpo;
     }
 
+    /** Confere se a senha tem o tamanho mínimo, com letras e números. */
     static void validarSenha(String senha) throws UsuarioException {
         if (senha == null || senha.length() < TAMANHO_MINIMO_SENHA
                 || !TEM_LETRA.matcher(senha).find()
@@ -186,6 +194,7 @@ public class UsuarioService {
         }
     }
 
+    /** Exige que um perfil tenha sido escolhido. */
     private static void validarPerfil(Perfil perfil) throws UsuarioException {
         if (perfil == null) {
             throw new UsuarioException("Selecione o perfil.");
@@ -208,10 +217,12 @@ public class UsuarioService {
         }
     }
 
+    /** Remove os espaços das pontas; devolve nulo se o texto ficar vazio. */
     private static String textoOuNulo(String texto) {
         return (texto == null || texto.isBlank()) ? null : texto.trim();
     }
 
+    /** Converte o erro do banco em um erro de usuário com mensagem para a tela. */
     private static UsuarioException erroDeBanco(SQLException e) {
         return new UsuarioException("Não foi possível acessar o banco de dados.", e);
     }

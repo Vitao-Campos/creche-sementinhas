@@ -17,6 +17,7 @@ public final class TurmaValidador {
     static final int MAX_JUSTIFICATIVA = 200;      // a auditoria acrescenta o aviso de faixa (cabe em 255)
     static final int MAX_MOTIVO_ANDARILHA = 200;   // tamanho da coluna motivo_andarilha
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private TurmaValidador() {
     }
 

@@ -71,6 +71,7 @@ public class ResponsavelDAO {
         }
     }
 
+    /** Busca um responsável pelo identificador. */
     public Optional<Responsavel> buscarPorId(Connection conexao, int id) throws SQLException {
         try (PreparedStatement comando = conexao.prepareStatement(SQL_BUSCAR_POR_ID)) {
             comando.setInt(1, id);
@@ -118,6 +119,9 @@ public class ResponsavelDAO {
         }
     }
 
+    /**
+     * Preenche os campos de dados do responsável no comando (iguais no cadastro e na alteração).
+     */
     private void preencher(PreparedStatement comando, Responsavel r) throws SQLException {
         comando.setString(1, r.getNome());
         comando.setString(2, r.getCpf());
@@ -128,10 +132,12 @@ public class ResponsavelDAO {
         comando.setString(7, r.getProfissao());
     }
 
+    /** Protege os caracteres especiais da busca (% e _) para serem procurados como texto comum. */
     private String escaparCuringas(String texto) {
         return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
+    /** Converte a linha do resultado da consulta em um objeto Responsavel. */
     private Responsavel mapear(ResultSet rs) throws SQLException {
         Responsavel r = new Responsavel();
         r.setIdResponsavel(rs.getInt("id_responsavel"));

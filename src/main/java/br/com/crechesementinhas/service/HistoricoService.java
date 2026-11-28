@@ -10,10 +10,12 @@ public class HistoricoService {
 
     private final HistoricoConsultaDAO dao;
 
+    /** Cria o serviço com o acesso ao banco padrão. */
     public HistoricoService() {
         this(new HistoricoConsultaDAO());
     }
 
+    /** Cria o serviço com o acesso informado (usado em testes). */
     public HistoricoService(HistoricoConsultaDAO dao) {
         this.dao = dao;
     }

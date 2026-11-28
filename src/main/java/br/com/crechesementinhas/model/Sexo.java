@@ -9,10 +9,12 @@ public enum Sexo {
 
     private final String descricao;
 
+    /** Cria o valor com o texto mostrado na tela. */
     Sexo(String descricao) {
         this.descricao = descricao;
     }
 
+    /** Devolve a descrição. */
     public String getDescricao() {
         return descricao;
     }

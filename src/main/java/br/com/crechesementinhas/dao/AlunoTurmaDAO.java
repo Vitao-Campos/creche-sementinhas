@@ -61,6 +61,7 @@ public class AlunoTurmaDAO {
         return texto.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
+    /** Converte a linha do resultado da consulta em um objeto AlunoTurma. */
     private AlunoTurma mapear(ResultSet rs) throws SQLException {
         AlunoTurma a = new AlunoTurma();
         a.setIdAluno(rs.getInt("id_aluno"));

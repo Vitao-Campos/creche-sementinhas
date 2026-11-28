@@ -7,6 +7,7 @@ package br.com.crechesementinhas.service;
  */
 public class MatriculaException extends RuntimeException {
 
+    /** Cria o erro com a mensagem pronta para a tela. */
     public MatriculaException(String mensagem) {
         super(mensagem);
     }

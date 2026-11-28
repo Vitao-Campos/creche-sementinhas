@@ -18,12 +18,18 @@ public final class Transacao {
     /** A "operação" é qualquer bloco de código que recebe a conexão da transação. */
     @FunctionalInterface
     public interface Operacao<T> {
+        /** Executa o bloco usando a conexão da transação e devolve o resultado. */
         T executar(Connection conexao) throws SQLException;
     }
 
+    /** Classe só com métodos estáticos: não é instanciada. */
     private Transacao() {
     }
 
+    /**
+     * Executa a operação numa transação: confirma tudo se terminar bem e desfaz tudo se houver
+     * erro.
+     */
     public static <T> T executar(Operacao<T> operacao) throws SQLException {
         try (Connection conexao = ConnectionFactory.getConnection()) {
             conexao.setAutoCommit(false); // a partir daqui, nada é gravado sozinho

@@ -69,6 +69,7 @@ public class HistoricoController {
         }
     }
 
+    /** Prepara a janela de histórico: define as colunas da tabela. */
     @FXML
     private void initialize() {
         colunaDataHora.setCellValueFactory(c ->
@@ -95,17 +96,20 @@ public class HistoricoController {
         tabela.setPlaceholder(new Label("Nenhuma alteração registrada."));
     }
 
+    /** Mostra, na tabela, os registros do histórico com o título informado. */
     private void mostrar(String titulo, List<RegistroHistorico> registros) {
         labelTitulo.setText(titulo);
         tabela.getItems().setAll(registros);
         labelTotal.setText(registros.size() == 1 ? "1 registro" : registros.size() + " registros");
     }
 
+    /** Fecha a janela de histórico. */
     @FXML
     private void fechar() {
         ((Stage) tabela.getScene().getWindow()).close();
     }
 
+    /** Faz o texto da coluna quebrar de linha quando não cabe na largura dela. */
     private void comQuebraDeLinha(TableColumn<RegistroHistorico, String> coluna) {
         coluna.setCellFactory(c -> new TableCell<RegistroHistorico, String>() {
             private final Text texto = new Text();

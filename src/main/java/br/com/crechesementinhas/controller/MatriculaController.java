@@ -101,6 +101,7 @@ public class MatriculaController {
     private List<AlunoResponsavel> responsaveisVigentes = List.of();
     private final ResponsavelService responsavelService = new ResponsavelService();
 
+    /** Prepara a tela de matrícula: tabelas, datas, buscas e permissões. */
     @FXML
     private void initialize() {
         configurarDatas();
@@ -131,6 +132,7 @@ public class MatriculaController {
     //  CARGA DOS DADOS
     // =================================================================
 
+    /** Carrega a lista de crianças conforme o texto da busca. */
     private void carregarAlunos(String filtro) {
         try {
             tabelaAlunos.setItems(FXCollections.observableArrayList(matriculaService.buscarAlunos(filtro)));
@@ -139,6 +141,7 @@ public class MatriculaController {
         }
     }
 
+    /** Carrega as turmas na caixa de seleção, mantendo a escolha atual. */
     private void carregarTurmas() {
         Turma escolhida = comboTurma.getValue();
         try {
@@ -153,6 +156,7 @@ public class MatriculaController {
         }
     }
 
+    /** Carrega a tabela de mensalidade por faixa etária. */
     private void carregarFaixas() {
         try {
             tabelaFaixas.setItems(FXCollections.observableArrayList(mensalidadeService.listarFaixas()));
@@ -162,6 +166,10 @@ public class MatriculaController {
         }
     }
 
+    /**
+     * Mostra os dados da criança escolhida: responsáveis, matrícula atual, histórico e o que pode
+     * ser feito.
+     */
     private void selecionarAluno(Aluno aluno) {
         alunoSelecionado = aluno;
         matriculaAtiva = null;
@@ -187,7 +195,7 @@ public class MatriculaController {
             labelMatriculaAtual.setText(matriculaAtiva == null
                     ? (temResponsavelLegal
                        ? "Sem matrícula ativa"
-                       : "Sem matrícula ativa. Falta um responsável legal: cadastre na tela Responsáveis (RN-01).")
+                       : "Sem matrícula ativa. Falta um responsável legal: cadastre na tela Responsáveis.")
                     : matriculaAtiva.getNumeroMatricula() + " - " + matriculaAtiva.getNomeTurma()
                       + " (desde " + Formatador.data(matriculaAtiva.getDataMatricula()) + ")");
         }
@@ -305,6 +313,7 @@ public class MatriculaController {
                 .ifPresent(aviso -> mostrar(labelAvisoTurma, "Atenção: " + aviso));
     }
 
+    /** Libera ou trava os campos do regime andarilha conforme a caixa marcada. */
     @FXML
     private void aoAlternarAndarilha() {
         boolean marcada = checkAndarilha.isSelected();
@@ -316,6 +325,10 @@ public class MatriculaController {
         }
     }
 
+    /**
+     * Efetiva a matrícula da criança na turma escolhida, exigindo os responsáveis legal e
+     * financeiro.
+     */
     @FXML
     private void efetivarMatricula() {
         esconder(labelMensagem);
@@ -354,6 +367,7 @@ public class MatriculaController {
     //  DESLIGAMENTO (RN-12 / RN-030)
     // =================================================================
 
+    /** Calcula e mostra o valor do último mês e o aviso prévio, sem gravar nada. */
     private void simularDesligamento() {
         labelAviso.setText("");
         if (matriculaAtiva == null) {
@@ -371,13 +385,13 @@ public class MatriculaController {
                     + d.diasNoMes() + " dias do mês");
             labelValorProporcional.setText("Valor do último mês: " + Formatador.dinheiro(d.valorProporcional()));
             if (CalculadoraMensalidade.avisoCurto(d.diasDeAviso())) { // RN-12
-                labelAviso.setText("Atenção: aviso de " + d.diasDeAviso() + " dias. A RN-12 pede "
-                        + CalculadoraMensalidade.AVISO_PREVIO_DIAS + " (saída a partir de "
+                labelAviso.setText("Atenção: aviso de " + d.diasDeAviso() + " dias. O mínimo é de "
+                        + CalculadoraMensalidade.AVISO_PREVIO_DIAS + " dias (saída a partir de "
                         + Formatador.data(CalculadoraMensalidade.dataMinimaDesligamento(LocalDate.now()))
                         + "). Para desligar antes, será pedida confirmação e isso fica no histórico.");
                 labelAviso.setStyle("-fx-text-fill: #e65100; -fx-font-weight: bold;");
             } else {
-                labelAviso.setText("Aviso prévio de " + d.diasDeAviso() + " dias: dentro da RN-12.");
+                labelAviso.setText("Aviso prévio de " + d.diasDeAviso() + " dias: dentro do prazo mínimo.");
                 labelAviso.setStyle("-fx-text-fill: #607d8b;");
             }
         } catch (MatriculaException | IllegalArgumentException e) {
@@ -389,6 +403,7 @@ public class MatriculaController {
         }
     }
 
+    /** Desliga a criança na data escolhida, depois de confirmar o valor do último mês. */
     @FXML
     private void desligarAluno() {
         esconder(labelMensagem);
@@ -403,9 +418,9 @@ public class MatriculaController {
             String texto = "Desligar " + alunoSelecionado.getNome() + " em "
                     + Formatador.data(d.dataDesligamento()) + "?\n\n"
                     + "Valor do último mês: " + Formatador.dinheiro(d.valorProporcional()) + "\n"
-                    + (avisoCurto ? "\nATENÇÃO: aviso de apenas " + d.diasDeAviso() + " dias (a RN-12 pede "
+                    + (avisoCurto ? "\nATENÇÃO: aviso de apenas " + d.diasDeAviso() + " dias (o mínimo é de "
                                     + CalculadoraMensalidade.AVISO_PREVIO_DIAS
-                                    + "). Essa exceção ficará registrada no histórico.\n" : "")
+                                    + " dias). Essa exceção ficará registrada no histórico.\n" : "")
                     + "\nA matrícula e o contrato vigente serão encerrados.";
             if (!confirmar("Confirmar desligamento", texto)) {
                 return;
@@ -430,6 +445,7 @@ public class MatriculaController {
     //  TABELA DE MENSALIDADES (RN-07)
     // =================================================================
 
+    /** Reajusta o valor da mensalidade da faixa etária selecionada, com justificativa. */
     @FXML
     private void reajustarFaixa() {
         esconder(labelMensagem);
@@ -455,6 +471,7 @@ public class MatriculaController {
         }
     }
 
+    /** Volta ao menu principal. */
     @FXML
     private void voltar() {
         Navegacao.abrir("menu.fxml", "Menu");
@@ -464,6 +481,7 @@ public class MatriculaController {
     //  APOIO
     // =================================================================
 
+    /** Define o que cada coluna das tabelas da tela mostra. */
     private void configurarTabelas() {
         colunaNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNome()));
         colunaNascimento.setCellValueFactory(c -> new SimpleStringProperty(
@@ -518,6 +536,7 @@ public class MatriculaController {
         }
     }
 
+    /** Abre uma caixa de confirmação (Sim/Não); devolve verdadeiro se a pessoa confirmar. */
     private boolean confirmar(String titulo, String texto) {
         Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, texto, ButtonType.YES, ButtonType.NO);
         alerta.setTitle(titulo);
@@ -525,22 +544,26 @@ public class MatriculaController {
         return alerta.showAndWait().orElse(ButtonType.NO) == ButtonType.YES;
     }
 
+    /** Mostra uma mensagem de sucesso, em verde. */
     private void sucesso(String texto) {
         labelMensagem.setStyle("-fx-text-fill: #2e7d32; -fx-font-weight: bold;");
         mostrar(labelMensagem, texto);
     }
 
+    /** Mostra uma mensagem de erro, em vermelho. */
     private void erro(String texto) {
         labelMensagem.setStyle("-fx-text-fill: #c62828; -fx-font-weight: bold;");
         mostrar(labelMensagem, texto);
     }
 
+    /** Torna visível o rótulo, com o texto informado. */
     private static void mostrar(Label label, String texto) {
         label.setText(texto);
         label.setVisible(true);
         label.setManaged(true);
     }
 
+    /** Esconde o rótulo e libera o espaço que ele ocupava. */
     private static void esconder(Label label) {
         label.setVisible(false);
         label.setManaged(false);

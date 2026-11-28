@@ -6,10 +6,12 @@ package br.com.crechesementinhas.service;
  */
 public class UsuarioException extends Exception {
 
+    /** Cria o erro com a mensagem pronta para a tela. */
     public UsuarioException(String mensagem) {
         super(mensagem);
     }
 
+    /** Cria o erro com a mensagem e a causa original. */
     public UsuarioException(String mensagem, Throwable causa) {
         super(mensagem, causa);
     }

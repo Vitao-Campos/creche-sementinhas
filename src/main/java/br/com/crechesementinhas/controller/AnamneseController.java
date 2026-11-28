@@ -93,6 +93,7 @@ public class AnamneseController {
     private String estadoSalvo; // null até a primeira carga
     private boolean restaurandoSelecao;
 
+    /** Prepara a tela da ficha de anamnese: lista de matrículas, campos de descrição e busca. */
     @FXML
     private void initialize() {
         colunaNome.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().nomeAluno()));
@@ -161,6 +162,10 @@ public class AnamneseController {
 
     // ------------------------------------------------------------------ formulário
 
+    /**
+     * Liga a caixa de marcação ao campo de descrição: marcar libera o campo; desmarcar limpa e
+     * trava.
+     */
     private void ligar(CheckBox caixa, TextField descricao) {
         descricao.setDisable(true);
         caixa.selectedProperty().addListener((obs, antigo, marcada) -> {
@@ -171,6 +176,7 @@ public class AnamneseController {
         });
     }
 
+    /** Deixa a tela sem nenhuma criança selecionada, com o formulário vazio e travado. */
     private void mostrarNenhuma() {
         dadosAtuais = null;
         labelCrianca.setText("Nenhuma criança selecionada");
@@ -186,6 +192,10 @@ public class AnamneseController {
         guardarEstado();
     }
 
+    /**
+     * Abre a ficha da matrícula escolhida: mostra os dados da criança e preenche as respostas já
+     * salvas.
+     */
     private void abrir(int idMatricula) {
         try {
             dadosAtuais = anamneseService.carregar(idMatricula);
@@ -218,6 +228,7 @@ public class AnamneseController {
         guardarEstado();
     }
 
+    /** Monta o texto de um responsável, com parentesco e papel (legal e/ou financeiro). */
     private String descreverResponsavel(AlunoResponsavel v) {
         String papel = (v.isResponsavelLegal() ? "legal" : "")
                 + (v.isResponsavelLegal() && v.isResponsavelFinanceiro() ? " e " : "")
@@ -225,6 +236,10 @@ public class AnamneseController {
         return v.getNomeResponsavel() + " (" + v.getGrauParentesco() + (papel.isEmpty() ? "" : ", " + papel) + ")";
     }
 
+    /**
+     * Preenche o formulário com as respostas da ficha (ou o esvazia quando a ficha ainda não
+     * existe).
+     */
     private void preencher(FichaAnamnese f) {
         checkAlergia.setSelected(f != null && f.isPossuiAlergia());
         campoAlergia.setText(f == null ? "" : texto(f.getDescricaoAlergia()));
@@ -248,6 +263,7 @@ public class AnamneseController {
         campoJustificativa.clear();
     }
 
+    /** Lê o formulário e monta a ficha de anamnese da matrícula aberta. */
     private FichaAnamnese lerFormulario() {
         FichaAnamnese f = new FichaAnamnese();
         f.setIdMatricula(dadosAtuais == null ? null : dadosAtuais.cabecalho().idMatricula());
@@ -275,6 +291,7 @@ public class AnamneseController {
 
     // ------------------------------------------------------------------ alterações não salvas
 
+    /** Junta tudo o que está digitado numa só linha de texto, para comparar com o estado salvo. */
     private String fotoDoFormulario() {
         return String.join("\u0001",
                 String.valueOf(checkAlergia.isSelected()), campoAlergia.getText(),
@@ -290,14 +307,17 @@ public class AnamneseController {
                 String.valueOf(checkImagem.isSelected()), campoJustificativa.getText());
     }
 
+    /** Guarda uma foto do formulário, para saber depois se algo foi alterado. */
     private void guardarEstado() {
         estadoSalvo = fotoDoFormulario();
     }
 
+    /** Diz se o formulário tem dados digitados que ainda não foram salvos. */
     private boolean temAlteracoes() {
         return estadoSalvo != null && !fotoDoFormulario().equals(estadoSalvo);
     }
 
+    /** Pergunta se a pessoa quer descartar as alterações não salvas. */
     private boolean confirmarDescarte() {
         ButtonType descartar = new ButtonType("Descartar", ButtonBar.ButtonData.OK_DONE);
         ButtonType continuar = new ButtonType("Continuar editando", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -310,6 +330,7 @@ public class AnamneseController {
 
     // ------------------------------------------------------------------ ações
 
+    /** Salva a ficha (cria na primeira vez, atualiza nas seguintes) e atualiza a lista. */
     @FXML
     private void salvar() {
         if (dadosAtuais == null) {
@@ -338,6 +359,7 @@ public class AnamneseController {
         }
     }
 
+    /** Salva o PDF da ficha no local escolhido pela pessoa. */
     @FXML
     private void salvarPdf() {
         if (!podeGerarPdf()) {
@@ -371,6 +393,7 @@ public class AnamneseController {
         return true;
     }
 
+    /** Gera o PDF da ficha numa pasta temporária, para visualizar ou imprimir. */
     private File gerarPdfTemporario() {
         if (!podeGerarPdf()) {
             return null;
@@ -386,10 +409,12 @@ public class AnamneseController {
         }
     }
 
+    /** Sugere o nome do arquivo PDF, com o número da matrícula. */
     private String nomeArquivo() {
         return "anamnese_" + dadosAtuais.cabecalho().numeroMatricula() + ".pdf";
     }
 
+    /** Abre o arquivo no programa padrão do computador (leitor de PDF), sem travar a tela. */
     private void abrirNoComputador(File arquivo) {
         if (!Desktop.isDesktopSupported()) {
             mostrarMensagem("Não foi possível abrir automaticamente. O arquivo está em: "
@@ -406,6 +431,7 @@ public class AnamneseController {
         }).start();
     }
 
+    /** Volta ao menu principal, perguntando antes se há alterações não salvas. */
     @FXML
     private void voltar() {
         if (temAlteracoes() && !confirmarDescarte()) {
@@ -416,10 +442,12 @@ public class AnamneseController {
 
     // ------------------------------------------------------------------ utilitários
 
+    /** Devolve o texto, ou vazio quando for nulo. */
     private String texto(String valor) {
         return valor == null ? "" : valor;
     }
 
+    /** Mostra uma mensagem abaixo do formulário, em vermelho (erro) ou verde (sucesso). */
     private void mostrarMensagem(String texto, boolean erro) {
         labelMensagem.setText(texto);
         labelMensagem.setTextFill(erro ? Color.web("#c62828") : Color.web("#2e7d32"));
@@ -427,11 +455,13 @@ public class AnamneseController {
         labelMensagem.setManaged(true);
     }
 
+    /** Esconde a mensagem exibida abaixo do formulário. */
     private void esconderMensagem() {
         labelMensagem.setVisible(false);
         labelMensagem.setManaged(false);
     }
 
+    /** Mostra na tela a mensagem de erro de acesso ao banco de dados. */
     private void erroDeBanco(SQLException e) {
         mostrarMensagem("Erro ao acessar o banco de dados: " + e.getMessage(), true);
     }
